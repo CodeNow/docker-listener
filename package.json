@@ -24,8 +24,10 @@
   },
   "homepage": "https://github.com/CodeNow/docker-listener",
   "devDependencies": {
+    "code": "^1.2.1",
     "jshint": "^2.5.10",
-    "lab": "^5.0.2"
+    "lab": "^5.0.2",
+    "supertest": "^0.15.0"
   },
   "dependencies": {
     "101": "^0.7.1",
