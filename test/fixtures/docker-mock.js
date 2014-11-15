@@ -18,9 +18,15 @@ module.exports.start = function (port, cb) {
 };
 module.exports.stop = function (cb) {
   var self = this;
-  this.server.close(function (err) {
-    self.started = false;
-    cb(err);
-  });
+  try {
+    this.server.close(function (err) {
+      self.started = false;
+      if (cb) {
+        cb(err);
+      }
+    });
+  } catch (err) {
+    console.log('silently fail to stop server');
+  }
   return this;
 };

@@ -5,7 +5,7 @@
   "main": "index.js",
   "private": true,
   "scripts": {
-    "bdd": "npm run clear; NODE_PATH=./lib NODE_ENV=test lab -v -l -m 200 -e test `cat test/whitelist.txt`",
+    "bdd": "npm run clear; NODE_PATH=./lib NODE_ENV=test lab -v -l -m 8000 -e test `cat test/whitelist.txt`",
     "test": "npm run clear; npm run lint && npm run bdd",
     "lint": "jshint .",
     "start": "NODE_PATH=./lib node index.js"
@@ -23,13 +23,6 @@
     "url": "https://github.com/CodeNow/docker-listener/issues"
   },
   "homepage": "https://github.com/CodeNow/docker-listener",
-  "devDependencies": {
-    "code": "^1.2.1",
-    "jshint": "^2.5.10",
-    "lab": "^5.0.2",
-    "nock": "^0.50.0",
-    "supertest": "^0.15.0"
-  },
   "dependencies": {
     "101": "^0.7.1",
     "JSONStream": "^0.9.0",
@@ -40,5 +33,13 @@
     "exec-sync": "^0.1.6",
     "express": "^4.10.2",
     "morgan": "^1.5.0"
+  },
+  "devDependencies": {
+    "callback-count": "^0.1.0",
+    "code": "^1.2.1",
+    "docker-mock": "git://github.com/Runnable/docker-mock.git#feature-events-endpoint",
+    "jshint": "^2.5.10",
+    "lab": "^5.0.2",
+    "supertest": "^0.15.0"
   }
 }
