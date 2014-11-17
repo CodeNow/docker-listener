@@ -36,7 +36,7 @@
   "devDependencies": {
     "callback-count": "^0.1.0",
     "code": "^1.2.1",
-    "docker-mock": "git://github.com/Runnable/docker-mock.git#feature-events-endpoint",
+    "docker-mock": "0.4.0",
     "jshint": "^2.5.10",
     "lab": "^5.0.2",
     "supertest": "^0.15.0"
