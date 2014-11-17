@@ -1,2 +1,3 @@
+test/publisher.js
 test/app.js
 test/listener.js
