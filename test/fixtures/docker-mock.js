@@ -1,32 +1,25 @@
 'use strict';
-var app = require('docker-mock');
+var spawn = require('child_process').fork;
 
-module.exports.started = false;
-module.exports.start = function (port, cb) {
-  if (typeof port === 'function') {
-    cb = port;
-    port = 4243;
-  }
-  port = port || 4243;
-  var self = this;
-  this.server = app.listen(port, function (err) {
-    if (err) { throw err; }
-    self.started = true;
-    cb(err);
+module.exports.start = function (cb) {
+  this.server = spawn('test/fixtures/docker-server.js');
+
+  console.log('Spawned child pid: ' + this.server.pid);
+  this.server.on('message', function (msg) {
+    if (msg === 'started') {
+      cb();
+    }
   });
   return this;
 };
 module.exports.stop = function (cb) {
-  var self = this;
-  try {
-    this.server.close(function (err) {
-      self.started = false;
-      if (cb) {
-        cb(err);
-      }
+  if (this.server) {
+    this.server.on('exit', function (code) {
+      console.log('docker server process exited with code ' + code);
+      cb();
     });
-  } catch (err) {
-    console.log('silently fail to stop server');
+    this.server.kill('SIGHUP');
+    this.server = null;
   }
   return this;
 };

@@ -5,7 +5,7 @@
   "main": "index.js",
   "private": true,
   "scripts": {
-    "bdd": "npm run clear; NODE_PATH=./lib NODE_ENV=test lab -v -l -m 8000 -e test `cat test/whitelist.txt`",
+    "bdd": "npm run clear; NODE_PATH=./lib NODE_ENV=test lab -v -l -m 2500 -e test `cat test/whitelist.txt`",
     "test": "npm run clear; npm run lint && npm run bdd",
     "lint": "jshint .",
     "start": "NODE_PATH=./lib node index.js"
@@ -25,7 +25,6 @@
   "homepage": "https://github.com/CodeNow/docker-listener",
   "dependencies": {
     "101": "^0.7.1",
-    "JSONStream": "^0.9.0",
     "debug": "^2.1.0",
     "dockerode": "^2.0.4",
     "dotenv": "^0.4.0",

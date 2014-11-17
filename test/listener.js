@@ -56,53 +56,120 @@ describe('listener', function () {
       ctx.docker = docker.start(done);
     });
 
+    afterEach(function (done) {
+      process.env.AUTO_RECONNECT = 'false';
+      ctx.docker.stop(done);
+    });
+
     it('should work when publisher is Writable', function (done) {
-      var count = cbCount(10, function () {
-        done();
-        ctx.docker.stop();
-      });
+      var count = cbCount(10, done);
       var ws = new stream.Stream();
       ws.writable = true;
       ws.write = function (data) {
         var json = JSON.parse(data.toString());
+        /*jshint -W030 */
         expect(json.status).to.be.String;
         expect(json.id).to.be.String;
         expect(json.from).to.be.String;
         expect(json.time).to.be.Number;
+        /*jshint -W030 */
         count.next();
       };
       listener.start(ws);
     });
   });
 
-  // describe('stop and start docker', function () {
-  //   beforeEach(function (done) {
-  //     ctx.docker = docker.start(done);
-  //   });
+  describe('start docker', function () {
+    beforeEach(function (done) {
+      process.env.AUTO_RECONNECT = 'true';
+      ctx.docker = docker.start(done);
+    });
 
-  //   it('should handle case when docker was down for sometime', function (done) {
-  //     var count = cbCount(20, function () {
-  //       // done();
-  //       // ctx.docker.stop();
-  //     });
-  //     var ws = new stream.Stream();
-  //     ws.writable = true;
-  //     ws.write = function (data) {
-  //       var json = JSON.parse(data.toString());
-  //       console.log('nnn', json.status)
-  //       expect(json.status).to.be.String;
-  //       expect(json.id).to.be.String;
-  //       expect(json.from).to.be.String;
-  //       expect(json.time).to.be.Number;
-  //       count.next();
-  //     };
-  //     listener.start(ws, process.stdout);
-  //     setTimeout(function() {
-  //       console.log('closed docker from test');
-  //       ctx.docker.stop();
-  //     }, 400);
-  //   });
-  // });
+    afterEach(function (done) {
+      process.env.AUTO_RECONNECT = 'false';
+      ctx.docker.stop(done);
+    });
+
+    it('should handle case when docker was down for sometime', function (done) {
+      var count = cbCount(20, done);
+      var reconnectCount = cbCount(3, function () {
+        ctx.docker = docker.start(function () {});
+      });
+      var reporter = new stream.Stream();
+      reporter.writable = true;
+      reporter.write = function (data) {
+        expect(data.toString()).to.equal('cannot connect to the docker');
+        reconnectCount.next();
+      };
+      var ws = new stream.Stream();
+      ws.writable = true;
+      ws.write = function (data) {
+        var json = JSON.parse(data.toString());
+        /*jshint -W030 */
+        expect(json.status).to.be.String;
+        expect(json.id).to.be.String;
+        expect(json.from).to.be.String;
+        expect(json.time).to.be.Number;
+        /*jshint +W030 */
+        count.next();
+      };
+      ws.end = function () {
+        console.log('disconnect');
+      };
+      listener.start(ws, reporter);
+    });
+  });
+
+  describe('re-start docker', function () {
+    beforeEach(function (done) {
+      process.env.AUTO_RECONNECT = 'true';
+      ctx.docker = docker.start(done);
+    });
+
+    afterEach(function (done) {
+      process.env.AUTO_RECONNECT = 'false';
+      ctx.docker.stop(done);
+    });
+
+    it('should handle case when docker was working and than down for some time', function (done) {
+      var count = cbCount(10, function () {
+        done();
+        ctx.docker.stop();
+      });
+      var ws = new stream.Stream();
+      ws.writable = true;
+      var messagesCounter = 0;
+      ws.write = function (data) {
+        var json = JSON.parse(data.toString());
+        if (messagesCounter !== 4) {
+          if (messagesCounter === 5) {
+            expect(json.status).to.equal('docker_down');
+          }
+          /*jshint -W030 */
+          expect(json.status).to.be.String;
+          expect(json.id).to.be.String;
+          expect(json.from).to.be.String;
+          expect(json.time).to.be.Number;
+          /*jshint +W030 */
+          count.next();
+        } else {
+          ctx.docker.stop(function(){
+            console.log('closed docker');
+            setTimeout(function () {
+              ctx.docker = docker.start(function () {
+                console.log('docker is up again');
+              });
+            }, 1000);
+          });
+        }
+        messagesCounter++;
+      };
+      ws.end = function () {
+        console.log('disconnect');
+      };
+      listener.start(ws, process.stdout);
+    });
+  });
 
 
 
