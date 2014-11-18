@@ -60,7 +60,7 @@ describe('listener', function () {
         var json = JSON.parse(data.toString());
         if (messagesCounter !== 4) {
           if (messagesCounter === 5) {
-            expect(json.status).to.equal('docker_down');
+            expect(json.status).to.equal('docker_deamon_down');
           }
           /*jshint -W030 */
           expect(json.status).to.be.String;
