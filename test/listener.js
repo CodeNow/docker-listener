@@ -69,43 +69,43 @@ describe('listener', function () {
   //   });
   // });
 
-  describe('start docker', function () {
-    beforeEach(function (done) {
-      process.env.AUTO_RECONNECT = 'true';
-      ctx.docker = docker.start(done);
-    });
+  // describe('start docker', function () {
+  //   beforeEach(function (done) {
+  //     process.env.AUTO_RECONNECT = 'true';
+  //     ctx.docker = docker.start(done);
+  //   });
 
 
-    it('should handle case when docker was down for sometime', function (done) {
-      var count = cbCount(20, function () {
-        process.env.AUTO_RECONNECT = 'false';
-        ctx.docker.stop(done);
-      });
-      var reconnectCount = cbCount(3, function () {
-        ctx.docker = docker.start(function () {});
-      });
-      var reporter = new stream.Stream();
-      reporter.writable = true;
-      reporter.write = function (data) {
-        expect(data.toString()).to.equal('cannot connect to the docker');
-        reconnectCount.next();
-      };
-      var ws = new stream.Stream();
-      ws.writable = true;
-      ws.write = function (data) {
-        var json = JSON.parse(data.toString());
-        /*jshint -W030 */
-        expect(json.status).to.be.String;
-        expect(json.id).to.be.String;
-        expect(json.from).to.be.String;
-        expect(json.time).to.be.Number;
-        /*jshint +W030 */
-        count.next();
-      };
-      ws.end = function () {
-        console.log('disconnect');
-      };
-      listener.start(ws, reporter);
-    });
-  });
+  //   it('should handle case when docker was down for sometime', function (done) {
+  //     var count = cbCount(20, function () {
+  //       process.env.AUTO_RECONNECT = 'false';
+  //       ctx.docker.stop(done);
+  //     });
+  //     var reconnectCount = cbCount(3, function () {
+  //       ctx.docker = docker.start(function () {});
+  //     });
+  //     var reporter = new stream.Stream();
+  //     reporter.writable = true;
+  //     reporter.write = function (data) {
+  //       expect(data.toString()).to.equal('cannot connect to the docker');
+  //       reconnectCount.next();
+  //     };
+  //     var ws = new stream.Stream();
+  //     ws.writable = true;
+  //     ws.write = function (data) {
+  //       var json = JSON.parse(data.toString());
+  //       /*jshint -W030 */
+  //       expect(json.status).to.be.String;
+  //       expect(json.id).to.be.String;
+  //       expect(json.from).to.be.String;
+  //       expect(json.time).to.be.Number;
+  //       /*jshint +W030 */
+  //       count.next();
+  //     };
+  //     ws.end = function () {
+  //       console.log('disconnect');
+  //     };
+  //     listener.start(ws, reporter);
+  //   });
+  // });
 });
