@@ -1,3 +1,4 @@
 test/publisher.js
-test/app.js
 test/listener.js
+test/docker-restart.js
+test/app.js

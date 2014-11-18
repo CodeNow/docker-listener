@@ -7,12 +7,12 @@ var describe = lab.experiment;
 var it = lab.test;
 var expect = Code.expect;
 
-var app = require('../lib/app.js');
 var supertest = require('supertest');
 
 describe('route tests', function () {
   describe('GET', function () {
     it('should return app info on /', function (done) {
+      var app = require('../lib/app.js');
       supertest(app)
         .get('/')
         .end(function (err, res) {
@@ -25,6 +25,7 @@ describe('route tests', function () {
     });
 
     it('should fail on /fake', function (done) {
+      var app = require('../lib/app.js');
       supertest(app)
         .get('/fake')
         .expect(404)
