@@ -39,35 +39,35 @@ describe('listener', function () {
     }
   });
 
-  describe('with writabe', function () {
-    beforeEach(function (done) {
-      process.env.AUTO_RECONNECT = 'true';
-      ctx.docker = docker.start(done);
-    });
+  // describe('with writabe', function () {
+  //   beforeEach(function (done) {
+  //     process.env.AUTO_RECONNECT = 'true';
+  //     ctx.docker = docker.start(done);
+  //   });
 
-    it('should work when publisher is Writable', function (done) {
-      var count = cbCount(10, function () {
-        process.env.AUTO_RECONNECT = 'false';
-        ctx.docker.stop(done);
-      });
-      var ws = new stream.Stream();
-      ws.writable = true;
-      ws.write = function (data) {
-        var json = JSON.parse(data.toString());
-        /*jshint -W030 */
-        expect(json.status).to.be.String;
-        expect(json.id).to.be.String;
-        expect(json.from).to.be.String;
-        expect(json.time).to.be.Number;
-        /*jshint -W030 */
-        count.next();
-      };
-      ws.end = function () {
-        console.log('disconnect');
-      };
-      listener.start(ws);
-    });
-  });
+  //   it('should work when publisher is Writable', function (done) {
+  //     var count = cbCount(10, function () {
+  //       process.env.AUTO_RECONNECT = 'false';
+  //       ctx.docker.stop(done);
+  //     });
+  //     var ws = new stream.Stream();
+  //     ws.writable = true;
+  //     ws.write = function (data) {
+  //       var json = JSON.parse(data.toString());
+  //       /*jshint -W030 */
+  //       expect(json.status).to.be.String;
+  //       expect(json.id).to.be.String;
+  //       expect(json.from).to.be.String;
+  //       expect(json.time).to.be.Number;
+  //       /*jshint -W030 */
+  //       count.next();
+  //     };
+  //     ws.end = function () {
+  //       console.log('disconnect');
+  //     };
+  //     listener.start(ws);
+  //   });
+  // });
 
   describe('start docker', function () {
     beforeEach(function (done) {
