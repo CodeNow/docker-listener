@@ -45,7 +45,20 @@ describe('listener', function () {
       ctx.docker = docker.start(done);
     });
 
-
+    function restartDocker (ctx) {
+      ctx.docker.stop(function(){
+        console.log('closed docker');
+        setTimeout(function () {
+          ctx.docker = docker.start(function () {
+            console.log('docker is up again');
+          });
+        }, 1000);
+      });
+    }
+    // receive 4 good events.
+    // stop docker and receive docker_daemon_down event
+    // start docker and receive docker_daemon_up
+    // receive good events for the rest
     it('should handle case when docker was working and than down for some time', function (done) {
       var count = cbCount(10, function () {
         process.env.AUTO_RECONNECT = 'false';
@@ -57,27 +70,27 @@ describe('listener', function () {
       ws.writable = true;
       var messagesCounter = 0;
       ws.write = function (data) {
+        /*jshint maxcomplexity:6 */
         var json = JSON.parse(data.toString());
-        if (messagesCounter !== 4) {
-          if (messagesCounter === 5) {
-            expect(json.status).to.equal('docker_deamon_down');
-          }
-          /*jshint -W030 */
-          expect(json.status).to.be.String;
-          expect(json.id).to.be.String;
-          expect(json.from).to.be.String;
-          expect(json.time).to.be.Number;
-          /*jshint +W030 */
-        } else {
-          ctx.docker.stop(function(){
-            console.log('closed docker');
-            setTimeout(function () {
-              ctx.docker = docker.start(function () {
-                console.log('docker is up again');
-              });
-            }, 1000);
-          });
+        if (messagesCounter === 0) {
+          expect(json.status).to.equal('docker_daemon_up');
         }
+        // after 4 messages just restart the docker
+        if (messagesCounter === 4) {
+          restartDocker(ctx);
+        }
+        if (messagesCounter === 5) {
+          expect(json.status).to.equal('docker_daemon_down');
+        }
+        if (messagesCounter === 6) {
+          expect(json.status).to.equal('docker_daemon_up');
+        }
+        /*jshint -W030 */
+        expect(json.status).to.be.String;
+        expect(json.id).to.be.String;
+        expect(json.from).to.be.String;
+        expect(json.time).to.be.Number;
+        /*jshint +W030 */
         messagesCounter++;
         if (messagesCounter < 11) {
           count.next();
