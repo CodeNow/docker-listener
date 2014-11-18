@@ -7,10 +7,9 @@ var describe = lab.experiment;
 var it = lab.test;
 var expect = Code.expect;
 var beforeEach = lab.beforeEach;
-var afterEach = lab.afterEach;
 
 
-var _ = require('underscore');
+
 var cbCount = require('callback-count');
 var stream = require('stream');
 var listener = require('../lib/listener.js');

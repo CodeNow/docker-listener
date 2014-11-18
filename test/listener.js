@@ -7,7 +7,6 @@ var describe = lab.experiment;
 var it = lab.test;
 var expect = Code.expect;
 var beforeEach = lab.beforeEach;
-var afterEach = lab.afterEach;
 
 
 var cbCount = require('callback-count');
@@ -65,7 +64,7 @@ describe('listener', function () {
       };
       ws.end = function () {
         console.log('disconnect');
-      }
+      };
       listener.start(ws);
     });
   });
