@@ -24,17 +24,27 @@ describe('listener', function () {
       listener.start(new stream.Stream());
       done('Should fail');
     } catch (err) {
-      expect(err.message).to.equal('Publisher should be Writable');
+      expect(err.message).to.equal('publisher stream should be Writable');
+      done();
+    }
+  });
+
+  it('should fail to start when publisher is Readable', function (done) {
+    try {
+      listener.start(new stream.Readable());
+      done('Should fail');
+    } catch (err) {
+      expect(err.message).to.equal('publisher stream should be Writable');
       done();
     }
   });
 
   it('should fail to start when reporter is not writable', function (done) {
     try {
-      listener.start(process.stdout, new stream.Stream());
+      listener.start(new stream.Writable(), new stream.Stream());
       done('Should fail');
     } catch (err) {
-      expect(err.message).to.equal('Reporter should be Writable');
+      expect(err.message).to.equal('reporter stream should be Writable');
       done();
     }
   });
