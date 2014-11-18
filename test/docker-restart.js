@@ -38,7 +38,6 @@ describe('listener', function () {
       var messagesCounter = 0;
       ws.write = function (data) {
         var json = JSON.parse(data.toString());
-        console.log('message', json);
         if (messagesCounter !== 4) {
           if (messagesCounter === 5) {
             expect(json.status).to.equal('docker_down');

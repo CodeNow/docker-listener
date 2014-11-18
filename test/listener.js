@@ -108,13 +108,4 @@ describe('listener', function () {
       listener.start(ws, reporter);
     });
   });
-  // it('should fail to connect if docker is down', function (done) {
-  //   var count = cbCount(2, done);
-  //   var reporter = new stream.Stream();
-  //   reporter.writable = true;
-  //   reporter.write = function (data) {
-  //     expect(data.toString()).to.equal('cannot connect to the docker');
-  //   };
-  //   listener.start(process.stdin, reporter);
-  // });
 });
