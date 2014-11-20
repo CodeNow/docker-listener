@@ -36,3 +36,8 @@ Two additional events are emiited:
 All events are published to the following redis channels: `runnable:docker:${EVENT_TYPE}`. Default channel name prefix is `runnable:docker:`, but it can be changed though ENV variables.
 Each payload will be in the JSON format.
 Payload has all fields provided by Docker plus additional `ip` property.
+
+## Integrations
+
+Events are piped to datadog.
+Errors are submitted to [Rollbar](https://rollbar.com/Runnable-2/docker-listener/).
