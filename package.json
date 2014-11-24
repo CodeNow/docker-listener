@@ -33,6 +33,7 @@
     "express": "^4.10.2",
     "ip": "^0.3.2",
     "morgan": "^1.5.0",
+    "node-uuid": "^1.4.1",
     "redis": "^0.12.1"
   },
   "devDependencies": {
