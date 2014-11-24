@@ -31,7 +31,7 @@ To run tests:
 This module supports all standard docker events like 'create', 'destroy', 'die', 'export', 'kill', 'pause', 'restart', 'start', 'stop', 'unpause', 'untag', 'delete'.
 Two additional events are emiited:
   * `docker_daemon_down` event when docker daemon went down.
-  * `docker_daemon_up` event when we were able to connect to teh docker daemon.
+  * `docker_daemon_up` event when we were able to connect to the docker daemon.
 
 All events are published to the following redis channels: `runnable:docker:${EVENT_TYPE}`. Default channel name prefix is `runnable:docker:`, but it can be changed though ENV variables.
 Each payload will be in the JSON format.
