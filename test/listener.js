@@ -13,7 +13,7 @@ var cbCount = require('callback-count');
 var stream = require('stream');
 var listener = require('../lib/listener.js');
 var docker = require('./fixtures/docker-mock.js');
-
+var ip = require('ip');
 
 describe('listener', function () {
   var ctx = {};
@@ -80,7 +80,7 @@ describe('listener', function () {
       ws.writable = true;
       var messagesCounter = 0;
       ws.write = function (data) {
-        /*jshint maxcomplexity:6 */
+        /*jshint maxcomplexity:7 */
         var json = JSON.parse(data.toString());
         if (messagesCounter === 0) {
           expect(json.status).to.equal('docker_daemon_up');
@@ -95,9 +95,15 @@ describe('listener', function () {
         if (messagesCounter === 6) {
           expect(json.status).to.equal('docker_daemon_up');
         }
+        if (json.host) {
+          var host = 'http://' + ip.address() + ':' + process.env.DOCKER_REMOTE_API_PORT;
+          expect(json.host).to.equal(host);
+        }
         /*jshint -W030 */
         expect(json.status).to.be.String;
         expect(json.id).to.be.String;
+        expect(json.host).to.be.String;
+        expect(json.uuid).to.be.String;
         expect(json.from).to.be.String;
         expect(json.time).to.be.Number;
         /*jshint +W030 */
