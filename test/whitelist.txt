@@ -1,3 +1,4 @@
+test/events.js
 test/publisher.js
 test/listener.js
 test/app.js
