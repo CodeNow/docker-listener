@@ -18,7 +18,7 @@ describe('events#enhanceEvent', function () {
     };
     var currDate = Date.now();
     var enhanced = events.enhanceEvent(original);
-    expect(enhanced.time).to.equal(currDate);
+    expect(enhanced.time).to.be.at.least(currDate);
     expect(enhanced.uuid).to.exist();
     expect(enhanced.ip).to.equal(ip.address());
     var host = 'http://' + ip.address() + ':' + process.env.DOCKER_REMOTE_API_PORT;
