@@ -35,6 +35,7 @@
     "ip": "^0.3.2",
     "morgan": "^1.5.0",
     "node-dogstatsd": "0.0.5",
+    "node-uuid": "^1.4.1",
     "redis": "^0.12.1",
     "rollbar": "^0.3.13"
   },

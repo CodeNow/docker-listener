@@ -22,6 +22,8 @@ describe('redis publisher', function () {
       var json = message.toString();
       /*jshint -W030 */
       expect(json.status).to.be.String;
+      expect(json.ip).to.be.String;
+      expect(json.uuid).to.be.String;
       /*jshint +W030 */
       count.next();
     });
