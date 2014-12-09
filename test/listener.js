@@ -22,7 +22,7 @@ describe('listener', function () {
 
   it('should fail to start when publisher is not writable', function (done) {
     try {
-      listener.start(new stream.Stream());
+      listener.start(new stream.Stream(), function () {});
       done('Should fail');
     } catch (err) {
       expect(err.message).to.equal('publisher stream should be Writable');
@@ -32,7 +32,7 @@ describe('listener', function () {
 
   it('should fail to start when publisher is Readable', function (done) {
     try {
-      listener.start(new stream.Readable());
+      listener.start(new stream.Readable(), function () {});
       done('Should fail');
     } catch (err) {
       expect(err.message).to.equal('publisher stream should be Writable');
@@ -126,7 +126,7 @@ describe('listener', function () {
       ws.end = function () {
         console.log('disconnect');
       };
-      listener.start(ws);
+      listener.start(ws, function () {});
     });
   });
 });
