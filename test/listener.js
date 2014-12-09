@@ -39,15 +39,6 @@ describe('listener', function () {
     }
   });
 
-  it('should fail to start when reporter is not writable', function (done) {
-    try {
-      listener.start(new stream.Writable(), new stream.Stream());
-      done('Should fail');
-    } catch (err) {
-      expect(err.message).to.equal('reporter stream should be Writable');
-      done();
-    }
-  });
 
   describe('re-start docker', function () {
     beforeEach(function (done) {
@@ -115,7 +106,7 @@ describe('listener', function () {
       ws.end = function () {
         console.log('disconnect');
       };
-      listener.start(ws, process.stdout);
+      listener.start(ws);
     });
   });
 });
