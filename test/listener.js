@@ -40,6 +40,7 @@ describe('listener', function () {
     }
   });
 
+
   describe('stopped docker', function () {
     before(function (done) {
       process.env.AUTO_RECONNECT = 'false';
