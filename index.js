@@ -20,7 +20,7 @@ function start (cb) {
   cb = cb || noop;
   server = app.listen(process.env.PORT, function (err) {
     if (err) { return cb(err); }
-    listener.start(publisher, process.stdout, cb);
+    listener.start(publisher, cb);
     debug('server listen on', process.env.PORT);
   });
 }
