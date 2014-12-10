@@ -7,7 +7,6 @@ var describe = lab.experiment;
 var it = lab.test;
 var expect = Code.expect;
 var beforeEach = lab.beforeEach;
-var before = lab.before;
 
 
 var cbCount = require('callback-count');
@@ -39,26 +38,6 @@ describe('listener', function () {
       done();
     }
   });
-
-
-  describe('stopped docker', function () {
-    before(function (done) {
-      process.env.AUTO_RECONNECT = 'false';
-      done();
-    });
-
-    it('should return an error', function (done) {
-      var ws = new stream.Stream();
-      ws.writable = true;
-      ws.write = function () {};
-      listener.start(ws, function (err) {
-        expect(err.code).to.equal('ECONNREFUSED');
-        done();
-      });
-    });
-  });
-
-
 
   describe('re-start docker', function () {
     beforeEach(function (done) {
