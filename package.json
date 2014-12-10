@@ -5,8 +5,7 @@
   "main": "index.js",
   "private": true,
   "scripts": {
-    "bdd": "npm run clear; NODE_PATH=./lib NODE_ENV=test lab -v -l -m 3000 -e test `cat test/whitelist.txt`",
-    "test": "npm run clear; npm run lint && npm run bdd",
+    "test": "npm run lint && NODE_PATH=./lib NODE_ENV=test lab -v -m 3000 -e test -f test/",
     "lint": "jshint .",
     "start": "NODE_PATH=./lib node index.js"
   },
