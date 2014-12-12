@@ -127,7 +127,7 @@ describe('listener', function () {
       var ws = new stream.Stream();
       ws.writable = true;
       var messagesCounter = 0;
-      ws.write = function (data) {
+      ws.write = function () {
         if (messagesCounter === 8) {
           listener.stop(function () {
             setTimeout(function () {
