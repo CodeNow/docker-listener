@@ -109,12 +109,10 @@ describe('listener', function () {
   describe('close', function () {
 
     beforeEach(function (done) {
-      process.env.AUTO_RECONNECT = 'false';
       ctx.docker = docker.start(done);
     });
 
     afterEach(function (done) {
-      process.env.AUTO_RECONNECT = 'false';
       ctx.docker.stop(done);
     });
 
