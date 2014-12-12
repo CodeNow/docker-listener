@@ -47,11 +47,8 @@ describe('listener', function () {
 
     function restartDocker (ctx) {
       ctx.docker.stop(function(){
-        console.log('closed docker');
         setTimeout(function () {
-          ctx.docker = docker.start(function () {
-            console.log('docker is up again');
-          });
+          ctx.docker = docker.start(function () {});
         }, 1000);
       });
     }
