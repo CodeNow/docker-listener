@@ -8,7 +8,6 @@ var it = lab.test;
 var expect = Code.expect;
 var beforeEach = lab.beforeEach;
 var afterEach = lab.afterEach;
-// var after = lab.after;
 
 
 var cbCount = require('callback-count');
