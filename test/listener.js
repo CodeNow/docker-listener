@@ -7,6 +7,7 @@ var describe = lab.experiment;
 var it = lab.test;
 var expect = Code.expect;
 var beforeEach = lab.beforeEach;
+var afterEach = lab.afterEach;
 
 
 var cbCount = require('callback-count');
@@ -14,6 +15,7 @@ var stream = require('stream');
 var listener = require('../lib/listener.js');
 var docker = require('./fixtures/docker-mock.js');
 var ip = require('ip');
+var debug = require('debug')('test-listener');
 
 describe('listener', function () {
   var ctx = {};
@@ -45,27 +47,21 @@ describe('listener', function () {
       ctx.docker = docker.start(done);
     });
 
-    function restartDocker (ctx) {
-      ctx.docker.stop(function(){
-        console.log('closed docker');
-        setTimeout(function () {
-          ctx.docker = docker.start(function () {
-            console.log('docker is up again');
-          });
-        }, 1000);
-      });
-    }
+    afterEach(function (done) {
+      process.env.AUTO_RECONNECT = 'false';
+      ctx.docker.stop(done);
+    });
+
+    afterEach(function (done) {
+      listener.stop(done);
+    });
+
     // receive 4 good events.
     // stop docker and receive docker_daemon_down event
     // start docker and receive docker_daemon_up
     // receive good events for the rest
     it('should handle case when docker was working and than down for some time', function (done) {
-      var count = cbCount(10, function () {
-        process.env.AUTO_RECONNECT = 'false';
-        ctx.docker.stop(function () {
-          done();
-        });
-      });
+      var count = cbCount(10, done);
       var ws = new stream.Stream();
       ws.writable = true;
       var messagesCounter = 0;
@@ -103,9 +99,63 @@ describe('listener', function () {
         }
       };
       ws.end = function () {
-        console.log('disconnect');
+        debug('disconnect');
       };
       listener.start(ws, function () {});
     });
   });
+
+  describe('close', function () {
+
+    beforeEach(function (done) {
+      ctx.docker = docker.start(done);
+    });
+
+    afterEach(function (done) {
+      ctx.docker.stop(done);
+    });
+
+    afterEach(function (done) {
+      listener.stop(done);
+    });
+
+
+    it('should stop receiving events after close was called', function (done) {
+      var ws = new stream.Stream();
+      ws.writable = true;
+      var messagesCounter = 0;
+      ws.write = function () {
+        if (messagesCounter === 8) {
+          listener.stop(function () {
+            setTimeout(function () {
+              // check that messageCounter === 9
+              // we didn't received any new messages after stop was called
+              if (messagesCounter === 9) {
+                done();
+              }
+              else {
+                done(new Error('Streaming never stopped'));
+              }
+            }, 500);
+          });
+        }
+        messagesCounter++;
+      };
+      ws.end = function () {
+        debug('disconnect');
+      };
+      listener.start(ws, function () {});
+    });
+
+  });
+
+
 });
+
+function restartDocker (ctx) {
+  ctx.docker.stop(function(){
+    setTimeout(function () {
+      ctx.docker = docker.start(function () {});
+    }, 1000);
+  });
+}
