@@ -1,29 +1,34 @@
 'use strict';
+require('../lib/loadenv')();
 var Code = require('code');
 
 var Lab = require('lab');
 var lab = exports.lab = Lab.script();
 var describe = lab.experiment;
 var it = lab.test;
+var beforeEach = lab.beforeEach;
+var afterEach = lab.afterEach;
 var expect = Code.expect;
+var dockerMock = require('docker-mock');
 
+var docker = require('../lib/docker');
 var events = require('../lib/events');
 var ip = require('ip');
 
-describe('events#enhanceEvent', function () {
-
+describe('events#enhance', function () {
   it('should add ip, uuid, host, time', function (done) {
     var original = {
       id: 'some-id'
     };
     var currDate = Date.now();
-    var enhanced = events.enhanceEvent(original);
-    expect(enhanced.time).to.be.at.least(currDate);
-    expect(enhanced.uuid).to.exist();
-    expect(enhanced.ip).to.equal(ip.address());
-    var host = 'http://' + ip.address() + ':' + process.env.DOCKER_REMOTE_API_PORT;
-    expect(enhanced.host).to.equal(host);
-    done();
+    events.enhance(original, function(err, enhanced) {
+      expect(enhanced.time).to.be.at.least(currDate);
+      expect(enhanced.uuid).to.exist();
+      expect(enhanced.ip).to.equal(ip.address());
+      var host = 'http://' + ip.address() + ':' + process.env.DOCKER_REMOTE_API_PORT;
+      expect(enhanced.host).to.equal(host);
+      done();
+    });
   });
 
   it('should not change time if exist', function (done) {
@@ -31,13 +36,60 @@ describe('events#enhanceEvent', function () {
       id: 'some-id',
       time: Date.now() - 1000
     };
-    var enhanced = events.enhanceEvent(original);
-    expect(enhanced.time).to.equal(original.time);
-    expect(enhanced.uuid).to.exist();
-    expect(enhanced.ip).to.equal(ip.address());
-    var host = 'http://' + ip.address() + ':' + process.env.DOCKER_REMOTE_API_PORT;
-    expect(enhanced.host).to.equal(host);
-    done();
+    events.enhance(original, function(err, enhanced) {
+      if (err) { return done(err); }
+      expect(enhanced.time).to.equal(original.time);
+      expect(enhanced.uuid).to.exist();
+      expect(enhanced.ip).to.equal(ip.address());
+      var host = 'http://' + ip.address() + ':' + process.env.DOCKER_REMOTE_API_PORT;
+      expect(enhanced.host).to.equal(host);
+      done();
+    });
+  });
+
+  describe('container events', function() {
+    var ctx = {};
+    beforeEach(function (done) {
+      process.env.AUTO_RECONNECT = 'true';
+      ctx.dockerMock = dockerMock.listen(process.env.DOCKER_REMOTE_API_PORT, done);
+    });
+
+    beforeEach(function(done) {
+      docker.createContainer({Image: 'ubuntu', Cmd: ['/bin/bash']}, function (err, container) {
+        if (err) { return done(err); }
+        container.start(function (err) {
+          if (err) { return done(err); }
+          ctx.container = container;
+          done();
+        });
+      });
+    });
+    afterEach(function (done) {
+      process.env.AUTO_RECONNECT = 'false';
+      ctx.dockerMock.close(done);
+    });
+    afterEach(function(done) {
+      ctx = {};
+      done();
+    });
+    ['create', 'die', 'export', 'kill', 'pause', 'restart', 'start', 'stop', 'unpause']
+      .forEach(function(event) {
+        it('should add inspect data if container event:'+event, function (done) {
+          var original = {
+            id: ctx.container.id,
+            status: event
+          };
+          events.enhance(original, function(err, enhanced) {
+            if (err) { return done(err); }
+            expect(enhanced.uuid).to.exist();
+            expect(enhanced.ip).to.equal(ip.address());
+            var host = 'http://' + ip.address() + ':' + process.env.DOCKER_REMOTE_API_PORT;
+            expect(enhanced.host).to.equal(host);
+            expect(enhanced.inspectData.Id).to.equal(ctx.container.id);
+            done();
+          });
+        });
+    });
   });
 
 });
