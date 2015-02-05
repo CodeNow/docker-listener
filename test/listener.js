@@ -67,31 +67,30 @@ describe('listener', function () {
       var messagesCounter = 0;
       ws.write = function (data) {
         /*jshint maxcomplexity:7 */
-        var json = JSON.parse(data.toString());
         if (messagesCounter === 0) {
-          expect(json.status).to.equal('docker_daemon_up');
+          expect(data.status).to.equal('docker_daemon_up');
         }
         // after 4 messages just restart the docker
         if (messagesCounter === 4) {
           restartDocker(ctx);
         }
         if (messagesCounter === 5) {
-          expect(json.status).to.equal('docker_daemon_down');
+          expect(data.status).to.equal('docker_daemon_down');
         }
         if (messagesCounter === 6) {
-          expect(json.status).to.equal('docker_daemon_up');
+          expect(data.status).to.equal('docker_daemon_up');
         }
-        if (json.host) {
+        if (data.host) {
           var host = 'http://' + ip.address() + ':' + process.env.DOCKER_REMOTE_API_PORT;
-          expect(json.host).to.equal(host);
+          expect(data.host).to.equal(host);
         }
         /*jshint -W030 */
-        expect(json.status).to.be.String;
-        expect(json.id).to.be.String;
-        expect(json.host).to.be.String;
-        expect(json.uuid).to.be.String;
-        expect(json.from).to.be.String;
-        expect(json.time).to.be.Number;
+        expect(data.status).to.be.String;
+        expect(data.id).to.be.String;
+        expect(data.host).to.be.String;
+        expect(data.uuid).to.be.String;
+        expect(data.from).to.be.String;
+        expect(data.time).to.be.Number;
         /*jshint +W030 */
         messagesCounter++;
         if (messagesCounter < 11) {
