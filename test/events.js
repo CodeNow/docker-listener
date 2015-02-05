@@ -90,6 +90,24 @@ describe('events#enhance', function () {
           });
         });
     });
+    ['random', 'anton', 'anand', 'untag', 'delete']
+      .forEach(function(event) {
+        it('should NOT add inspect data if other event:'+event, function (done) {
+          var original = {
+            id: ctx.container.id,
+            status: event
+          };
+          events.enhance(original, function(err, enhanced) {
+            if (err) { return done(err); }
+            expect(enhanced.uuid).to.exist();
+            expect(enhanced.ip).to.equal(ip.address());
+            var host = 'http://' + ip.address() + ':' + process.env.DOCKER_REMOTE_API_PORT;
+            expect(enhanced.host).to.equal(host);
+            expect(enhanced.inspectData).to.not.exist();
+            done();
+          });
+        });
+    });
   });
 
 });
