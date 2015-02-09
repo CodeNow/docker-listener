@@ -65,8 +65,11 @@ describe('listener', function () {
       var ws = new stream.Stream();
       ws.writable = true;
       var messagesCounter = 0;
+      /*jshint maxcomplexity:8 */
       ws.write = function (data) {
-        /*jshint maxcomplexity:7 */
+        if (typeof data === 'string') {
+          data = JSON.parse(data);
+        }
         if (messagesCounter === 0) {
           expect(data.status).to.equal('docker_daemon_up');
         }
