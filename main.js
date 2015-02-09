@@ -11,8 +11,8 @@ function start (port, cb) {
   cb = cb || noop;
   server = app.listen(port, function (err) {
     if (err) { return cb(err); }
+    debug('server listen on', port);
     listener.start(publisher, cb);
-    debug('server listen on', process.env.PORT);
   });
 }
 function stop (cb) {
