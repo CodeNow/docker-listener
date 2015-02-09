@@ -17,6 +17,9 @@ function start (port, cb) {
 }
 function stop (cb) {
   cb = cb || noop;
+  if (!server) {
+    throw new Error('trying to stop when server was not started');
+  }
   server.close(function (err) {
     if (err) { return cb(err); }
     listener.stop(cb);
