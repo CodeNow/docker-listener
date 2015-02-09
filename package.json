@@ -2,7 +2,7 @@
   "name": "docker-listener",
   "version": "0.1.1",
   "description": "Pipe Docker events into external target",
-  "main": "index.js",
+  "main": "main.js",
   "private": true,
   "scripts": {
     "test": "npm run lint && NODE_PATH=./lib NODE_ENV=test lab -v -m 3000 -e test -f test/",
