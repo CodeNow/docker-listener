@@ -3,7 +3,7 @@
  */
 'use strict';
 
-require('loadenv')('docker-listener');
+require('loadenv')('docker-listener:env');
 
 var error = require('./lib/error.js');
 var main = require('./main.js');

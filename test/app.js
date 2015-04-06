@@ -3,7 +3,7 @@
  */
 'use strict';
 
-require('loadenv')();
+require('loadenv')('docker-listener:test');
 var Code = require('code');
 var Lab = require('lab');
 var supertest = require('supertest');
