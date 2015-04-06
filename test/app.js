@@ -1,13 +1,18 @@
+/**
+ * @module test/app
+ */
 'use strict';
+
+require('loadenv')();
 var Code = require('code');
-
 var Lab = require('lab');
-var lab = exports.lab = Lab.script();
-var describe = lab.experiment;
-var it = lab.test;
-var expect = Code.expect;
-
 var supertest = require('supertest');
+
+var lab = exports.lab = Lab.script();
+
+var describe = lab.experiment;
+var expect = Code.expect;
+var it = lab.test;
 
 describe('route tests', function () {
   describe('GET', function () {
@@ -37,6 +42,5 @@ describe('route tests', function () {
           done();
         });
     });
-
   });
 });

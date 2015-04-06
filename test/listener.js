@@ -1,25 +1,29 @@
+/**
+ * @module test/listener
+ */
 'use strict';
+
+require('loadenv')();
 var Code = require('code');
-
 var Lab = require('lab');
-var lab = exports.lab = Lab.script();
-var describe = lab.experiment;
-var it = lab.test;
-var expect = Code.expect;
-var beforeEach = lab.beforeEach;
-var afterEach = lab.afterEach;
-
-
 var cbCount = require('callback-count');
-var stream = require('stream');
-var listener = require('../lib/listener.js');
-var docker = require('./fixtures/docker-mock.js');
-var ip = require('ip');
 var debug = require('debug')('test-listener');
+var ip = require('ip');
+var stream = require('stream');
+
+var docker = require('./fixtures/docker-mock.js');
+var listener = require('../lib/listener.js');
+
+var lab = exports.lab = Lab.script();
+
+var afterEach = lab.afterEach;
+var beforeEach = lab.beforeEach;
+var describe = lab.experiment;
+var expect = Code.expect;
+var it = lab.test;
 
 describe('listener', function () {
   var ctx = {};
-
 
   it('should fail to start when publisher is not writable', function (done) {
     try {
