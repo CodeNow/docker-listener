@@ -24,6 +24,7 @@ To run tests:
 
 ```
   npm test
+  npm run test-watch
 ```
 
 ## Supported events
