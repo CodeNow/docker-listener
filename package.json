@@ -2,7 +2,7 @@
   "name": "docker-listener",
   "version": "0.2.1",
   "description": "Pipe Docker events into external target",
-  "main": "main.js",
+  "main": "index.js",
   "private": true,
   "scripts": {
     "test-watch": "node_modules/.bin/rerun-script test",
