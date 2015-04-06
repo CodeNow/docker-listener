@@ -1,4 +1,5 @@
 /**
+ * Handle server start/stop requirements
  * @module main
  */
 'use strict';
@@ -18,7 +19,7 @@ module.exports = {
 var server;
 
 /**
- * Listen for incoming requests
+ * Listen for events from Docker and publish to Redis
  * @param {String} port
  * @param {Function} cb
  */
