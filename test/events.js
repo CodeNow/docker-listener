@@ -127,5 +127,4 @@ describe('events#enhance', function () {
         });
     });
   });
-
 });
