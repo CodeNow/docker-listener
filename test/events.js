@@ -1,5 +1,4 @@
 'use strict';
-require('loadenv')('docker-listener:env');
 var Code = require('code');
 
 var Lab = require('lab');
