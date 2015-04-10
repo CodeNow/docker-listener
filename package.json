@@ -2,12 +2,20 @@
   "name": "docker-listener",
   "version": "0.2.1",
   "description": "Pipe Docker events into external target",
-  "main": "main.js",
+  "main": "index.js",
   "private": true,
   "scripts": {
+    "test-watch": "node_modules/.bin/rerun-script test",
     "test": "npm run lint && NODE_PATH=./lib NODE_ENV=test lab -v -m 3000 -e test -f test/",
     "lint": "jshint .",
     "start": "NODE_PATH=./lib node index.js"
+  },
+  "watches": {
+    "test": [
+      "*.js",
+      "lib/**/*.js",
+      "test/**/*.js"
+    ]
   },
   "repository": {
     "type": "git",
@@ -45,6 +53,7 @@
     "docker-mock": "0.4.0",
     "jshint": "^2.5.10",
     "lab": "^5.0.2",
+    "rerun-script": "^0.6.0",
     "supertest": "^0.15.0"
   }
 }
