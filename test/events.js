@@ -1,20 +1,25 @@
+/**
+ * @module lib/events
+ */
 'use strict';
-require('../lib/loadenv')();
-var Code = require('code');
 
+require('loadenv')('docker-listener:test');
+var Code = require('code');
 var Lab = require('lab');
-var lab = exports.lab = Lab.script();
-var describe = lab.experiment;
-var it = lab.test;
-var beforeEach = lab.beforeEach;
-var afterEach = lab.afterEach;
-var expect = Code.expect;
 var dockerMock = require('docker-mock');
+var ip = require('ip');
 var os = require('os');
 
 var docker = require('../lib/docker');
 var events = require('../lib/events');
-var ip = require('ip');
+
+var lab = exports.lab = Lab.script();
+
+var afterEach = lab.afterEach;
+var beforeEach = lab.beforeEach;
+var describe = lab.experiment;
+var expect = Code.expect;
+var it = lab.test;
 
 describe('events#enhance', function () {
   it('should add ip, uuid, host, time', function (done) {
@@ -122,5 +127,4 @@ describe('events#enhance', function () {
         });
     });
   });
-
 });

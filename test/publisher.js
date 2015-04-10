@@ -1,19 +1,23 @@
+/**
+ * @module test/publisher
+ */
 'use strict';
+
+require('loadenv')('docker-listener:test');
 var Code = require('code');
-
 var Lab = require('lab');
-var lab = exports.lab = Lab.script();
-var describe = lab.experiment;
-var it = lab.test;
-var expect = Code.expect;
-
-
 var cbCount = require('callback-count');
+
 var publisher = require('../lib/publisher')();
 var redis = require('./fixtures/redis')();
 
-describe('redis publisher', function () {
+var lab = exports.lab = Lab.script();
 
+var describe = lab.experiment;
+var expect = Code.expect;
+var it = lab.test;
+
+describe('redis publisher', function () {
   it('should publish data to the redis', function (done) {
     var count = cbCount(2, done);
     var Readable = require('stream').Readable;
@@ -34,5 +38,4 @@ describe('redis publisher', function () {
     rs.push(null);
     rs.pipe(publisher);
   });
-
 });
