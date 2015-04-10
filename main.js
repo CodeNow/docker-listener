@@ -3,7 +3,7 @@
  * @module main
  */
 'use strict';
-require('loadenv')();
+require('loadenv')('docker-listener:env');
 
 var debug = require('debug')('docker-listener:server');
 var noop = require('101/noop');
@@ -47,4 +47,3 @@ function stop (cb) {
     listener.stop(cb);
   });
 }
-
