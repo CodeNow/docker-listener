@@ -3,6 +3,7 @@
  * @module main
  */
 'use strict';
+require('loadenv')();
 
 var debug = require('debug')('docker-listener:server');
 var noop = require('101/noop');
