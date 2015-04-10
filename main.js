@@ -4,7 +4,9 @@ var app = require('./lib/app.js');
 var debug = require('debug')('docker-listener:server');
 var listener = require('./lib/listener');
 var publisher = require('./lib/publisher')();
+var monitor = require('monitor-dog');
 var noop = require('101/noop');
+
 
 var server;
 function start (port, cb) {
@@ -13,6 +15,7 @@ function start (port, cb) {
     if (err) { return cb(err); }
     debug('server listen on', port);
     listener.start(publisher, cb);
+    monitor.startSocketsMonitor();
   });
 }
 function stop (cb) {
@@ -23,6 +26,7 @@ function stop (cb) {
   server.close(function (err) {
     if (err) { return cb(err); }
     listener.stop(cb);
+    monitor.stopSocketsMonitor();
   });
 }
 
