@@ -49,7 +49,7 @@ describe('events#enhance', function () {
       expect(enhanced.ip).to.equal(ip.address());
       expect(enhanced.numCpus).to.equal(os.cpus().length);
       expect(enhanced.mem).to.equal(os.totalmem());
-      expect(enhanced.tags).to.deep.equal(process.env.HOST_TAGS.split(','));
+      expect(enhanced.tags).to.equal(process.env.HOST_TAGS);
 
       var host = 'http://' + ip.address() + ':' + process.env.DOCKER_REMOTE_API_PORT;
       expect(enhanced.host).to.equal(host);
@@ -98,7 +98,7 @@ describe('events#enhance', function () {
             expect(enhanced.inspectData.Id).to.equal(ctx.container.id);
             expect(enhanced.numCpus).to.equal(os.cpus().length);
             expect(enhanced.mem).to.equal(os.totalmem());
-            expect(enhanced.tags).to.deep.equal(process.env.HOST_TAGS.split(','));
+            expect(enhanced.tags).to.equal(process.env.HOST_TAGS);
 
             done();
           });
@@ -120,7 +120,7 @@ describe('events#enhance', function () {
             expect(enhanced.inspectData).to.not.exist();
             expect(enhanced.numCpus).to.equal(os.cpus().length);
             expect(enhanced.mem).to.equal(os.totalmem());
-            expect(enhanced.tags).to.deep.equal(process.env.HOST_TAGS.split(','));
+            expect(enhanced.tags).to.equal(process.env.HOST_TAGS);
 
             done();
           });
