@@ -50,10 +50,11 @@
   "devDependencies": {
     "callback-count": "^0.1.0",
     "code": "^1.2.1",
-    "docker-mock": "0.4.0",
+    "docker-mock": "1.0.1",
     "jshint": "^2.5.10",
     "lab": "^5.0.2",
     "rerun-script": "^0.6.0",
+    "server-destroy": "^1.0.0",
     "supertest": "^0.15.0"
   }
 }
