@@ -45,8 +45,7 @@
     "node-dogstatsd": "0.0.5",
     "node-uuid": "^1.4.1",
     "redis": "^0.12.1",
-    "rollbar": "^0.3.13",
-    "server-destroy": "^1.0.0"
+    "rollbar": "^0.3.13"
   },
   "devDependencies": {
     "callback-count": "^0.1.0",
@@ -55,6 +54,7 @@
     "jshint": "^2.5.10",
     "lab": "^5.0.2",
     "rerun-script": "^0.6.0",
+    "server-destroy": "^1.0.0",
     "supertest": "^0.15.0"
   }
 }
