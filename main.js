@@ -29,7 +29,8 @@ function start (port, cb) {
   server = app.listen(port, function (err) {
     if (err) { return cb(err); }
     debug('server listen on', port);
-    listener.start(publisher, cb);
+    listener.start(publisher);
+    cb();
   });
 }
 
@@ -44,7 +45,8 @@ function stop (cb) {
   }
   server.close(function (err) {
     if (err) { return cb(err); }
-    listener.stop(cb);
+    listener.stop();
+    cb();
   });
 }
 

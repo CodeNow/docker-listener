@@ -1,26 +1,31 @@
 'use strict';
-var spawn = require('child_process').fork;
+var dockerMock = require('docker-mock');
 var debug = require('debug')('test-docker-mock');
+var enableDestroy = require('server-destroy');
+var server;
 
 module.exports.start = function (cb) {
-  this.server = spawn('test/fixtures/docker-server.js');
-
-  debug('Spawned child pid: ', this.server.pid);
-  this.server.on('message', function (msg) {
-    if (msg === 'started') {
-      cb();
-    }
+  process.env.DISABLE_RANDOM_EVENTS=true;
+  debug('server start');
+  server = dockerMock.listen(process.env.DOCKER_REMOTE_API_PORT, function(err) {
+    enableDestroy(server);
+    cb(err);
   });
-  return this;
+
 };
 module.exports.stop = function (cb) {
-  if (this.server) {
-    this.server.on('exit', function (code) {
-      debug('docker server process exited with code ', code);
-      cb();
-    });
-    this.server.kill('SIGHUP');
-    this.server = null;
-  }
-  return this;
+  debug('server close');
+  server.close(cb);
+};
+module.exports.forceStop = function (cb) {
+  debug('server forceStop');
+  server.destroy(cb);
+};
+module.exports.emitEvent = function (type) {
+  debug('emitEvent', type);
+  dockerMock.events.stream.emit('data', JSON.stringify({
+    status: type,
+    from: 'registry.runnable.com/somenum:sometag',
+    id: '178236478312'
+  }));
 };

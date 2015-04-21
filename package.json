@@ -45,12 +45,13 @@
     "node-dogstatsd": "0.0.5",
     "node-uuid": "^1.4.1",
     "redis": "^0.12.1",
-    "rollbar": "^0.3.13"
+    "rollbar": "^0.3.13",
+    "server-destroy": "^1.0.0"
   },
   "devDependencies": {
     "callback-count": "^0.1.0",
     "code": "^1.2.1",
-    "docker-mock": "0.4.0",
+    "docker-mock": "1.0.1",
     "jshint": "^2.5.10",
     "lab": "^5.0.2",
     "rerun-script": "^0.6.0",
