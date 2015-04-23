@@ -1,14 +1,35 @@
+/**
+ * Handle server start/stop requirements
+ * @module main
+ */
 'use strict';
-require('./lib/loadenv')();
-var app = require('./lib/app.js');
+require('loadenv')();
+
 var debug = require('debug')('docker-listener:server');
+var noop = require('101/noop');
+
+var app = require('./lib/app.js');
 var listener = require('./lib/listener');
 var publisher = require('./lib/publisher')();
+
 var monitor = require('monitor-dog');
 var noop = require('101/noop');
 
 
+module.exports = {
+  start: start,
+  stop: stop
+};
+
+
+
 var server;
+
+/**
+ * Listen for events from Docker and publish to Redis
+ * @param {String} port
+ * @param {Function} cb
+ */
 function start (port, cb) {
   cb = cb || noop;
   server = app.listen(port, function (err) {
@@ -18,6 +39,11 @@ function start (port, cb) {
     monitor.startSocketsMonitor();
   });
 }
+
+/**
+ * Drain remaining requests and shut down
+ * @param {Function} cb
+ */
 function stop (cb) {
   cb = cb || noop;
   if (!server) {
@@ -29,8 +55,3 @@ function stop (cb) {
     monitor.stopSocketsMonitor();
   });
 }
-
-module.exports = {
-  start: start,
-  stop: stop
-};
