@@ -40,9 +40,9 @@
     "exec-sync": "^0.1.6",
     "express": "^4.10.2",
     "ip": "^0.3.2",
+    "monitor-dog": "^1.1.2",
     "loadenv": "^1.0.3",
     "morgan": "^1.5.0",
-    "node-dogstatsd": "0.0.5",
     "node-uuid": "^1.4.1",
     "redis": "^0.12.1",
     "rollbar": "^0.3.13"
