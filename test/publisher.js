@@ -8,6 +8,7 @@ var Code = require('code');
 var Lab = require('lab');
 var cbCount = require('callback-count');
 
+var status = require('../lib/status');
 var publisher = require('../lib/publisher')();
 var redis = require('./fixtures/redis')();
 
@@ -19,7 +20,12 @@ var it = lab.test;
 
 describe('redis publisher', function () {
   it('should publish data to the redis', function (done) {
-    var count = cbCount(2, done);
+    var count = cbCount(2, function () {
+      expect(status.docker_connected).to.equal(true);
+      expect(status.env).to.equal('test');
+      expect(status.count_events).to.equal(2);
+      done();
+    });
     var Readable = require('stream').Readable;
     redis.psubscribe('runnable:docker:*');
     redis.on('pmessage', function (pattern, channel, message) {
