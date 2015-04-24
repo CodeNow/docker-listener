@@ -15,13 +15,10 @@ var publisher = require('./lib/publisher')();
 var monitor = require('monitor-dog');
 var noop = require('101/noop');
 
-
 module.exports = {
   start: start,
   stop: stop
 };
-
-
 
 var server;
 
@@ -35,8 +32,8 @@ function start (port, cb) {
   server = app.listen(port, function (err) {
     if (err) { return cb(err); }
     debug('server listen on', port);
-    listener.start(publisher, cb);
     monitor.startSocketsMonitor();
+    listener.start(publisher, cb);
   });
 }
 
@@ -51,7 +48,7 @@ function stop (cb) {
   }
   server.close(function (err) {
     if (err) { return cb(err); }
-    listener.stop(cb);
     monitor.stopSocketsMonitor();
+    listener.stop(cb);
   });
 }
