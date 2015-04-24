@@ -37,11 +37,11 @@ describe('route tests', function () {
           if(err) {
             return done(err);
           }
-          console.log('xxx',res.body);
           var body = res.body;
           expect(body.docker_connected).to.equal(false);
           expect(body.count_events).to.equal(0);
           expect(body.env).to.equal('test');
+          expect(body.last_event_time).to.equal(null);
           done();
         });
     });

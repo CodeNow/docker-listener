@@ -23,6 +23,9 @@ describe('redis publisher', function () {
     var count = cbCount(2, function () {
       expect(status.env).to.equal('test');
       expect(status.count_events).to.equal(2);
+      // ignore minutes/seconds and millis
+      expect(status.last_event_time.substring(0,15))
+        .to.equal(new Date().toISOString().substring(0,15));
       done();
     });
     var Readable = require('stream').Readable;
