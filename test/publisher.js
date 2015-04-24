@@ -21,7 +21,6 @@ var it = lab.test;
 describe('redis publisher', function () {
   it('should publish data to the redis', function (done) {
     var count = cbCount(2, function () {
-      expect(status.docker_connected).to.equal(true);
       expect(status.env).to.equal('test');
       expect(status.count_events).to.equal(2);
       done();

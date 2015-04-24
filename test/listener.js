@@ -13,6 +13,7 @@ var stream = require('stream');
 
 var docker = require('./fixtures/docker-mock.js');
 var listener = require('../lib/listener.js');
+var status = require('../lib/status');
 
 var lab = exports.lab = Lab.script();
 
@@ -137,6 +138,7 @@ describe('listener', function () {
               // check that messageCounter === 9
               // we didn't received any new messages after stop was called
               if (messagesCounter === 9) {
+                expect(status.docker_connected).to.equal(false);
                 done();
               }
               else {
@@ -154,7 +156,6 @@ describe('listener', function () {
     });
 
   });
-
 
 });
 
