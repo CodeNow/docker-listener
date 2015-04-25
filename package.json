@@ -6,9 +6,10 @@
   "private": true,
   "scripts": {
     "test-watch": "node_modules/.bin/rerun-script test",
-    "test": "npm run lint && NODE_PATH=./lib NODE_ENV=test lab -v -m 3000 -e test -f test/",
+    "test": "npm run lint && npm run unit",
     "lint": "jshint .",
-    "start": "NODE_PATH=./lib node index.js"
+    "start": "NODE_PATH=./lib node index.js",
+    "unit": "NODE_PATH=./lib NODE_ENV=test lab -v -m 3000 -e test -f test/"
   },
   "watches": {
     "test": [
@@ -23,7 +24,8 @@
   },
   "keywords": [
     "docker",
-    "events"
+    "events",
+    "listener"
   ],
   "author": "Runnable",
   "bugs": {
