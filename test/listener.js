@@ -7,7 +7,6 @@ require('loadenv')('docker-listener:test');
 var Code = require('code');
 var Lab = require('lab');
 var cbCount = require('callback-count');
-var debug = require('debug')('test-listener');
 var ip = require('ip');
 var stream = require('stream');
 var noop = require('101/noop');
