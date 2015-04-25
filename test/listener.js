@@ -10,6 +10,7 @@ var cbCount = require('callback-count');
 var debug = require('debug')('test-listener');
 var ip = require('ip');
 var stream = require('stream');
+var noop = require('101/noop');
 
 var docker = require('./fixtures/docker-mock.js');
 var listener = require('../lib/listener.js');
@@ -162,7 +163,7 @@ describe('listener', function () {
 function restartDocker (ctx) {
   ctx.docker.stop(function(){
     setTimeout(function () {
-      ctx.docker = docker.start(function () {});
+      ctx.docker = docker.start(noop);
     }, 1000);
   });
 }
