@@ -5,7 +5,7 @@
 
 require('loadenv')('docker-listener:env');
 
-var error = require('./lib/error.js');
-var main = require('./main.js');
+var error = require('./lib/error');
+var main = require('./main');
 
 main.start(process.env.PORT, error.logIfError);

@@ -12,7 +12,7 @@ var stream = require('stream');
 var noop = require('101/noop');
 
 var docker = require('./fixtures/docker-mock');
-var listener = require('../lib/listener');
+var Listener = require('../lib/listener');
 var status = require('../lib/status');
 
 var lab = exports.lab = Lab.script();
@@ -23,12 +23,11 @@ var describe = lab.experiment;
 var expect = Code.expect;
 var it = lab.test;
 
-describe('listener', function () {
-  var ctx = {};
+describe('listener', {timeout: 10000}, function () {
 
   it('should fail to start when publisher is not writable', function (done) {
     try {
-      listener.start(new stream.Stream(), function () {});
+      new Listener(new stream.Stream());
       done('Should fail');
     } catch (err) {
       expect(err.message).to.equal('publisher stream should be Writable');
@@ -38,7 +37,7 @@ describe('listener', function () {
 
   it('should fail to start when publisher is Readable', function (done) {
     try {
-      listener.start(new stream.Readable(), function () {});
+      new Listener(new stream.Readable());
       done('Should fail');
     } catch (err) {
       expect(err.message).to.equal('publisher stream should be Writable');
@@ -47,6 +46,7 @@ describe('listener', function () {
   });
 
   describe('re-start docker', function () {
+    var ctx = {};
     beforeEach(function (done) {
       process.env.AUTO_RECONNECT = 'true';
       ctx.docker = docker.start(done);
@@ -58,7 +58,8 @@ describe('listener', function () {
     });
 
     afterEach(function (done) {
-      listener.stop(done);
+      ctx.listener.stop();
+      done();
     });
 
     // receive 4 good events.
@@ -106,12 +107,13 @@ describe('listener', function () {
         }
       };
       ws.end = noop;
-      listener.start(ws, noop);
+      ctx.listener = new Listener(ws);
+      ctx.listener.start();
     });
   });
 
   describe('close', function () {
-
+    var ctx = {};
     beforeEach(function (done) {
       ctx.docker = docker.start(done);
     });
@@ -121,7 +123,8 @@ describe('listener', function () {
     });
 
     afterEach(function (done) {
-      listener.stop(done);
+      ctx.listener.stop();
+      done();
     });
 
 
@@ -131,24 +134,24 @@ describe('listener', function () {
       var messagesCounter = 0;
       ws.write = function () {
         if (messagesCounter === 8) {
-          listener.stop(function () {
-            setTimeout(function () {
-              // check that messageCounter === 9
-              // we didn't received any new messages after stop was called
-              if (messagesCounter === 9) {
-                expect(status.docker_connected).to.equal(false);
-                done();
-              }
-              else {
-                done(new Error('Streaming never stopped'));
-              }
-            }, 500);
-          });
+          ctx.listener.stop();
+          setTimeout(function () {
+            // check that messageCounter === 9
+            // we didn't received any new messages after stop was called
+            if (messagesCounter === 9) {
+              expect(status.docker_connected).to.equal(false);
+              done();
+            }
+            else {
+              done(new Error('Streaming never stopped'));
+            }
+          }, 500);
         }
         messagesCounter++;
       };
       ws.end = noop;
-      listener.start(ws, noop);
+      ctx.listener = new Listener(ws);
+      ctx.listener.start();
     });
 
   });
