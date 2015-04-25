@@ -8,6 +8,8 @@ var Code = require('code');
 var Lab = require('lab');
 var supertest = require('supertest');
 
+var app = require('../lib/app');
+
 var lab = exports.lab = Lab.script();
 
 var describe = lab.experiment;
@@ -17,7 +19,6 @@ var it = lab.test;
 describe('route tests', function () {
   describe('GET', function () {
     it('should return app info on /', function (done) {
-      var app = require('../lib/app.js');
       supertest(app)
         .get('/')
         .end(function (err, res) {
@@ -30,7 +31,6 @@ describe('route tests', function () {
     });
 
     it('should return status info on /status', function (done) {
-      var app = require('../lib/app.js');
       supertest(app)
         .get('/status')
         .end(function (err, res) {
@@ -47,7 +47,6 @@ describe('route tests', function () {
     });
 
     it('should fail on /fake', function (done) {
-      var app = require('../lib/app.js');
       supertest(app)
         .get('/fake')
         .expect(404)

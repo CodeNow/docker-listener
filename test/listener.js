@@ -12,8 +12,8 @@ var ip = require('ip');
 var stream = require('stream');
 var noop = require('101/noop');
 
-var docker = require('./fixtures/docker-mock.js');
-var listener = require('../lib/listener.js');
+var docker = require('./fixtures/docker-mock');
+var listener = require('../lib/listener');
 var status = require('../lib/status');
 
 var lab = exports.lab = Lab.script();
@@ -106,10 +106,8 @@ describe('listener', function () {
           count.next();
         }
       };
-      ws.end = function () {
-        debug('disconnect');
-      };
-      listener.start(ws, function () {});
+      ws.end = noop;
+      listener.start(ws, noop);
     });
   });
 
@@ -150,10 +148,8 @@ describe('listener', function () {
         }
         messagesCounter++;
       };
-      ws.end = function () {
-        debug('disconnect');
-      };
-      listener.start(ws, function () {});
+      ws.end = noop;
+      listener.start(ws, noop);
     });
 
   });
