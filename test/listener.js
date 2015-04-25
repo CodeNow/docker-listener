@@ -24,10 +24,10 @@ var expect = Code.expect;
 var it = lab.test;
 
 describe('listener', {timeout: 10000}, function () {
-
+  var ctx = {};
   it('should fail to start when publisher is not writable', function (done) {
     try {
-      new Listener(new stream.Stream());
+      ctx.listener = new Listener(new stream.Stream());
       done('Should fail');
     } catch (err) {
       expect(err.message).to.equal('publisher stream should be Writable');
@@ -37,7 +37,7 @@ describe('listener', {timeout: 10000}, function () {
 
   it('should fail to start when publisher is Readable', function (done) {
     try {
-      new Listener(new stream.Readable());
+      ctx.listener = new Listener(new stream.Readable());
       done('Should fail');
     } catch (err) {
       expect(err.message).to.equal('publisher stream should be Writable');

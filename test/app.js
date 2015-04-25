@@ -13,7 +13,6 @@ var noop = require('101/noop');
 var app = require('../lib/app');
 var docker = require('./fixtures/docker-mock');
 var Listener = require('../lib/listener');
-var status = require('../lib/status');
 
 var lab = exports.lab = Lab.script();
 
@@ -93,7 +92,7 @@ describe('route tests', function () {
               done();
             });
         }, 300);
-      })
+      });
     });
 
     it('should fail on /fake', function (done) {
