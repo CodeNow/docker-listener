@@ -70,14 +70,16 @@ describe('route tests', function () {
       });
 
       afterEach(function (done) {
+        ctx.listener.removeAllListeners();
         ctx.listener.stop();
+        delete ctx.listener;
         done();
       });
-      it('should return updated status info on /status', function (done) {
+
+      it('should return updated status info on /status after listener started', function (done) {
         ctx.listener = new Listener(ctx.ws);
         ctx.listener.start();
-        // NOTE: listener should emit event when it started.
-        setTimeout(function () {
+        ctx.listener.on('started', function () {
           supertest(app)
             .get('/status')
             .end(function (err, res) {
@@ -91,7 +93,43 @@ describe('route tests', function () {
               expect(body.last_event_time).to.equal(null);
               done();
             });
-        }, 300);
+        });
+      });
+
+      it('should return updated status info on /status after listener started&stopped',
+        function (done) {
+          ctx.listener = new Listener(ctx.ws);
+          ctx.listener.once('stopped', function () {
+            supertest(app)
+              .get('/status')
+              .end(function (err, res) {
+                if(err) {
+                  return done(err);
+                }
+                var body = res.body;
+                expect(body.docker_connected).to.equal(false);
+                expect(body.count_events).to.equal(0);
+                expect(body.env).to.equal('test');
+                expect(body.last_event_time).to.equal(null);
+                done();
+              });
+          });
+          ctx.listener.on('started', function () {
+            supertest(app)
+              .get('/status')
+              .end(function (err, res) {
+                if(err) {
+                  return done(err);
+                }
+                var body = res.body;
+                expect(body.docker_connected).to.equal(true);
+                expect(body.count_events).to.equal(0);
+                expect(body.env).to.equal('test');
+                expect(body.last_event_time).to.equal(null);
+                ctx.listener.stop();
+              });
+          });
+          ctx.listener.start();
       });
     });
 
