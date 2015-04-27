@@ -9,7 +9,7 @@
     "test": "npm run lint && npm run unit",
     "lint": "jshint .",
     "start": "NODE_PATH=./lib node index.js",
-    "unit": "NODE_PATH=./lib NODE_ENV=test lab -v -m 3000 -e test -f test/"
+    "unit": "NODE_PATH=./lib NODE_ENV=test lab -v -m 3000 -e test -f test/ -a code"
   },
   "watches": {
     "test": [
@@ -52,10 +52,10 @@
   },
   "devDependencies": {
     "callback-count": "^0.1.0",
-    "code": "^1.2.1",
+    "code": "^1.3.0",
     "docker-mock": "0.4.0",
     "jshint": "^2.5.10",
-    "lab": "^5.0.2",
+    "lab": "^5.5.0",
     "rerun-script": "^0.6.0",
     "supertest": "^0.15.0"
   }

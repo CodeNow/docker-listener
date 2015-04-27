@@ -71,10 +71,12 @@ describe('listener', {timeout: 10000}, function () {
       var ws = new stream.Stream();
       ws.writable = true;
       var messagesCounter = 0;
-      /*jshint maxcomplexity:8 */
+      /*jshint maxcomplexity:12 */
       ws.write = function (data) {
         if (typeof data === 'string') {
           data = JSON.parse(data);
+        } else {
+          data = JSON.parse(data.toString());
         }
         if (messagesCounter === 0) {
           expect(data.status).to.equal('docker_daemon_up');
@@ -93,14 +95,20 @@ describe('listener', {timeout: 10000}, function () {
           var host = 'http://' + ip.address() + ':' + process.env.DOCKER_REMOTE_API_PORT;
           expect(data.host).to.equal(host);
         }
-        /*jshint -W030 */
-        expect(data.status).to.be.String;
-        expect(data.id).to.be.String;
-        expect(data.host).to.be.String;
-        expect(data.uuid).to.be.String;
-        expect(data.from).to.be.String;
-        expect(data.time).to.be.Number;
-        /*jshint +W030 */
+        expect(data.status).to.be.a.string();
+        if (data.id) {
+          expect(data.id).to.be.a.string();
+        }
+        if (data.host) {
+          expect(data.host).to.be.a.string();
+        }
+        if (data.uuid) {
+          expect(data.uuid).to.be.a.string();
+        }
+        if (data.from) {
+          expect(data.from).to.be.a.string();
+        }
+        expect(data.time).to.be.a.number();
         messagesCounter++;
         if (messagesCounter < 11) {
           count.next();

@@ -17,8 +17,15 @@ var lab = exports.lab = Lab.script();
 var describe = lab.experiment;
 var expect = Code.expect;
 var it = lab.test;
+var afterEach = lab.afterEach;
 
 describe('redis publisher', function () {
+
+  afterEach(function (done) {
+    redis.punsubscribe('runnable:docker:*');
+    done();
+  });
+
   it('should publish data to the redis', function (done) {
     var count = cbCount(2, function () {
       expect(status.env).to.equal('test');
@@ -31,13 +38,11 @@ describe('redis publisher', function () {
     var Readable = require('stream').Readable;
     redis.psubscribe('runnable:docker:*');
     redis.on('pmessage', function (pattern, channel, message) {
-      var json = message.toString();
-      /*jshint -W030 */
-      expect(json.status).to.be.String;
-      expect(json.ip).to.be.String;
-      expect(json.host).to.be.String;
-      expect(json.uuid).to.be.String;
-      /*jshint +W030 */
+      var json = JSON.parse(message.toString());
+      expect(json.status).to.be.a.string();
+      expect(json.ip).to.be.a.string();
+      expect(json.host).to.be.a.string();
+      expect(json.uuid).to.be.a.string();
       count.next();
     });
     var rs = new Readable();
