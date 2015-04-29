@@ -55,6 +55,7 @@ describe('route tests', function () {
     describe('status should be updated after connection to docker is made', function () {
       var ctx = {};
       beforeEach(function (done) {
+        ctx.originalAutoConnet = process.env.AUTO_RECONNECT;
         process.env.AUTO_RECONNECT = 'false';
         var ws = new stream.Stream();
         ws.writable = true;
@@ -65,7 +66,7 @@ describe('route tests', function () {
       });
 
       afterEach(function (done) {
-        process.env.AUTO_RECONNECT = 'false';
+        process.env.AUTO_RECONNECT = ctx.originalAutoConnet;
         ctx.docker.stop(done);
       });
 
