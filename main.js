@@ -5,12 +5,12 @@
 'use strict';
 require('loadenv')();
 
-var debug = require('debug')('docker-listener:server');
+var debug = require('auto-debug')();
 var noop = require('101/noop');
 
 var app = require('./lib/app.js');
 var publisher = require('./lib/publisher')();
-var listener = require('./lib/listener')(publisher);
+var Listener = require('./lib/listener');
 
 var monitor = require('monitor-dog');
 var noop = require('101/noop');
@@ -21,6 +21,7 @@ module.exports = {
 };
 
 var server;
+var listener;
 
 /**
  * Listen for events from Docker and publish to Redis
@@ -33,6 +34,11 @@ function start (port, cb) {
     if (err) { return cb(err); }
     debug('server listen on', port);
     monitor.startSocketsMonitor();
+    listener = new Listener(publisher)
+    listener.once('started', function () {
+      debug('listener started');
+      cb();
+    });
     listener.start();
   });
 }
@@ -49,7 +55,9 @@ function stop (cb) {
   server.close(function (err) {
     if (err) { return cb(err); }
     monitor.stopSocketsMonitor();
-    listener.stop();
+    if (listener) {
+      listener.stop();
+    }
     cb();
   });
 }
