@@ -34,7 +34,7 @@ function start (port, cb) {
     if (err) { return cb(err); }
     debug('server listen on', port);
     monitor.startSocketsMonitor();
-    listener = new Listener(publisher)
+    listener = new Listener(publisher);
     listener.once('started', function () {
       debug('listener started');
       cb();
