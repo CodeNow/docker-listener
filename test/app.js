@@ -5,6 +5,7 @@
 
 require('loadenv')('docker-listener:test');
 var Code = require('code');
+var cbCount = require('callback-count');
 var Lab = require('lab');
 var supertest = require('supertest');
 var stream = require('stream');
@@ -52,6 +53,18 @@ describe('route tests', function () {
         });
     });
 
+    it('should return 404 on /health-check initially', function (done) {
+      supertest(app)
+        .get('/health-check')
+        .end(function (err, res) {
+          if(err) {
+            return done(err);
+          }
+          expect(res.statusCode).to.equal(404);
+          done();
+        });
+    });
+
     describe('status should be updated after connection to docker is made', function () {
       var ctx = {};
       beforeEach(function (done) {
@@ -80,6 +93,7 @@ describe('route tests', function () {
       it('should return updated status info on /status after listener started', function (done) {
         ctx.listener = new Listener(ctx.ws);
         ctx.listener.start();
+        var callbackCount = cbCount(2, done);
         ctx.listener.on('started', function () {
           supertest(app)
             .get('/status')
@@ -92,13 +106,23 @@ describe('route tests', function () {
               expect(body.count_events).to.equal(0);
               expect(body.env).to.equal('test');
               expect(body.last_event_time).to.equal(null);
-              done();
+              callbackCount.next();
             });
+            supertest(app)
+              .get('/health-check')
+              .end(function (err, res) {
+                if(err) {
+                  return done(err);
+                }
+                expect(res.statusCode).to.equal(204);
+                callbackCount.next();
+              });
         });
       });
 
       it('should return updated status info on /status after listener started&stopped',
         function (done) {
+          var callbackCount = cbCount(4, done);
           ctx.listener = new Listener(ctx.ws);
           ctx.listener.once('stopped', function () {
             supertest(app)
@@ -112,8 +136,17 @@ describe('route tests', function () {
                 expect(body.count_events).to.equal(0);
                 expect(body.env).to.equal('test');
                 expect(body.last_event_time).to.equal(null);
-                done();
+                callbackCount.next();
               });
+              supertest(app)
+                .get('/health-check')
+                .end(function (err, res) {
+                  if(err) {
+                    return done(err);
+                  }
+                  expect(res.statusCode).to.equal(404);
+                  callbackCount.next();
+                });
           });
           ctx.listener.on('started', function () {
             supertest(app)
@@ -128,7 +161,17 @@ describe('route tests', function () {
                 expect(body.env).to.equal('test');
                 expect(body.last_event_time).to.equal(null);
                 ctx.listener.stop();
+                callbackCount.next();
               });
+              supertest(app)
+                .get('/health-check')
+                .end(function (err, res) {
+                  if(err) {
+                    return done(err);
+                  }
+                  expect(res.statusCode).to.equal(204);
+                  callbackCount.next();
+                });
           });
           ctx.listener.start();
       });
