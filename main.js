@@ -9,7 +9,7 @@ var debug = require('auto-debug')();
 var noop = require('101/noop');
 
 var app = require('./lib/app.js');
-var publisher = require('./lib/publisher')();
+var Publisher = require('./lib/publisher');
 var Listener = require('./lib/listener');
 
 var monitor = require('monitor-dog');
@@ -34,6 +34,7 @@ function start (port, cb) {
     if (err) { return cb(err); }
     debug('server listen on', port);
     monitor.startSocketsMonitor();
+    var publisher = new Publisher();
     listener = new Listener(publisher);
     listener.once('started', function () {
       debug('listener started');

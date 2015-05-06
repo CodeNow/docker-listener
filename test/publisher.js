@@ -9,7 +9,7 @@ var Lab = require('lab');
 var cbCount = require('callback-count');
 
 var status = require('../lib/status');
-var publisher = require('../lib/publisher')();
+var Publisher = require('../lib/publisher');
 var redis = require('./fixtures/redis')();
 
 var lab = exports.lab = Lab.script();
@@ -27,6 +27,7 @@ describe('redis publisher', function () {
   });
 
   it('should publish data to the redis', function (done) {
+    var publisher = new Publisher();
     var count = cbCount(2, function () {
       expect(status.env).to.equal('test');
       expect(status.count_events).to.equal(2);

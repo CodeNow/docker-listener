@@ -70,10 +70,8 @@ describe('route tests', function () {
       beforeEach(function (done) {
         ctx.originalAutoConnet = process.env.AUTO_RECONNECT;
         process.env.AUTO_RECONNECT = 'false';
-        var ws = new stream.Stream();
-        ws.writable = true;
-        ws.write = noop;
-        ws.end = noop;
+        var ws = new stream.Writable();
+        ws._write = noop;
         ctx.ws = ws;
         ctx.docker = docker.start(done);
       });
