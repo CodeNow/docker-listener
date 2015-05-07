@@ -32,11 +32,10 @@ describe('redis publisher', function () {
       expect(status.env).to.equal('test');
       expect(status.count_events).to.equal(2);
       // ignore minutes/seconds and millis
-      expect(status.last_event_time.substring(0,15))
-        .to.equal(new Date().toISOString().substring(0,15));
+      expect(new Date().getTime()).to.be.about(
+        new Date(status.last_event_time).getTime(), 2000);
       done();
     });
-    var Readable = require('stream').Readable;
     redis.psubscribe('runnable:docker:*');
     redis.on('pmessage', function (pattern, channel, message) {
       var json = JSON.parse(message.toString());
@@ -46,6 +45,7 @@ describe('redis publisher', function () {
       expect(json.uuid).to.be.a.string();
       count.next();
     });
+    var Readable = require('stream').Readable;
     var rs = new Readable();
     rs.push(JSON.stringify({status: 'die'}));
     rs.push(JSON.stringify({status: 'start'}));

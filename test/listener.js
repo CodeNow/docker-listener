@@ -94,19 +94,17 @@ describe('listener', {timeout: 10000}, function () {
         if (data.host) {
           var host = 'http://' + ip.address() + ':' + process.env.DOCKER_REMOTE_API_PORT;
           expect(data.host).to.equal(host);
+          expect(data.host).to.be.a.string();
         }
         expect(data.status).to.be.a.string();
         if (data.id) {
           expect(data.id).to.be.a.string();
         }
-        if (data.host) {
-          expect(data.host).to.be.a.string();
-        }
-        if (data.uuid) {
-          expect(data.uuid).to.be.a.string();
-        }
         if (data.from) {
           expect(data.from).to.be.a.string();
+        }
+        if (data.uuid) {
+         expect(data.uuid).to.be.a.string();
         }
         expect(data.time).to.be.a.number();
         messagesCounter++;

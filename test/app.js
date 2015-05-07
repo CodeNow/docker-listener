@@ -78,14 +78,10 @@ describe('route tests', function () {
 
       afterEach(function (done) {
         process.env.AUTO_RECONNECT = ctx.originalAutoConnet;
-        ctx.docker.stop(done);
-      });
-
-      afterEach(function (done) {
         ctx.listener.removeAllListeners();
         ctx.listener.stop();
         delete ctx.listener;
-        done();
+        ctx.docker.stop(done);
       });
 
       it('should return updated status info on /status after listener started', function (done) {
