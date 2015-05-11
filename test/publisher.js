@@ -18,9 +18,11 @@ var expect = Code.expect;
 var it = lab.test;
 var beforeEach = lab.beforeEach;
 
-var redis;
+var redis,
+    publisher;
 describe('redis publisher', function () {
   beforeEach(function (done) {
+    publisher = require('../lib/publisher')();
     redis = require('./fixtures/redis')();
     redis.psubscribe('runnable:docker:*');
     done();
@@ -37,7 +39,6 @@ describe('redis publisher', function () {
 
   it('should publish data to the redis', function (done) {
     var count = cbCount(2, done);
-    var publisher = require('../lib/publisher')();
     var Readable = require('stream').Readable;
     redis.on('pmessage', function (pattern, channel, message) {
       var json = message.toString();
@@ -57,7 +58,6 @@ describe('redis publisher', function () {
   });
 
   it('should insert message into rabbitmq queue upon docker contain create event', function (done) {
-    var publisher = require('../lib/publisher')();
     sinon.stub(hermesClient, 'publish', function () {
       expect(hermesClient.publish.callCount).to.equal(1);
       done();
