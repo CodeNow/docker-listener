@@ -1,12 +1,12 @@
 {
   "name": "docker-listener",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "Pipe Docker events into external target",
-  "main": "index.js",
+  "main": "main.js",
   "private": true,
   "scripts": {
     "test-watch": "node_modules/.bin/rerun-script test",
-    "test": "npm run lint && npm run unit",
+    "test": "clear; npm run lint && npm run unit",
     "lint": "jshint .",
     "start": "NODE_PATH=./lib node index.js",
     "unit": "NODE_PATH=./lib lab -v -m 3000 -f test/ -a code"
@@ -48,7 +48,8 @@
     "morgan": "^1.5.0",
     "node-uuid": "^1.4.1",
     "redis": "^0.12.1",
-    "rollbar": "^0.3.13"
+    "rollbar": "^0.3.13",
+    "runnable-hermes": "^1.0.0"
   },
   "devDependencies": {
     "callback-count": "^0.1.0",
@@ -57,6 +58,7 @@
     "jshint": "^2.5.10",
     "lab": "^5.8.0",
     "rerun-script": "^0.6.0",
+    "sinon": "^1.14.1",
     "supertest": "^0.15.0"
   }
 }
