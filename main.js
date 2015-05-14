@@ -29,6 +29,7 @@ var server;
  */
 function start (port, cb) {
   cb = cb || noop;
+  console.log('docker-listener attempt connect', port);
   server = app.listen(port, function (err) {
     if (err) { return cb(err); }
     debug('server listen on', port);
