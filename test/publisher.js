@@ -18,8 +18,8 @@ var expect = Code.expect;
 var it = lab.test;
 var beforeEach = lab.beforeEach;
 
-var redis,
-    publisher;
+var redis;
+var publisher;
 describe('redis publisher', function () {
   beforeEach(function (done) {
     publisher = require('../lib/publisher')();
