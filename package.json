@@ -40,7 +40,7 @@
     "express": "^4.10.2",
     "ip": "^0.3.2",
     "keypather": "^1.10.1",
-    "loadenv": "git://github.com/runnable/loadenv#4bd01e514032bffecb65102da479964e0317d728",
+    "loadenv": "^1.1.0",
     "monitor-dog": "^1.1.2",
     "morgan": "^1.5.0",
     "node-uuid": "^1.4.1",
