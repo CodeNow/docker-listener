@@ -64,7 +64,16 @@ describe('redis publisher', function () {
     });
     var Readable = require('stream').Readable;
     var rs = new Readable();
-    rs.push(JSON.stringify({status: 'create'}));
+    rs.push(JSON.stringify({
+      status: 'create',
+      inspectData: {
+        Config: {
+          Labels: {
+            type: 'user-container'
+          }
+        }
+      }
+    }));
     rs.push(null);
     rs.pipe(publisher);
   });
