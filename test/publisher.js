@@ -8,6 +8,7 @@ var Code = require('code');
 var Lab = require('lab');
 var cbCount = require('callback-count');
 
+var Readable = require('stream').Readable;
 
 var status = require('../lib/status');
 var Publisher = require('../lib/publisher');
@@ -25,12 +26,10 @@ var describe = lab.experiment;
 var expect = Code.expect;
 var it = lab.test;
 
-var redis,
-    publisher;
+var redis;
 describe('redis publisher', function () {
 
   beforeEach(function (done) {
-    publisher = require('../lib/publisher')();
     redis = require('./fixtures/redis')();
     redis.psubscribe('runnable:docker:*');
     done();
@@ -65,7 +64,6 @@ describe('redis publisher', function () {
       expect(json.uuid).to.be.a.string();
       count.next();
     });
-    var Readable = require('stream').Readable;
     var rs = new Readable();
     rs.push(JSON.stringify({status: 'die'}));
     rs.push(JSON.stringify({status: 'start'}));
@@ -74,13 +72,22 @@ describe('redis publisher', function () {
   });
 
   it('should insert message into rabbitmq queue upon docker contain create event', function (done) {
+    var publisher = new Publisher();
     sinon.stub(hermesClient, 'publish', function () {
       expect(hermesClient.publish.callCount).to.equal(1);
       done();
     });
-    var Readable = require('stream').Readable;
     var rs = new Readable();
-    rs.push(JSON.stringify({status: 'create'}));
+    rs.push(JSON.stringify({
+      status: 'create',
+      inspectData: {
+        Config: {
+          Labels: {
+            type: 'user-container'
+          }
+        }
+      }
+    }));
     rs.push(null);
     rs.pipe(publisher);
   });
