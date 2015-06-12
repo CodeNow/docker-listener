@@ -46,7 +46,7 @@
     "node-uuid": "^1.4.1",
     "redis": "^0.12.1",
     "rollbar": "^0.3.13",
-    "runnable-hermes": "^1.0.0"
+    "runnable-hermes": "^1.4.0"
   },
   "devDependencies": {
     "callback-count": "^0.1.0",
