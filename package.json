@@ -1,6 +1,6 @@
 {
   "name": "docker-listener",
-  "version": "0.4.2",
+  "version": "0.5.0",
   "description": "Pipe Docker events into external target",
   "main": "main.js",
   "private": true,
@@ -8,7 +8,7 @@
     "test-watch": "node_modules/.bin/rerun-script test",
     "test": "clear; npm run lint && npm run unit",
     "lint": "jshint .",
-    "start": "NODE_PATH=./lib node index.js",
+    "start": "NODE_PATH=./lib node index.js | bunyan",
     "unit": "NODE_PATH=./lib lab -v -m 3000 -f test/ -a code"
   },
   "watches": {
@@ -37,6 +37,9 @@
     "async": "^0.9.0",
     "auto-debug": "^1.0.1",
     "boom": "^2.6.0",
+    "bunyan": "^1.4.0",
+    "bunyan-redis": "^0.1.4",
+    "debug": "^2.1.0",
     "dockerode": "^2.0.7",
     "eson": "^0.5.0",
     "exec-sync": "^0.1.6",
@@ -49,7 +52,7 @@
     "node-uuid": "^1.4.1",
     "redis": "^0.12.1",
     "rollbar": "^0.3.13",
-    "runnable-hermes": "^1.0.0"
+    "runnable-hermes": "^1.4.0"
   },
   "devDependencies": {
     "callback-count": "^0.1.0",
