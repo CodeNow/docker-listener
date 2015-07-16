@@ -6,14 +6,13 @@
 require('loadenv')();
 
 var debug = require('debug')('docker-listener:server');
+var execSync = require('exec-sync');
+var monitor = require('monitor-dog');
 var noop = require('101/noop');
 
 var app = require('./lib/app.js');
 var listener = require('./lib/listener');
 var publisher = require('./lib/publisher')();
-
-var monitor = require('monitor-dog');
-var noop = require('101/noop');
 
 module.exports = {
   start: start,
@@ -21,6 +20,8 @@ module.exports = {
 };
 
 var server;
+process.env.VERSION_GIT_COMMIT = execSync('git rev-parse HEAD');
+process.env.VERSION_GIT_BRANCH = execSync('git rev-parse --abbrev-ref HEAD');
 
 /**
  * Listen for events from Docker and publish to Redis
