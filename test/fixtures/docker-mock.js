@@ -1,6 +1,6 @@
 'use strict';
 var spawn = require('child_process').fork;
-var debug = require('debug')('test-docker-mock');
+var debug = require('auto-debug')();
 
 module.exports.start = function (cb) {
   this.server = spawn('test/fixtures/docker-server.js');
