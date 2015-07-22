@@ -5,21 +5,22 @@
 'use strict';
 require('loadenv')();
 
-var debug = require('auto-debug')();
+var execSync = require('exec-sync');
+var monitor = require('monitor-dog');
 var noop = require('101/noop');
 
 var app = require('./lib/app.js');
 var Publisher = require('./lib/publisher');
+var log = require('./lib/logger').getChild(__filename);
 var Listener = require('./lib/listener');
-
-var monitor = require('monitor-dog');
-var noop = require('101/noop');
 
 module.exports = {
   start: start,
   stop: stop
 };
 
+process.env.VERSION_GIT_COMMIT = execSync('git rev-parse HEAD');
+process.env.VERSION_GIT_BRANCH = execSync('git rev-parse --abbrev-ref HEAD');
 var server;
 var listener;
 
@@ -32,12 +33,14 @@ function start (port, cb) {
   cb = cb || noop;
   server = app.listen(port, function (err) {
     if (err) { return cb(err); }
-    debug('server listen on', port);
+    log.info({
+      port: port
+    }, 'server listen');
     monitor.startSocketsMonitor();
     var publisher = new Publisher();
     listener = new Listener(publisher);
     listener.once('started', function () {
-      debug('listener started');
+      log.info('listener started');
       cb();
     });
     listener.start();
