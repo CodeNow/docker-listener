@@ -52,7 +52,7 @@
     "node-uuid": "^1.4.1",
     "redis": "^0.12.1",
     "rollbar": "^0.3.13",
-    "runnable-hermes": "^4.0.0"
+    "hermes-private": "git+ssh://git@github.com:CodeNow/hermes-private#v4.0.0"
   },
   "devDependencies": {
     "callback-count": "^0.1.0",
