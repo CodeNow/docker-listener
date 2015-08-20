@@ -91,4 +91,24 @@ describe('redis publisher', function () {
     rs.push(null);
     rs.pipe(publisher);
   });
+  it('should insert message into rabbitmq for the image builder container start', function (done) {
+    var publisher = new Publisher();
+    sinon.stub(hermesClient, 'publish', function () {
+      expect(hermesClient.publish.callCount).to.equal(1);
+      done();
+    });
+    var rs = new Readable();
+    rs.push(JSON.stringify({
+      status: 'create',
+      inspectData: {
+        Config: {
+          Labels: {
+            type: 'image-builder-container'
+          }
+        }
+      }
+    }));
+    rs.push(null);
+    rs.pipe(publisher);
+  });
 });
