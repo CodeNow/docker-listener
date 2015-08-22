@@ -111,4 +111,26 @@ describe('redis publisher', function () {
     rs.push(null);
     rs.pipe(publisher);
   });
+
+  it('should insert message into rabbitmq queue upon docker contain delete event', function (done) {
+    var publisher = new Publisher();
+    sinon.stub(hermesClient, 'publish', function () {
+      sinon.assert.calledOnce(hermesClient.publish);
+      sinon.assert.calledWith(hermesClient.publish, 'on-instance-container-die');
+      done();
+    });
+    var rs = new Readable();
+    rs.push(JSON.stringify({
+      status: 'delete',
+      inspectData: {
+        Config: {
+          Labels: {
+            type: 'user-container'
+          }
+        }
+      }
+    }));
+    rs.push(null);
+    rs.pipe(publisher);
+  });
 });
