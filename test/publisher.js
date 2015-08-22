@@ -112,7 +112,7 @@ describe('redis publisher', function () {
     rs.pipe(publisher);
   });
 
-  it('should insert message into rabbitmq queue upon docker contain delete event', function (done) {
+  it('should insert message into rabbitmq queue upon docker contain die event', function (done) {
     var publisher = new Publisher();
     sinon.stub(hermesClient, 'publish', function () {
       sinon.assert.calledOnce(hermesClient.publish);
@@ -121,7 +121,7 @@ describe('redis publisher', function () {
     });
     var rs = new Readable();
     rs.push(JSON.stringify({
-      status: 'delete',
+      status: 'die',
       inspectData: {
         Config: {
           Labels: {
