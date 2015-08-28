@@ -1,6 +1,6 @@
 {
   "name": "docker-listener",
-  "version": "0.10.0",
+  "version": "0.11.0",
   "description": "Pipe Docker events into external target",
   "main": "main.js",
   "private": true,
@@ -52,7 +52,7 @@
     "node-uuid": "^1.4.1",
     "redis": "^0.12.1",
     "rollbar": "^0.3.13",
-    "hermes-private": "git+ssh://git@github.com:CodeNow/hermes-private#v5.1.0"
+    "hermes-private": "git+ssh://git@github.com:CodeNow/hermes-private#v6.0.0"
   },
   "devDependencies": {
     "callback-count": "^0.1.0",
