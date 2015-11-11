@@ -10,10 +10,14 @@ var cbCount = require('callback-count');
 var ip = require('ip');
 var stream = require('stream');
 var noop = require('101/noop');
+var errorCat = require('error-cat');
 
+var sinon = require('sinon');
 var docker = require('./fixtures/docker-mock');
 var Listener = require('../lib/listener');
 var status = require('../lib/status');
+
+
 
 var lab = exports.lab = Lab.script();
 
@@ -24,6 +28,14 @@ var expect = Code.expect;
 var it = lab.test;
 
 describe('listener', {timeout: 10000}, function () {
+  beforeEach(function (done) {
+    sinon.stub(errorCat.prototype, 'createAndReport');
+    done();
+  });
+  afterEach(function (done) {
+    errorCat.prototype.createAndReport.restore();
+    done();
+  });
   var ctx = {};
   it('should fail to start when publisher is not writable', function (done) {
     try {
@@ -132,7 +144,6 @@ describe('listener', {timeout: 10000}, function () {
       ctx.listener.stop();
       done();
     });
-
 
     it('should stop receiving events after close was called', function (done) {
       var ws = new stream.Stream();
