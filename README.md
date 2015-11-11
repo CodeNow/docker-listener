@@ -33,7 +33,7 @@ To run tests:
 ## Supported events
 
 This module supports all standard docker events like 'create', 'destroy', 'die', 'export', 'kill', 'pause', 'restart', 'start', 'stop', 'unpause', 'untag', 'delete'.
-Two additional events are emiited:
+Two additional events are emitted:
   * `docker_daemon_down` event when docker daemon went down.
   * `docker_daemon_up` event when we were able to connect to the docker daemon.
 
