@@ -3,7 +3,7 @@
  */
 'use strict';
 
-require('loadenv')('docker-listener:test');
+require('loadenv')({ debugName: 'docker-listener' });
 var Code = require('code');
 var cbCount = require('callback-count');
 var Lab = require('lab');
