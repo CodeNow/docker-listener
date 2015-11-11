@@ -9,8 +9,8 @@ var Lab = require('lab');
 
 var Readable = require('stream').Readable;
 
+var status = require('../lib/status');
 var Publisher = require('../lib/publisher');
-
 var hermesClient = require('../lib/hermes-client');
 var sinon = require('sinon');
 
@@ -28,6 +28,10 @@ describe('rabbit publisher', function () {
     sinon.stub(hermesClient, 'publish', function () {
       expect(hermesClient.publish.callCount).to.equal(1);
       hermesClient.publish.restore();
+      expect(status.env).to.equal('test');
+      expect(status.count_events).to.equal(1);
+      // ignore minutes/seconds and millis
+      expect(new Date().getTime()).to.be.about(new Date(status.last_event_time).getTime(), 2000);
       done();
     });
     var rs = new Readable();
@@ -49,6 +53,10 @@ describe('rabbit publisher', function () {
     sinon.stub(hermesClient, 'publish', function () {
       expect(hermesClient.publish.callCount).to.equal(1);
       hermesClient.publish.restore();
+      expect(status.env).to.equal('test');
+      expect(status.count_events).to.equal(2);
+      // ignore minutes/seconds and millis
+      expect(new Date().getTime()).to.be.about(new Date(status.last_event_time).getTime(), 2000);
       done();
     });
     var rs = new Readable();
