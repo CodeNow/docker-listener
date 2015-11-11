@@ -51,7 +51,7 @@
     "node-uuid": "^1.4.1",
     "redis": "^0.12.1",
     "rollbar": "^0.3.13",
-    "runnable-hermes": "git://github.com/Runnable/hermes.git#fanout-exchange"
+    "runnable-hermes": "git://github.com/Runnable/hermes.git#v6.4.0"
   },
   "devDependencies": {
     "callback-count": "^0.1.0",
