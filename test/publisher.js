@@ -37,6 +37,7 @@ describe('rabbit publisher', function () {
     var rs = new Readable();
     rs.push(JSON.stringify({
       status: 'create',
+      from: 'weaveworks/weave:1.2.0',
       inspectData: {
         Config: {
           Labels: {
@@ -61,6 +62,30 @@ describe('rabbit publisher', function () {
     });
     var rs = new Readable();
     rs.push(JSON.stringify({
+      from: 'weaveworks/weave:1.2.0',
+      status: 'create',
+      inspectData: {
+        Config: {
+          Labels: {
+            type: 'image-builder-container'
+          }
+        }
+      }
+    }));
+    rs.push(null);
+    rs.pipe(publisher);
+  });
+  it('should do nothing if event was from blacklisted container', function (done) {
+    var publisher = new Publisher();
+    publisher.on('finish', function () {
+      expect(hermesClient.publish.callCount).to.equal(0);
+      hermesClient.publish.restore();
+      done();
+    });
+    sinon.spy(hermesClient, 'publish');
+    var rs = new Readable();
+    rs.push(JSON.stringify({
+      from: 'weaveworks/weaveexec:1.2.0',
       status: 'create',
       inspectData: {
         Config: {
