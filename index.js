@@ -3,9 +3,12 @@
  */
 'use strict';
 
-require('loadenv')('docker-listener:env');
+require('loadenv')();
 
-var error = require('./lib/error');
+var ErrorCat = require('error-cat');
+var error = new ErrorCat();
 var main = require('./main');
 
-main.start(process.env.PORT, error.logIfError);
+main.start(process.env.PORT, function (err) {
+  if (err) { error.createAndReport(500, 'failed to start', err); }
+});

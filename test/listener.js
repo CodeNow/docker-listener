@@ -3,14 +3,16 @@
  */
 'use strict';
 
-require('loadenv')('docker-listener:test');
+require('loadenv')({ debugName: 'docker-listener' });
 var Code = require('code');
 var Lab = require('lab');
 var cbCount = require('callback-count');
 var ip = require('ip');
 var stream = require('stream');
 var noop = require('101/noop');
+var errorCat = require('error-cat');
 
+var sinon = require('sinon');
 var docker = require('./fixtures/docker-mock');
 var Listener = require('../lib/listener');
 var status = require('../lib/status');
@@ -24,6 +26,14 @@ var expect = Code.expect;
 var it = lab.test;
 
 describe('listener', {timeout: 10000}, function () {
+  beforeEach(function (done) {
+    sinon.stub(errorCat.prototype, 'createAndReport');
+    done();
+  });
+  afterEach(function (done) {
+    errorCat.prototype.createAndReport.restore();
+    done();
+  });
   var ctx = {};
   it('should fail to start when publisher is not writable', function (done) {
     try {
@@ -63,8 +73,8 @@ describe('listener', {timeout: 10000}, function () {
     });
 
     // receive 4 good events.
-    // stop docker and receive docker_daemon_down event
-    // start docker and receive docker_daemon_up
+    // stop docker and receive docker.events-stream.disconnected event
+    // start docker and receive docker.events-stream.connected
     // receive good events for the rest
     it('should handle case when docker was working and than down for some time', function (done) {
       var count = cbCount(10, done);
@@ -79,17 +89,17 @@ describe('listener', {timeout: 10000}, function () {
           data = JSON.parse(data.toString());
         }
         if (messagesCounter === 0) {
-          expect(data.status).to.equal('docker_daemon_up');
+          expect(data.status).to.equal('docker.events-stream.connected');
         }
         // after 4 messages just restart the docker
         if (messagesCounter === 4) {
           restartDocker(ctx);
         }
         if (messagesCounter === 5) {
-          expect(data.status).to.equal('docker_daemon_down');
+          expect(data.status).to.equal('docker.events-stream.disconnected');
         }
         if (messagesCounter === 6) {
-          expect(data.status).to.equal('docker_daemon_up');
+          expect(data.status).to.equal('docker.events-stream.connected');
         }
         if (data.host) {
           var host = 'http://' + ip.address() + ':' + process.env.DOCKER_REMOTE_API_PORT;
@@ -132,7 +142,6 @@ describe('listener', {timeout: 10000}, function () {
       ctx.listener.stop();
       done();
     });
-
 
     it('should stop receiving events after close was called', function (done) {
       var ws = new stream.Stream();
