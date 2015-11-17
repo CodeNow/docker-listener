@@ -17,8 +17,6 @@ var docker = require('./fixtures/docker-mock');
 var Listener = require('../lib/listener');
 var status = require('../lib/status');
 
-
-
 var lab = exports.lab = Lab.script();
 
 var afterEach = lab.afterEach;
