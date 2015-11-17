@@ -1,6 +1,6 @@
 {
   "name": "docker-listener",
-  "version": "0.14.0",
+  "version": "2.0.0",
   "description": "Pipe Docker events into external target",
   "main": "main.js",
   "private": true,
@@ -40,18 +40,16 @@
     "bunyan-loggly": "0.0.5",
     "bunyan-redis": "^0.1.4",
     "dockerode": "^2.0.7",
-    "eson": "^0.5.0",
+    "error-cat": "^1.4.0",
     "exec-sync": "^0.1.6",
     "express": "^4.10.2",
     "ip": "^0.3.2",
     "keypather": "^1.10.1",
-    "loadenv": "^1.1.0",
-    "monitor-dog": "^1.2.1",
+    "loadenv": "^2.1.0",
+    "monitor-dog": "^1.4.1",
     "morgan": "^1.5.0",
     "node-uuid": "^1.4.1",
-    "redis": "^0.12.1",
-    "rollbar": "^0.3.13",
-    "hermes-private": "git+ssh://git@github.com:CodeNow/hermes-private#v7.0.0"
+    "runnable-hermes": "git://github.com/Runnable/hermes.git#v6.4.0"
   },
   "devDependencies": {
     "callback-count": "^0.1.0",
