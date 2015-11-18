@@ -11,7 +11,7 @@ var noop = require('101/noop');
 
 var app = require('./lib/app.js');
 var Publisher = require('./lib/publisher');
-var RabbitMQ = require('./lib/hermes-client.js');
+var RabbitMQ = require('./lib/rabbimq');
 var log = require('./lib/logger').getChild(__filename);
 var Listener = require('./lib/listener');
 
