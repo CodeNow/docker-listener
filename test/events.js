@@ -105,8 +105,8 @@ describe('events#enhance', function () {
         });
     });
     ['random', 'anton', 'anand', 'untag', 'delete']
-      .forEach(function(event) {
-        it('should NOT add inspect data if other event:'+event, function (done) {
+      .forEach(function(ev) {
+        it('should NOT add inspect data if other event:'+ev, function (done) {
           var original = {
             id: ctx.container.id,
             status: event
