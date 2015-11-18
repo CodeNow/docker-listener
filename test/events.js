@@ -109,7 +109,7 @@ describe('events#enhance', function () {
         it('should NOT add inspect data if other event:'+ev, function (done) {
           var original = {
             id: ctx.container.id,
-            status: event
+            status: ev
           };
           events.enhance(original, function(err, enhanced) {
             if (err) { return done(err); }
