@@ -8,7 +8,7 @@
     "test-watch": "node_modules/.bin/rerun-script test",
     "test": "clear; npm run lint && npm run unit",
     "lint": "jshint .",
-    "unit": "NODE_PATH=./lib lab -c -v -m 3000 -f test/ -a code",
+    "unit": "NODE_PATH=./lib lab -c -v -m 3000 -f test -a code",
     "start": "NODE_PATH=./lib node index.js"
   },
   "watches": {
