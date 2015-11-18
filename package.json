@@ -9,7 +9,7 @@
     "test": "clear; npm run lint && npm run unit",
     "lint": "jshint .",
     "unit": "NODE_PATH=./lib lab -v -m 3000 -f test/ -a code",
-    "start": "NODE_PATH=./lib node index.js"
+    "start": "ulimit -c unlimited && NODE_PATH=./lib node --abort-on-uncaught-exception index.js"
   },
   "watches": {
     "test": [
