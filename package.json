@@ -58,7 +58,6 @@
     "jshint": "^2.5.10",
     "lab": "^5.8.0",
     "rerun-script": "^0.6.0",
-    "rewire": "^2.3.3",
     "sinon": "^1.14.1",
     "supertest": "^0.15.0"
   }
