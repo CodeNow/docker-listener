@@ -1,7 +1,7 @@
 docker-listener
 ===============
 
-Publish Docker events into Redis
+Publish Docker events into RabbitMQ
 
 ![docker events]
 (https://docs.docker.com/reference/api/images/event_state.png)
