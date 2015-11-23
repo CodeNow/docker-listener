@@ -6,6 +6,10 @@ Publish Docker events into Redis
 ![docker events]
 (https://docs.docker.com/reference/api/images/event_state.png)
 
+## Architecture
+
+![Docker-listener Architecture] (https://docs.google.com/drawings/d/16sCOUl6jzLPofknkl_x-krzHL6BKGe8oQslPLPR0Ef4/pub?w=1440&h=1080)
+
 
 ## Install & Run
 
