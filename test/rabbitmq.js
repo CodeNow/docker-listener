@@ -86,7 +86,7 @@ describe('rabbitmq.js unit test', function () {
         }
         expect(function () {
          rabbitmq.rabbit.emit('error');
-       }).to.throw();
+        }).to.throw();
         done();
       });
     });
