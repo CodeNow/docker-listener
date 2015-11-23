@@ -1,7 +1,7 @@
 docker-listener
 ===============
 
-Publish Docker events into RabbitMQ
+System service that pipes Docker daemon events into RabbitMQ. Installed on each dock and communicates with docker over HTTP.
 
 ![docker events]
 (https://docs.docker.com/reference/api/images/event_state.png)
