@@ -11,6 +11,7 @@ var noop = require('101/noop');
 
 var app = require('./lib/app.js');
 var Publisher = require('./lib/publisher');
+var RabbitMQ = require('./lib/rabbimq');
 var log = require('./lib/logger').getChild(__filename);
 var Listener = require('./lib/listener');
 
@@ -37,13 +38,16 @@ function start (port, cb) {
       port: port
     }, 'server listen');
     monitor.startSocketsMonitor();
-    var publisher = new Publisher();
-    listener = new Listener(publisher);
-    listener.once('started', function () {
-      log.info('listener started');
-      cb();
+    RabbitMQ.connect(function (err) {
+      if (err) { return cb(err); }
+      var publisher = new Publisher();
+      listener = new Listener(publisher);
+      listener.once('started', function () {
+        log.info('listener started');
+        cb();
+      });
+      listener.start();
     });
-    listener.start();
   });
 }
 
@@ -62,6 +66,6 @@ function stop (cb) {
     if (listener) {
       listener.stop();
     }
-    cb();
+    RabbitMQ.close(cb);
   });
 }

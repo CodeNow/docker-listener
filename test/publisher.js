@@ -11,23 +11,42 @@ var Readable = require('stream').Readable;
 
 var status = require('../lib/status');
 var Publisher = require('../lib/publisher');
-var hermesClient = require('../lib/hermes-client');
+var rabbitmq = require('../lib/rabbitmq');
 var sinon = require('sinon');
-
+var ip = require('ip');
 
 var lab = exports.lab = Lab.script();
+
+var beforeEach = lab.beforeEach;
+var afterEach = lab.afterEach;
 
 var describe = lab.experiment;
 var expect = Code.expect;
 var it = lab.test;
 
 describe('rabbit publisher', function () {
+  describe('createRoutingKey', function () {
+    beforeEach(function (done) {
+      process.env.HOST_TAGS = 'testOrg,run.build';
+      done();
+    });
 
+    afterEach(function (done) {
+      delete process.env.HOST_TAGS;
+      done();
+    });
+
+    it('should return correct key', function (done) {
+      expect(Publisher.createRoutingKey())
+        .to.equal('testOrg.' + ip.address().replace('.', '-'));
+      done();
+    });
+  }); // end createRoutingKey
   it('should insert message into rabbitmq queue upon docker contain create event', function (done) {
     var publisher = new Publisher();
-    sinon.stub(hermesClient, 'publish', function () {
-      expect(hermesClient.publish.callCount).to.equal(1);
-      hermesClient.publish.restore();
+    sinon.stub(rabbitmq, 'publish', function () {
+      expect(rabbitmq.publish.callCount).to.equal(1);
+      rabbitmq.publish.restore();
       expect(status.env).to.equal('test');
       expect(status.count_events).to.equal(1);
       // ignore minutes/seconds and millis
@@ -51,9 +70,9 @@ describe('rabbit publisher', function () {
   });
   it('should insert message into rabbitmq for the image builder container start', function (done) {
     var publisher = new Publisher();
-    sinon.stub(hermesClient, 'publish', function () {
-      expect(hermesClient.publish.callCount).to.equal(1);
-      hermesClient.publish.restore();
+    sinon.stub(rabbitmq, 'publish', function () {
+      expect(rabbitmq.publish.callCount).to.equal(1);
+      rabbitmq.publish.restore();
       expect(status.env).to.equal('test');
       expect(status.count_events).to.equal(2);
       // ignore minutes/seconds and millis
@@ -78,11 +97,11 @@ describe('rabbit publisher', function () {
   it('should do nothing if event was from blacklisted container', function (done) {
     var publisher = new Publisher();
     publisher.on('finish', function () {
-      expect(hermesClient.publish.callCount).to.equal(0);
-      hermesClient.publish.restore();
+      expect(rabbitmq.publish.callCount).to.equal(0);
+      rabbitmq.publish.restore();
       done();
     });
-    sinon.spy(hermesClient, 'publish');
+    sinon.spy(rabbitmq, 'publish');
     var rs = new Readable();
     rs.push(JSON.stringify({
       from: 'weaveworks/weaveexec:1.2.0',
