@@ -7,7 +7,6 @@ require('loadenv')();
 
 var execSync = require('exec-sync');
 var monitor = require('monitor-dog');
-var noop = require('101/noop');
 
 var app = require('./lib/app.js');
 var Publisher = require('./lib/publisher');
@@ -33,7 +32,6 @@ process.env.VERSION_GIT_BRANCH = execSync('git rev-parse --abbrev-ref HEAD');
  * @param {Function} cb
  */
 Server.prototype.start = function (port, cb) {
-  cb = cb || noop;
   var self = this;
   this.server = app.listen(port, function (err) {
     if (err) { return cb(err); }
@@ -51,17 +49,16 @@ Server.prototype.start = function (port, cb) {
       listener.start();
     });
   });
-}
+};
 
 /**
  * Drain remaining requests and shut down
  * @param {Function} cb
  */
 Server.prototype.stop = function (cb) {
-  cb = cb || noop;
   var self = this;
-  if (!server) {
-    throw new Error('trying to stop when server was not started');
+  if (!this.server) {
+    return cb(new Error('Trying to stop when server was not started'));
   }
   this.server.close(function (err) {
     if (err) { return cb(err); }
@@ -71,4 +68,4 @@ Server.prototype.stop = function (cb) {
     }
     RabbitMQ.close(cb);
   });
-}
+};
