@@ -7,41 +7,41 @@ require('loadenv')();
 
 var execSync = require('exec-sync');
 var monitor = require('monitor-dog');
-var noop = require('101/noop');
 
 var app = require('./lib/app.js');
 var Publisher = require('./lib/publisher');
-var RabbitMQ = require('./lib/rabbimq');
+var RabbitMQ = require('./lib/rabbitmq');
 var log = require('./lib/logger').getChild(__filename);
 var Listener = require('./lib/listener');
 
-module.exports = {
-  start: start,
-  stop: stop
-};
+
+function Server () {
+  this.server = null;
+  this.listener = null;
+}
+module.exports = Server;
 
 process.env.VERSION_GIT_COMMIT = execSync('git rev-parse HEAD');
 process.env.VERSION_GIT_BRANCH = execSync('git rev-parse --abbrev-ref HEAD');
-var server;
-var listener;
+
+
 
 /**
- * Listen for events from Docker and publish to Redis
+ * Listen for events from Docker and publish to RabbitMQ
  * @param {String} port
  * @param {Function} cb
  */
-function start (port, cb) {
-  cb = cb || noop;
-  server = app.listen(port, function (err) {
+Server.prototype.start = function (port, cb) {
+  var self = this;
+  this.server = app.listen(port, function (err) {
     if (err) { return cb(err); }
-    log.info({
-      port: port
-    }, 'server listen');
+    log.info({ port: port }, 'server listen');
     monitor.startSocketsMonitor();
     RabbitMQ.connect(function (err) {
       if (err) { return cb(err); }
       var publisher = new Publisher();
-      listener = new Listener(publisher);
+      var listener = new Listener(publisher);
+      self.listener = listener;
       listener.once('started', function () {
         log.info('listener started');
         cb();
@@ -49,23 +49,23 @@ function start (port, cb) {
       listener.start();
     });
   });
-}
+};
 
 /**
  * Drain remaining requests and shut down
  * @param {Function} cb
  */
-function stop (cb) {
-  cb = cb || noop;
-  if (!server) {
-    throw new Error('trying to stop when server was not started');
+Server.prototype.stop = function (cb) {
+  var self = this;
+  if (!this.server) {
+    return cb(new Error('Trying to stop when server was not started'));
   }
-  server.close(function (err) {
+  this.server.close(function (err) {
     if (err) { return cb(err); }
     monitor.stopSocketsMonitor();
-    if (listener) {
-      listener.stop();
+    if (self.listener) {
+      self.listener.stop();
     }
     RabbitMQ.close(cb);
   });
-}
+};
