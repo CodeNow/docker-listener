@@ -56,27 +56,27 @@ describe('rabbitmq.js unit test', function () {
       });
     });
   });
-  // describe('connect', function () {
-  //   it('should call hermes connect', function (done) {
-  //     sinon.stub(Hermes.prototype, 'connect').yields(null);
-  //     rabbitmq.connect(function (err) {
-  //       expect(err).to.be.null();
-  //       expect(Hermes.prototype.connect.calledOnce).to.be.true();
-  //       Hermes.prototype.connect.restore();
-  //       done();
-  //     });
-  //   });
-  //   it('should fail if hermes connect failed', function (done) {
-  //     sinon.stub(Hermes.prototype, 'connect').yields(new Error('Hermes error'));
-  //     rabbitmq.connect(function (err) {
-  //       expect(err).to.exist();
-  //       expect(err.message).to.equal('Hermes error');
-  //       expect(Hermes.prototype.connect.calledOnce).to.be.true();
-  //       Hermes.prototype.connect.restore();
-  //       done();
-  //     });
-  //   });
-  // });
+  describe('connect', function () {
+    it('should call hermes connect', function (done) {
+      sinon.stub(Hermes.prototype, 'connect').yields(null);
+      rabbitmq.connect(function (err) {
+        expect(err).to.not.exist();
+        expect(Hermes.prototype.connect.callCount).to.equal(3)
+        Hermes.prototype.connect.restore();
+        done();
+      });
+    });
+    it('should fail if hermes connect failed', function (done) {
+      sinon.stub(Hermes.prototype, 'connect').yields(new Error('Hermes error'));
+      rabbitmq.connect(function (err) {
+        expect(err).to.exist();
+        expect(err.message).to.equal('Hermes error');
+        // expect(Hermes.prototype.connect.callCount).to.equal(2)
+        Hermes.prototype.connect.restore();
+        done();
+      });
+    });
+  });
   describe('on error', function () {
     it('should call _handleFatalError', function (done) {
       sinon.stub(Hermes.prototype, 'connect').yields(null);
