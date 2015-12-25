@@ -476,5 +476,34 @@ describe('docker event publish', function () {
         done()
       })
     })
+    it('should work container start event', function (done) {
+      var payload = {
+        status: 'start',
+        id: 'bc533791f3f500b280a9626688bc79e342e3ea0d528efe3a86a51ecb28ea20'
+      }
+      DockerEventPublish(payload).asCallback(function (err) {
+        expect(err).to.not.exist()
+        sinon.assert.calledOnce(DockerEventPublish._addBasicFields)
+        sinon.assert.calledWith(DockerEventPublish._addBasicFields, payload)
+        sinon.assert.calledOnce(DockerEventPublish._isContainerEvent)
+        sinon.assert.calledOnce(docker.getContainer)
+        sinon.assert.calledWith(docker.getContainer, payload.id)
+        sinon.assert.calledOnce(container.inspect)
+        sinon.assert.calledOnce(rabbitmq.publish)
+        sinon.assert.calledWith(rabbitmq.publish, 'container.life-cycle.started', {
+          status: 'start',
+          inspectData: data,
+          host: sinon.match.string,
+          id: sinon.match.string,
+          ip: sinon.match.string,
+          mem: sinon.match.number,
+          numCpus: sinon.match.number,
+          tags: sinon.match.string,
+          time: sinon.match.number,
+          uuid: sinon.match.string
+        }, sinon.match.string)
+        done()
+      })
+    })
   })
 });
