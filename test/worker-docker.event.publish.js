@@ -75,4 +75,22 @@ describe('docker event publish', function () {
     });
   })
 
+  describe('_isContainerEvent', function () {
+    it('should return true for container events', function (done) {
+      expect(DockerEventPublish._isContainerEvent({ status: 'create' })).to.be.true()
+      expect(DockerEventPublish._isContainerEvent({ status: 'die' })).to.be.true()
+      expect(DockerEventPublish._isContainerEvent({ status: 'kill' })).to.be.true()
+      expect(DockerEventPublish._isContainerEvent({ status: 'restart' })).to.be.true()
+      expect(DockerEventPublish._isContainerEvent({ status: 'start' })).to.be.true()
+      expect(DockerEventPublish._isContainerEvent({ status: 'start' })).to.be.true()
+      expect(DockerEventPublish._isContainerEvent({ status: 'stop' })).to.be.true()
+      expect(DockerEventPublish._isContainerEvent({ status: 'unpause' })).to.be.true()
+      done()
+    })
+    it('should return false for non-container events', function (done) {
+      expect(DockerEventPublish._isContainerEvent({ status: 'launch' })).to.be.false()
+      done()
+    })
+  })
+
 });
