@@ -25,23 +25,7 @@ var expect = Code.expect;
 var it = lab.test;
 
 describe('rabbit publisher', function () {
-  // describe('createRoutingKey', function () {
-  //   beforeEach(function (done) {
-  //     process.env.HOST_TAGS = 'testOrg,run.build';
-  //     done();
-  //   });
-  //
-  //   afterEach(function (done) {
-  //     delete process.env.HOST_TAGS;
-  //     done();
-  //   });
-  //
-  //   it('should return correct key', function (done) {
-  //     expect(Publisher.createRoutingKey())
-  //       .to.equal('testOrg.' + ip.address().replace('.', '-'));
-  //     done();
-  //   });
-  // }); // end createRoutingKey
+
   it('should insert message into rabbitmq queue upon docker contain create event', function (done) {
     var publisher = new Publisher();
     sinon.stub(rabbitmq, 'publish', function () {

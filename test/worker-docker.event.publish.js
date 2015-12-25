@@ -7,7 +7,9 @@ require('loadenv')({ debugName: 'docker-listener' });
 var Code = require('code');
 var Lab = require('lab');
 
-
+var sinon = require('sinon')
+var rabbitmq = require('../lib/rabbitmq');
+var docker = require('../lib/docker');
 var DockerEventPublish = require('../lib/workers/docker.event.publish.js');
 var sinon = require('sinon');
 var ip = require('ip');
@@ -150,4 +152,63 @@ describe('docker event publish', function () {
       done()
     })
   })
+
+  describe('worker', function () {
+    beforeEach(function (done) {
+      sinon.stub(rabbitmq, 'publish')
+      sinon.stub(docker, 'getContainer')
+      done()
+    })
+    afterEach(function (done) {
+      rabbitmq.publish.restore()
+      docker.getContainer.restore()
+      done()
+    })
+
+    it('should not call getContainer for docker.events-stream.connected', function (done) {
+      var payload = {
+        status: 'docker.events-stream.connected'
+      }
+      DockerEventPublish(payload).asCallback(function (err) {
+        expect(err).to.not.exist()
+        sinon.assert.notCalled(docker.getContainer)
+        sinon.assert.calledOnce(rabbitmq.publish)
+        sinon.assert.calledWith(rabbitmq.publish, 'docker.events-stream.connected', {
+          status: 'docker.events-stream.connected',
+          host: sinon.match.string,
+          ip: sinon.match.string,
+          mem: sinon.match.number,
+          numCpus: sinon.match.number,
+          tags: sinon.match.string,
+          time: sinon.match.number,
+          uuid: sinon.match.string
+        })
+        done()
+      })
+    })
+
+    it('should not call getContainer for docker.events-stream.disconnected', function (done) {
+      var payload = {
+        status: 'docker.events-stream.disconnected'
+      }
+      DockerEventPublish(payload).asCallback(function (err) {
+        expect(err).to.not.exist()
+        sinon.assert.notCalled(docker.getContainer)
+        sinon.assert.calledOnce(rabbitmq.publish)
+        sinon.assert.calledWith(rabbitmq.publish, 'docker.events-stream.disconnected', {
+          status: 'docker.events-stream.disconnected',
+          host: sinon.match.string,
+          ip: sinon.match.string,
+          mem: sinon.match.number,
+          numCpus: sinon.match.number,
+          tags: sinon.match.string,
+          time: sinon.match.number,
+          uuid: sinon.match.string
+        })
+        done()
+      })
+    })
+  })
+
+
 });
