@@ -392,5 +392,89 @@ describe('docker event publish', function () {
         done()
       })
     })
+    it('should work for user container die events', function (done) {
+      var payload = {
+        status: 'die',
+        id: 'bc533791f3f500b280a9626688bc79e342e3ea0d528efe3a86a51ecb28ea20'
+      }
+      DockerEventPublish(payload).asCallback(function (err) {
+        expect(err).to.not.exist()
+        sinon.assert.calledOnce(DockerEventPublish._addBasicFields)
+        sinon.assert.calledWith(DockerEventPublish._addBasicFields, payload)
+        sinon.assert.calledOnce(DockerEventPublish._isContainerEvent)
+        sinon.assert.calledOnce(docker.getContainer)
+        sinon.assert.calledWith(docker.getContainer, payload.id)
+        sinon.assert.calledOnce(container.inspect)
+        sinon.assert.calledTwice(rabbitmq.publish)
+        sinon.assert.calledWith(rabbitmq.publish, 'on-instance-container-die', {
+          status: 'die',
+          inspectData: data,
+          host: sinon.match.string,
+          id: sinon.match.string,
+          ip: sinon.match.string,
+          mem: sinon.match.number,
+          numCpus: sinon.match.number,
+          tags: sinon.match.string,
+          time: sinon.match.number,
+          uuid: sinon.match.string
+        })
+        sinon.assert.calledWith(rabbitmq.publish, 'container.life-cycle.died', {
+          status: 'die',
+          inspectData: data,
+          host: sinon.match.string,
+          id: sinon.match.string,
+          ip: sinon.match.string,
+          mem: sinon.match.number,
+          numCpus: sinon.match.number,
+          tags: sinon.match.string,
+          time: sinon.match.number,
+          uuid: sinon.match.string
+        }, sinon.match.string)
+        done()
+      })
+    })
+    it('should work for image-builder container die events', function (done) {
+      var payload = {
+        status: 'die',
+        id: 'bc533791f3f500b280a9626688bc79e342e3ea0d528efe3a86a51ecb28ea20'
+      }
+      var data = createData('image-builder-container')
+      container.inspect.yieldsAsync(null, data)
+      DockerEventPublish(payload).asCallback(function (err) {
+        expect(err).to.not.exist()
+        sinon.assert.calledOnce(DockerEventPublish._addBasicFields)
+        sinon.assert.calledWith(DockerEventPublish._addBasicFields, payload)
+        sinon.assert.calledOnce(DockerEventPublish._isContainerEvent)
+        sinon.assert.calledOnce(docker.getContainer)
+        sinon.assert.calledWith(docker.getContainer, payload.id)
+        sinon.assert.calledOnce(container.inspect)
+        sinon.assert.calledTwice(rabbitmq.publish)
+        sinon.assert.calledWith(rabbitmq.publish, 'on-image-builder-container-die', {
+          status: 'die',
+          inspectData: data,
+          host: sinon.match.string,
+          id: sinon.match.string,
+          ip: sinon.match.string,
+          mem: sinon.match.number,
+          numCpus: sinon.match.number,
+          tags: sinon.match.string,
+          time: sinon.match.number,
+          uuid: sinon.match.string
+        })
+        sinon.assert.calledWith(rabbitmq.publish, 'container.life-cycle.died', {
+          status: 'die',
+          inspectData: data,
+          host: sinon.match.string,
+          id: sinon.match.string,
+          ip: sinon.match.string,
+          mem: sinon.match.number,
+          numCpus: sinon.match.number,
+          tags: sinon.match.string,
+          time: sinon.match.number,
+          uuid: sinon.match.string
+        }, sinon.match.string)
+        done()
+      })
+    })
   })
 });
