@@ -157,11 +157,15 @@ describe('docker event publish', function () {
     beforeEach(function (done) {
       sinon.stub(rabbitmq, 'publish')
       sinon.stub(docker, 'getContainer')
+      sinon.spy(DockerEventPublish, '_addBasicFields')
+      sinon.spy(DockerEventPublish, '_isContainerEvent')
       done()
     })
     afterEach(function (done) {
       rabbitmq.publish.restore()
       docker.getContainer.restore()
+      DockerEventPublish._addBasicFields.restore()
+      DockerEventPublish._isContainerEvent.restore()
       done()
     })
 
@@ -171,6 +175,19 @@ describe('docker event publish', function () {
       }
       DockerEventPublish(payload).asCallback(function (err) {
         expect(err).to.not.exist()
+        sinon.assert.calledOnce(DockerEventPublish._addBasicFields)
+        sinon.assert.calledWith(DockerEventPublish._addBasicFields, payload)
+        sinon.assert.calledOnce(DockerEventPublish._isContainerEvent)
+        sinon.assert.calledWith(DockerEventPublish._isContainerEvent, {
+          status: 'docker.events-stream.connected',
+          host: sinon.match.string,
+          ip: sinon.match.string,
+          mem: sinon.match.number,
+          numCpus: sinon.match.number,
+          tags: sinon.match.string,
+          time: sinon.match.number,
+          uuid: sinon.match.string
+        })
         sinon.assert.notCalled(docker.getContainer)
         sinon.assert.calledOnce(rabbitmq.publish)
         sinon.assert.calledWith(rabbitmq.publish, 'docker.events-stream.connected', {
@@ -193,6 +210,19 @@ describe('docker event publish', function () {
       }
       DockerEventPublish(payload).asCallback(function (err) {
         expect(err).to.not.exist()
+        sinon.assert.calledOnce(DockerEventPublish._addBasicFields)
+        sinon.assert.calledWith(DockerEventPublish._addBasicFields, payload)
+        sinon.assert.calledOnce(DockerEventPublish._isContainerEvent)
+        sinon.assert.calledWith(DockerEventPublish._isContainerEvent, {
+          status: 'docker.events-stream.disconnected',
+          host: sinon.match.string,
+          ip: sinon.match.string,
+          mem: sinon.match.number,
+          numCpus: sinon.match.number,
+          tags: sinon.match.string,
+          time: sinon.match.number,
+          uuid: sinon.match.string
+        })
         sinon.assert.notCalled(docker.getContainer)
         sinon.assert.calledOnce(rabbitmq.publish)
         sinon.assert.calledWith(rabbitmq.publish, 'docker.events-stream.disconnected', {
@@ -209,6 +239,5 @@ describe('docker event publish', function () {
       })
     })
   })
-
 
 });
