@@ -154,9 +154,30 @@ describe('docker event publish', function () {
   })
 
   describe('worker', function () {
+    var container = {
+      inspect: function (cb) {
+        var data = {
+          'Bridge': 'docker0',
+          'Gateway': '172.17.42.1',
+          'IPAddress': '172.17.0.4',
+          'IPPrefixLen': 16,
+          'PortMapping': null,
+          'Ports': {
+            '5000/tcp': [
+              {
+                'HostIp': '0.0.0.0',
+                'HostPort': '5000'
+              }
+            ]
+          }
+        }
+        cb(null, data)
+      }
+    }
     beforeEach(function (done) {
       sinon.stub(rabbitmq, 'publish')
-      sinon.stub(docker, 'getContainer')
+      sinon.stub(docker, 'getContainer').returns(container)
+      sinon.stub(container, 'inspect')
       sinon.spy(DockerEventPublish, '_addBasicFields')
       sinon.spy(DockerEventPublish, '_isContainerEvent')
       done()
@@ -164,6 +185,7 @@ describe('docker event publish', function () {
     afterEach(function (done) {
       rabbitmq.publish.restore()
       docker.getContainer.restore()
+      container.inspect.restore()
       DockerEventPublish._addBasicFields.restore()
       DockerEventPublish._isContainerEvent.restore()
       done()
@@ -235,6 +257,36 @@ describe('docker event publish', function () {
           time: sinon.match.number,
           uuid: sinon.match.string
         })
+        done()
+      })
+    })
+    it('should fail if container inspect failed', function (done) {
+      var payload = {
+        status: 'create',
+        id: 'bc533791f3f500b280a9626688bc79e342e3ea0d528efe3a86a51ecb28ea20'
+      }
+      var error = new Error('Docker error')
+      container.inspect.yields(error)
+      DockerEventPublish(payload).asCallback(function (err) {
+        expect(err.message).to.equal(error.message)
+        sinon.assert.calledOnce(DockerEventPublish._addBasicFields)
+        sinon.assert.calledWith(DockerEventPublish._addBasicFields, payload)
+        sinon.assert.calledOnce(DockerEventPublish._isContainerEvent)
+        sinon.assert.calledWith(DockerEventPublish._isContainerEvent, {
+          id: payload.id,
+          status: 'create',
+          host: sinon.match.string,
+          ip: sinon.match.string,
+          mem: sinon.match.number,
+          numCpus: sinon.match.number,
+          tags: sinon.match.string,
+          time: sinon.match.number,
+          uuid: sinon.match.string
+        })
+        sinon.assert.calledOnce(docker.getContainer)
+        sinon.assert.calledWith(docker.getContainer, payload.id)
+        sinon.assert.calledOnce(container.inspect)
+        sinon.assert.notCalled(rabbitmq.publish)
         done()
       })
     })
