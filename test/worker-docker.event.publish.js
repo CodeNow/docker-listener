@@ -7,6 +7,8 @@ require('loadenv')({ debugName: 'docker-listener' });
 var Code = require('code');
 var Lab = require('lab');
 
+var TaskFatalError = require('ponos').TaskFatalError
+
 var sinon = require('sinon')
 var rabbitmq = require('../lib/rabbitmq');
 var docker = require('../lib/docker');
@@ -156,28 +158,36 @@ describe('docker event publish', function () {
   describe('worker', function () {
     var container = {
       inspect: function (cb) {
-        var data = {
-          'Bridge': 'docker0',
-          'Gateway': '172.17.42.1',
-          'IPAddress': '172.17.0.4',
-          'IPPrefixLen': 16,
-          'PortMapping': null,
-          'Ports': {
-            '5000/tcp': [
-              {
-                'HostIp': '0.0.0.0',
-                'HostPort': '5000'
-              }
-            ]
-          }
-        }
-        cb(null, data)
+        cb()
       }
     }
+    function createData (type) {
+      return {
+        Bridge: 'docker0',
+        Gateway: '172.17.42.1',
+        IPAddress: '172.17.0.4',
+        IPPrefixLen: 16,
+        PortMapping: null,
+        Config: {
+          Labels: {
+            type: type || 'user-container'
+          }
+        },
+        Ports: {
+          '5000/tcp': [
+            {
+              'HostIp': '0.0.0.0',
+              'HostPort': '5000'
+            }
+          ]
+        }
+      }
+    }
+    var data = createData('user-container')
     beforeEach(function (done) {
       sinon.stub(rabbitmq, 'publish')
       sinon.stub(docker, 'getContainer').returns(container)
-      sinon.stub(container, 'inspect')
+      sinon.stub(container, 'inspect').yieldsAsync(null, data)
       sinon.spy(DockerEventPublish, '_addBasicFields')
       sinon.spy(DockerEventPublish, '_isContainerEvent')
       done()
@@ -290,6 +300,97 @@ describe('docker event publish', function () {
         done()
       })
     })
+    it('should fail fatally if container was not failed', function (done) {
+      var payload = {
+        status: 'create',
+        id: 'bc533791f3f500b280a9626688bc79e342e3ea0d528efe3a86a51ecb28ea20'
+      }
+      var error = new Error('Docker error')
+      error.statusCode = 404
+      container.inspect.yields(error)
+      DockerEventPublish(payload).asCallback(function (err) {
+        expect(err).to.be.instanceOf(TaskFatalError)
+        expect(err.message).to.contain(error.message)
+        sinon.assert.calledOnce(DockerEventPublish._addBasicFields)
+        sinon.assert.calledWith(DockerEventPublish._addBasicFields, payload)
+        sinon.assert.calledOnce(DockerEventPublish._isContainerEvent)
+        sinon.assert.calledWith(DockerEventPublish._isContainerEvent, {
+          id: payload.id,
+          status: 'create',
+          host: sinon.match.string,
+          ip: sinon.match.string,
+          mem: sinon.match.number,
+          numCpus: sinon.match.number,
+          tags: sinon.match.string,
+          time: sinon.match.number,
+          uuid: sinon.match.string
+        })
+        sinon.assert.calledOnce(docker.getContainer)
+        sinon.assert.calledWith(docker.getContainer, payload.id)
+        sinon.assert.calledOnce(container.inspect)
+        sinon.assert.notCalled(rabbitmq.publish)
+        done()
+      })
+    })
+    it('should work for user container create events', function (done) {
+      var payload = {
+        status: 'create',
+        id: 'bc533791f3f500b280a9626688bc79e342e3ea0d528efe3a86a51ecb28ea20'
+      }
+      DockerEventPublish(payload).asCallback(function (err) {
+        expect(err).to.not.exist()
+        sinon.assert.calledOnce(DockerEventPublish._addBasicFields)
+        sinon.assert.calledWith(DockerEventPublish._addBasicFields, payload)
+        sinon.assert.calledOnce(DockerEventPublish._isContainerEvent)
+        sinon.assert.calledOnce(docker.getContainer)
+        sinon.assert.calledWith(docker.getContainer, payload.id)
+        sinon.assert.calledOnce(container.inspect)
+        sinon.assert.calledOnce(rabbitmq.publish)
+        sinon.assert.calledWith(rabbitmq.publish, 'on-instance-container-create', {
+          status: 'create',
+          inspectData: data,
+          host: sinon.match.string,
+          id: sinon.match.string,
+          ip: sinon.match.string,
+          mem: sinon.match.number,
+          numCpus: sinon.match.number,
+          tags: sinon.match.string,
+          time: sinon.match.number,
+          uuid: sinon.match.string
+        })
+        done()
+      })
+    })
+    it('should work for image-builder container create events', function (done) {
+      var payload = {
+        status: 'create',
+        id: 'bc533791f3f500b280a9626688bc79e342e3ea0d528efe3a86a51ecb28ea20'
+      }
+      var data = createData('image-builder-container')
+      container.inspect.yieldsAsync(null, data)
+      DockerEventPublish(payload).asCallback(function (err) {
+        expect(err).to.not.exist()
+        sinon.assert.calledOnce(DockerEventPublish._addBasicFields)
+        sinon.assert.calledWith(DockerEventPublish._addBasicFields, payload)
+        sinon.assert.calledOnce(DockerEventPublish._isContainerEvent)
+        sinon.assert.calledOnce(docker.getContainer)
+        sinon.assert.calledWith(docker.getContainer, payload.id)
+        sinon.assert.calledOnce(container.inspect)
+        sinon.assert.calledOnce(rabbitmq.publish)
+        sinon.assert.calledWith(rabbitmq.publish, 'on-image-builder-container-create', {
+          status: 'create',
+          inspectData: data,
+          host: sinon.match.string,
+          id: sinon.match.string,
+          ip: sinon.match.string,
+          mem: sinon.match.number,
+          numCpus: sinon.match.number,
+          tags: sinon.match.string,
+          time: sinon.match.number,
+          uuid: sinon.match.string
+        })
+        done()
+      })
+    })
   })
-
 });
