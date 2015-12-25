@@ -93,4 +93,61 @@ describe('docker event publish', function () {
     })
   })
 
+  describe('_isUserContainer', function () {
+    it('should return true if user container', function (done) {
+      var data = {
+        inspectData: {
+          Config: {
+            Labels: {
+              type: 'user-container'
+            }
+          }
+        }
+      }
+      expect(DockerEventPublish._isUserContainer(data)).to.be.true()
+      done()
+    })
+    it('should return false if not user container', function (done) {
+      var data = {
+        inspectData: {
+          Config: {
+            Labels: {
+              type: 'image-builder-container'
+            }
+          }
+        }
+      }
+      expect(DockerEventPublish._isUserContainer(data)).to.be.false()
+      done()
+    })
+  })
+
+  describe('_isBuildContainer', function () {
+    it('should return true if user container', function (done) {
+      var data = {
+        inspectData: {
+          Config: {
+            Labels: {
+              type: 'image-builder-container'
+            }
+          }
+        }
+      }
+      expect(DockerEventPublish._isBuildContainer(data)).to.be.true()
+      done()
+    })
+    it('should return false if not user container', function (done) {
+      var data = {
+        inspectData: {
+          Config: {
+            Labels: {
+              type: 'user-container'
+            }
+          }
+        }
+      }
+      expect(DockerEventPublish._isBuildContainer(data)).to.be.false()
+      done()
+    })
+  })
 });
