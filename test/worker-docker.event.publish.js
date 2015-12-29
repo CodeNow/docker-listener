@@ -15,7 +15,6 @@ var docker = require('../lib/docker');
 var DockerEventPublish = require('../lib/workers/docker.event.publish.js');
 var sinon = require('sinon');
 var ip = require('ip');
-var os = require('os');
 
 var lab = exports.lab = Lab.script();
 
@@ -69,8 +68,6 @@ describe('docker event publish', function () {
       expect(enhanced.time).to.equal(original.time);
       expect(enhanced.uuid).to.exist();
       expect(enhanced.ip).to.equal(ip.address());
-      expect(enhanced.numCpus).to.equal(os.cpus().length);
-      expect(enhanced.mem).to.equal(os.totalmem());
       expect(enhanced.tags).to.equal(process.env.HOST_TAGS);
 
       var host = 'http://' + ip.address() + ':' + process.env.DOCKER_REMOTE_API_PORT;
@@ -214,8 +211,6 @@ describe('docker event publish', function () {
           status: 'docker.events-stream.connected',
           host: sinon.match.string,
           ip: sinon.match.string,
-          mem: sinon.match.number,
-          numCpus: sinon.match.number,
           tags: sinon.match.string,
           time: sinon.match.number,
           uuid: sinon.match.string
@@ -226,8 +221,6 @@ describe('docker event publish', function () {
           status: 'docker.events-stream.connected',
           host: sinon.match.string,
           ip: sinon.match.string,
-          mem: sinon.match.number,
-          numCpus: sinon.match.number,
           tags: sinon.match.string,
           time: sinon.match.number,
           uuid: sinon.match.string
@@ -249,8 +242,6 @@ describe('docker event publish', function () {
           status: 'docker.events-stream.disconnected',
           host: sinon.match.string,
           ip: sinon.match.string,
-          mem: sinon.match.number,
-          numCpus: sinon.match.number,
           tags: sinon.match.string,
           time: sinon.match.number,
           uuid: sinon.match.string
@@ -261,8 +252,6 @@ describe('docker event publish', function () {
           status: 'docker.events-stream.disconnected',
           host: sinon.match.string,
           ip: sinon.match.string,
-          mem: sinon.match.number,
-          numCpus: sinon.match.number,
           tags: sinon.match.string,
           time: sinon.match.number,
           uuid: sinon.match.string
@@ -287,8 +276,6 @@ describe('docker event publish', function () {
           status: 'create',
           host: sinon.match.string,
           ip: sinon.match.string,
-          mem: sinon.match.number,
-          numCpus: sinon.match.number,
           tags: sinon.match.string,
           time: sinon.match.number,
           uuid: sinon.match.string
@@ -319,8 +306,6 @@ describe('docker event publish', function () {
           status: 'create',
           host: sinon.match.string,
           ip: sinon.match.string,
-          mem: sinon.match.number,
-          numCpus: sinon.match.number,
           tags: sinon.match.string,
           time: sinon.match.number,
           uuid: sinon.match.string
@@ -352,8 +337,6 @@ describe('docker event publish', function () {
           host: sinon.match.string,
           id: sinon.match.string,
           ip: sinon.match.string,
-          mem: sinon.match.number,
-          numCpus: sinon.match.number,
           tags: sinon.match.string,
           time: sinon.match.number,
           uuid: sinon.match.string
@@ -383,8 +366,6 @@ describe('docker event publish', function () {
           host: sinon.match.string,
           id: sinon.match.string,
           ip: sinon.match.string,
-          mem: sinon.match.number,
-          numCpus: sinon.match.number,
           tags: sinon.match.string,
           time: sinon.match.number,
           uuid: sinon.match.string
@@ -412,8 +393,6 @@ describe('docker event publish', function () {
           host: sinon.match.string,
           id: sinon.match.string,
           ip: sinon.match.string,
-          mem: sinon.match.number,
-          numCpus: sinon.match.number,
           tags: sinon.match.string,
           time: sinon.match.number,
           uuid: sinon.match.string
@@ -424,8 +403,6 @@ describe('docker event publish', function () {
           host: sinon.match.string,
           id: sinon.match.string,
           ip: sinon.match.string,
-          mem: sinon.match.number,
-          numCpus: sinon.match.number,
           tags: sinon.match.string,
           time: sinon.match.number,
           uuid: sinon.match.string
@@ -455,8 +432,6 @@ describe('docker event publish', function () {
           host: sinon.match.string,
           id: sinon.match.string,
           ip: sinon.match.string,
-          mem: sinon.match.number,
-          numCpus: sinon.match.number,
           tags: sinon.match.string,
           time: sinon.match.number,
           uuid: sinon.match.string
@@ -467,8 +442,6 @@ describe('docker event publish', function () {
           host: sinon.match.string,
           id: sinon.match.string,
           ip: sinon.match.string,
-          mem: sinon.match.number,
-          numCpus: sinon.match.number,
           tags: sinon.match.string,
           time: sinon.match.number,
           uuid: sinon.match.string
@@ -496,8 +469,6 @@ describe('docker event publish', function () {
           host: sinon.match.string,
           id: sinon.match.string,
           ip: sinon.match.string,
-          mem: sinon.match.number,
-          numCpus: sinon.match.number,
           tags: sinon.match.string,
           time: sinon.match.number,
           uuid: sinon.match.string
