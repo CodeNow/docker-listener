@@ -116,7 +116,10 @@ describe('listener', {timeout: 10000}, function () {
         if (data.uuid) {
          expect(data.uuid).to.be.a.string();
         }
-        expect(data.time).to.be.a.number();
+        if (data.time) {
+          expect(data.time).to.be.a.number();  
+        }
+
         messagesCounter++;
         if (messagesCounter < 11) {
           count.next();

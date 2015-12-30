@@ -18,7 +18,7 @@ describe('rabbitmq.js unit test', function () {
     it('should do nothing if it was not connected', function (done) {
       sinon.stub(Hermes.prototype, 'close').yields(null);
       rabbitmq.close(function (err) {
-        expect(err).to.be.undefined();
+        expect(err).to.not.exist();
         expect(Hermes.prototype.close.called).to.be.false();
         Hermes.prototype.close.restore();
         done();
@@ -28,23 +28,23 @@ describe('rabbitmq.js unit test', function () {
       sinon.stub(Hermes.prototype, 'connect').yields(null);
       sinon.stub(Hermes.prototype, 'close').yields(null);
       rabbitmq.connect(function (err) {
-        expect(err).to.be.null();
-        expect(Hermes.prototype.connect.calledOnce).to.be.true();
+        expect(err).to.not.exist();
+        expect(Hermes.prototype.connect.callCount).to.equal(3)
         Hermes.prototype.connect.restore();
         rabbitmq.close(function (err) {
           expect(err).to.be.null();
-          expect(Hermes.prototype.close.calledOnce).to.be.true();
+          expect(Hermes.prototype.close.callCount).to.equal(3)
           Hermes.prototype.close.restore();
           done();
         });
       });
     });
-    it('should fail if hermes connect failed', function (done) {
+    it('should fail if hermes close failed', function (done) {
       sinon.stub(Hermes.prototype, 'connect').yields(null);
       sinon.stub(Hermes.prototype, 'close').yields(new Error('Hermes error'));
       rabbitmq.connect(function (err) {
         expect(err).to.be.null();
-        expect(Hermes.prototype.connect.calledOnce).to.be.true();
+        expect(Hermes.prototype.connect.callCount).to.equal(3)
         Hermes.prototype.connect.restore();
         rabbitmq.close(function (err) {
           expect(err).to.exist();
@@ -60,8 +60,8 @@ describe('rabbitmq.js unit test', function () {
     it('should call hermes connect', function (done) {
       sinon.stub(Hermes.prototype, 'connect').yields(null);
       rabbitmq.connect(function (err) {
-        expect(err).to.be.null();
-        expect(Hermes.prototype.connect.calledOnce).to.be.true();
+        expect(err).to.not.exist();
+        expect(Hermes.prototype.connect.callCount).to.equal(3)
         Hermes.prototype.connect.restore();
         done();
       });
@@ -71,7 +71,6 @@ describe('rabbitmq.js unit test', function () {
       rabbitmq.connect(function (err) {
         expect(err).to.exist();
         expect(err.message).to.equal('Hermes error');
-        expect(Hermes.prototype.connect.calledOnce).to.be.true();
         Hermes.prototype.connect.restore();
         done();
       });

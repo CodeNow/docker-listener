@@ -6,8 +6,7 @@
   "private": true,
   "scripts": {
     "test-watch": "node_modules/.bin/rerun-script test",
-    "test": "clear; npm run lint && npm run unit",
-    "lint": "jshint .",
+    "test": "clear; npm run unit",
     "unit": "NODE_PATH=./lib lab -c -v -m 3000 -f test -a code",
     "start": "NODE_PATH=./lib node index.js"
   },
@@ -35,6 +34,7 @@
   "dependencies": {
     "101": "^1.0.0",
     "async": "^1.5.0",
+    "bluebird": "^3.1.1",
     "boom": "^2.6.0",
     "bunyan": "^1.4.0",
     "bunyan-loggly": "0.0.5",
@@ -49,16 +49,17 @@
     "monitor-dog": "^1.4.1",
     "morgan": "^1.5.0",
     "node-uuid": "^1.4.1",
+    "ponos": "^1.1.1",
     "runnable-hermes": "git://github.com/Runnable/hermes.git#v6.4.0"
   },
   "devDependencies": {
-    "callback-count": "^0.1.0",
+    "callback-count": "^0.2.0",
     "code": "^1.5.0",
     "docker-mock": "0.4.0",
     "jshint": "2.5.10",
     "lab": "^5.15.0",
     "rerun-script": "^0.6.0",
-    "sinon": "^1.14.1",
+    "sinon": "^1.17.2",
     "supertest": "^1.0.1"
   }
 }
