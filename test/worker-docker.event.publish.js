@@ -505,14 +505,13 @@ describe('docker event publish', function () {
         done()
       })
     })
-    it('should fail for invalid event', function (done) {
+    it('should do nothing for invalid event', function (done) {
       var payload = {
         status: 'invalid-event',
         id: 'bc533791f3f500b280a9626688bc79e342e3ea0d528efe3a86a51ecb28ea20'
       }
       DockerEventPublish(payload).asCallback(function (err) {
-        expect(err).to.be.instanceOf(TaskFatalError)
-        expect(err.message).to.contain('Paylod status is invalid')
+        expect(err).to.not.exist()
         sinon.assert.calledOnce(DockerEventPublish._addBasicFields)
         sinon.assert.calledWith(DockerEventPublish._addBasicFields, payload)
         sinon.assert.calledOnce(DockerEventPublish._isContainerEvent)
