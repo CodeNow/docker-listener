@@ -25,6 +25,19 @@ Docker-listener deployed as a service on each dock.
   * `container.life-cycle.died` - any container died
 
 
+## Formatting
+
+This repository is formatted using the Standard JS rules.
+
+[![js-standard-style](https://cdn.rawgit.com/feross/standard/master/badge.svg)](https://github.com/feross/standard)
+
+Some helpful tips:
+
+- `npm run lint` runs the standard linter, and will not format your code
+- `npm run format` will run the standard formatter, attempting to fix various issues that are found
+- [standard's README](https://github.com/feross/standard/blob/master/README.md) has some good information about various [text editor plugins](https://github.com/feross/standard/blob/master/README.md#text-editor-plugins) as well, to make your life easier
+
+
 ## Install & Run
 
 To install:
