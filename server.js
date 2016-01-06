@@ -31,11 +31,11 @@ process.env.VERSION_GIT_BRANCH = execSync('git rev-parse --abbrev-ref HEAD')
 Server.prototype.start = function (port, cb) {
   var self = this
   this.server = app.listen(port, function (err) {
-    if (err) { return cb(err); }
+    if (err) { return cb(err) }
     log.info({ port: port }, 'server listen')
     monitor.startSocketsMonitor()
     RabbitMQ.connect(function (err) {
-      if (err) { return cb(err); }
+      if (err) { return cb(err) }
       var publisher = new Publisher()
       var listener = new Listener(publisher)
       self.listener = listener
@@ -58,7 +58,7 @@ Server.prototype.stop = function (cb) {
     return cb(new Error('Trying to stop when server was not started'))
   }
   this.server.close(function (err) {
-    if (err) { return cb(err); }
+    if (err) { return cb(err) }
     monitor.stopSocketsMonitor()
     if (self.listener) {
       self.listener.stop()

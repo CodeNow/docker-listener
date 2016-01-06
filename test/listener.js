@@ -81,7 +81,7 @@ describe('listener', {timeout: 10000}, function () {
       var ws = new stream.Stream()
       ws.writable = true
       var messagesCounter = 0
-      /*jshint maxcomplexity:12 */
+      /* jshint maxcomplexity:12 */
       ws.write = function (data) {
         if (typeof data === 'string') {
           data = JSON.parse(data)
@@ -170,9 +170,7 @@ describe('listener', {timeout: 10000}, function () {
       ctx.listener = new Listener(ws)
       ctx.listener.start()
     })
-
   })
-
 })
 
 function restartDocker (ctx) {
