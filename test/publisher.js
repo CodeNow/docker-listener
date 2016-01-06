@@ -13,12 +13,8 @@ var status = require('../lib/status')
 var Publisher = require('../lib/publisher')
 var rabbitmq = require('../lib/rabbitmq')
 var sinon = require('sinon')
-var ip = require('ip')
 
 var lab = exports.lab = Lab.script()
-
-var beforeEach = lab.beforeEach
-var afterEach = lab.afterEach
 
 var describe = lab.experiment
 var expect = Code.expect

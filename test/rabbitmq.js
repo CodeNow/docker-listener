@@ -89,4 +89,4 @@ describe('rabbitmq.js unit test', function () {
       })
     })
   })
-}); // end rabbitmq.js unit test
+}) // end rabbitmq.js unit test

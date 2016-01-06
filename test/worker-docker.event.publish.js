@@ -9,7 +9,6 @@ var Lab = require('lab')
 
 var TaskFatalError = require('ponos').TaskFatalError
 
-var sinon = require('sinon')
 var rabbitmq = require('../lib/rabbitmq')
 var docker = require('../lib/docker')
 var DockerEventPublish = require('../lib/workers/docker.event.publish.js')
