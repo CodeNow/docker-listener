@@ -1,5 +1,5 @@
-'use strict';
-var redis = require('redis');
+'use strict'
+var redis = require('redis')
 
 module.exports = function () {
   return redis.createClient(
@@ -7,5 +7,5 @@ module.exports = function () {
     process.env.REDIS_IPADDRESS,
     {
       detect_buffers: true
-    });
-};
+    })
+}

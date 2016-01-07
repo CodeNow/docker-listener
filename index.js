@@ -1,15 +1,15 @@
 /**
  * @module index
  */
-'use strict';
+'use strict'
 
-require('loadenv')();
+require('loadenv')()
 
-var ErrorCat = require('error-cat');
-var error = new ErrorCat();
-var Server = require('./server');
+var ErrorCat = require('error-cat')
+var error = new ErrorCat()
+var Server = require('./server')
 
-var server = new Server();
+var server = new Server()
 server.start(process.env.PORT, function (err) {
-  if (err) { error.createAndReport(500, 'failed to start', err); }
-});
+  if (err) { error.createAndReport(500, 'failed to start', err) }
+})

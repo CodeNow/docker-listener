@@ -6,9 +6,13 @@
   "private": true,
   "scripts": {
     "test-watch": "node_modules/.bin/rerun-script test",
-    "test": "clear; npm run unit",
+    "test": "clear; npm run lint; npm run unit",
     "unit": "NODE_PATH=./lib lab -c -v -m 3000 -f test -a code",
-    "start": "NODE_PATH=./lib node index.js"
+    "start": "NODE_PATH=./lib node index.js",
+    "format": "standard --format --verbose",
+    "format-snazzy": "standard --format --verbose | snazzy",
+    "lint": "standard --verbose",
+    "lint-snazzy": "standard --verbose | snazzy"
   },
   "watches": {
     "test": [
@@ -60,6 +64,7 @@
     "lab": "^5.15.0",
     "rerun-script": "^0.6.0",
     "sinon": "^1.17.2",
+    "standard": "^5.4.1",
     "supertest": "^1.0.1"
   }
 }
