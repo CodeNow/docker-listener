@@ -5,7 +5,7 @@
 'use strict'
 require('loadenv')()
 
-var execSync = require('exec-sync')
+var execSync = require('child_process').execSync
 var monitor = require('monitor-dog')
 
 var app = require('./lib/app.js')
