@@ -25,9 +25,11 @@ var it = lab.test
 describe('listener unit test', function () {
   describe('constructor', function () {
     it('should throw if invalid publisher', function (done) {
+      var l
       expect(function () {
-        new Listener({})
+        l = new Listener({})
       }).to.throw(Error)
+      expect(l).to.not.exist()
       done()
     })
 
