@@ -9,9 +9,9 @@ var Lab = require('lab')
 
 var Readable = require('stream').Readable
 
-var status = require('../lib/status')
-var Publisher = require('../lib/publisher')
-var rabbitmq = require('../lib/rabbitmq')
+var status = require('../../lib/status')
+var Publisher = require('../../lib/publisher')
+var rabbitmq = require('../../lib/rabbitmq')
 var sinon = require('sinon')
 
 var lab = exports.lab = Lab.script()

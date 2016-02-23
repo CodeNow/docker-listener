@@ -13,10 +13,10 @@ var createCount = require('callback-count')
 
 var sinon = require('sinon')
 var monitor = require('monitor-dog')
-var app = require('../lib/app.js')
-var RabbitMQ = require('../lib/rabbitmq.js')
-var Server = require('../server.js')
-var Listener = require('../lib/listener')
+var app = require('../../lib/app.js')
+var RabbitMQ = require('../../lib/rabbitmq.js')
+var Server = require('../../server.js')
+var Listener = require('../../lib/listener')
 
 describe('server.js unit test', function () {
   describe('start', function () {

@@ -9,10 +9,10 @@ var Lab = require('lab')
 var sinon = require('sinon')
 var TaskFatalError = require('ponos').TaskFatalError
 
-var docker = require('../lib/docker')
-var DockerEventPublish = require('../lib/workers/docker.event.publish.js')
-var eventMock = require('./fixtures/event-mock.js')
-var rabbitmq = require('../lib/rabbitmq')
+var docker = require('../../lib/docker')
+var DockerEventPublish = require('../../lib/workers/docker.event.publish.js')
+var eventMock = require('../fixtures/event-mock.js')
+var rabbitmq = require('../../lib/rabbitmq')
 
 var lab = exports.lab = Lab.script()
 

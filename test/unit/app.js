@@ -11,9 +11,9 @@ var supertest = require('supertest')
 var stream = require('stream')
 var noop = require('101/noop')
 
-var app = require('../lib/app')
-var docker = require('./fixtures/docker-mock')
-var Listener = require('../lib/listener')
+var app = require('../../lib/app')
+var docker = require('../fixtures/docker-mock')
+var Listener = require('../../lib/listener')
 
 var lab = exports.lab = Lab.script()
 
