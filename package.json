@@ -40,7 +40,7 @@
     "async": "^1.5.0",
     "bluebird": "^3.1.1",
     "bunyan": "^1.4.0",
-    "bunyan-loggly": "0.0.5",
+    "bunyan-loggly": "^1.0.0",
     "bunyan-syslog": "^0.3.1",
     "dockerode": "^2.0.7",
     "error-cat": "^1.4.1",
@@ -58,11 +58,11 @@
     "callback-count": "^0.2.0",
     "code": "^1.5.0",
     "docker-mock": "0.4.0",
-    "jshint": "2.5.10",
+    "jshint": "^2.9.1",
     "lab": "^5.15.0",
     "rerun-script": "^0.6.0",
     "sinon": "^1.17.2",
-    "standard": "^5.4.1",
+    "standard": "^6.0.7",
     "supertest": "^1.0.1"
   }
 }
