@@ -26,15 +26,17 @@ module.exports = Server
  */
 Server.prototype.start = function (port, cb) {
   var self = this
-  log.info({ port: port }, 'start: server listen')
+  log.info({ port: port }, 'Server.prototype.start')
 
   this.server = app.listen(port, function (err) {
-    log.trace({ err: err }, 'start: server listen')
+    log.trace({ err: err }, 'start: server listening')
     if (err) { return cb(err) }
+
     monitor.startSocketsMonitor()
     RabbitMQ.connect(function (err) {
       log.trace({ err: err }, 'start: rabbitmq connected')
       if (err) { return cb(err) }
+
       var publisher = new Publisher()
       var listener = new Listener(publisher)
       self.listener = listener
