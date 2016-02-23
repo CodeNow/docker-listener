@@ -5,7 +5,6 @@
 'use strict'
 require('loadenv')()
 
-var execSync = require('exec-sync')
 var monitor = require('monitor-dog')
 
 var app = require('./lib/app.js')
@@ -20,9 +19,6 @@ function Server () {
 }
 module.exports = Server
 
-process.env.VERSION_GIT_COMMIT = execSync('git rev-parse HEAD')
-process.env.VERSION_GIT_BRANCH = execSync('git rev-parse --abbrev-ref HEAD')
-
 /**
  * Listen for events from Docker and publish to RabbitMQ
  * @param {String} port
@@ -30,17 +26,20 @@ process.env.VERSION_GIT_BRANCH = execSync('git rev-parse --abbrev-ref HEAD')
  */
 Server.prototype.start = function (port, cb) {
   var self = this
+  log.info({ port: port }, 'start: server listen')
+
   this.server = app.listen(port, function (err) {
+    log.trace({ err: err }, 'start: server listen')
     if (err) { return cb(err) }
-    log.info({ port: port }, 'server listen')
     monitor.startSocketsMonitor()
     RabbitMQ.connect(function (err) {
+      log.trace({ err: err }, 'start: rabbitmq connected')
       if (err) { return cb(err) }
       var publisher = new Publisher()
       var listener = new Listener(publisher)
       self.listener = listener
       listener.once('started', function () {
-        log.info('listener started')
+        log.trace('start: listener started')
         cb()
       })
       listener.start()

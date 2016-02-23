@@ -203,23 +203,17 @@ describe('listener unit test', function () {
     }) // end handleClose
 
     describe('reconnect', function () {
-      var clock
       beforeEach(function (done) {
-        clock = sinon.useFakeTimers()
         sinon.stub(listener, 'start')
-        process.env.DOCKER_REMOTE_API_RETRY_INTERVAL = 10
         done()
       })
 
       afterEach(function (done) {
-        clock.restore()
-        delete process.env.DOCKER_REMOTE_API_RETRY_INTERVAL
         done()
       })
 
       it('should call reconnect', function (done) {
         listener.reconnect()
-        clock.tick(100)
         sinon.assert.calledOnce(listener.start)
         done()
       })
