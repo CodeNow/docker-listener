@@ -68,8 +68,6 @@ describe('route tests', function () {
     describe('status should be updated after connection to docker is made', function () {
       var ctx = {}
       beforeEach(function (done) {
-        ctx.originalAutoConnet = process.env.AUTO_RECONNECT
-        process.env.AUTO_RECONNECT = 'false'
         var ws = new stream.Writable()
         ws._write = noop
         ctx.ws = ws
@@ -77,7 +75,6 @@ describe('route tests', function () {
       })
 
       afterEach(function (done) {
-        process.env.AUTO_RECONNECT = ctx.originalAutoConnet
         ctx.listener.removeAllListeners()
         ctx.listener.stop()
         delete ctx.listener
