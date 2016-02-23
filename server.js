@@ -8,10 +8,10 @@ require('loadenv')()
 var monitor = require('monitor-dog')
 
 var app = require('./lib/app.js')
+var Listener = require('./lib/listener')
+var log = require('./lib/logger').getChild(__filename)
 var Publisher = require('./lib/publisher')
 var RabbitMQ = require('./lib/rabbitmq')
-var log = require('./lib/logger').getChild(__filename)
-var Listener = require('./lib/listener')
 
 function Server () {
   this.server = null

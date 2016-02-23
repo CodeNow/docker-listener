@@ -41,7 +41,6 @@ describe('listener unit test', function () {
       }).to.not.throw()
       expect(listener.publisher).to.deep.equal(testPub)
       expect(listener.dockerEventStream).to.be.null()
-      expect(listener.manualClose).to.be.false()
       expect(listener).to.be.an.instanceOf(EventEmitter)
       done()
     })
@@ -63,17 +62,6 @@ describe('listener unit test', function () {
       afterEach(function (done) {
         docker.getEvents.restore()
         done()
-      })
-
-      it('should reconnect on error', function (done) {
-        docker.getEvents.yieldsAsync('error')
-        sinon.stub(listener, 'reconnect', function () {
-          sinon.assert.calledOnce(docker.getEvents)
-          sinon.assert.calledWith(docker.getEvents, sinon.match.func)
-          done()
-        })
-
-        listener.start()
       })
 
       it('should reconnect on error', function (done) {
@@ -125,7 +113,6 @@ describe('listener unit test', function () {
 
         sinon.stub(listener, 'emit', function (name) {
           expect(name).to.equal('stopped')
-          expect(listener.manualClose).to.be.true()
           sinon.assert.calledOnce(listener.dockerEventStream.destroy)
           done()
         })
@@ -135,11 +122,9 @@ describe('listener unit test', function () {
 
       it('should not call destroy', function (done) {
         delete listener.dockerEventStream
-        listener.manualClose = false
 
         sinon.stub(listener, 'emit', function (name) {
           expect(name).to.equal('stopped')
-          expect(listener.manualClose).to.be.false()
           done()
         })
 
@@ -182,19 +167,9 @@ describe('listener unit test', function () {
         done()
       })
 
-      it('should not call destroy or reconnect', function (done) {
-        listener.manualClose = true
-        listener.handleClose()
-
-        sinon.assert.notCalled(destroyStub)
-        done()
-      })
-
       it('should call destroy and reconnect', function (done) {
-        listener.manualClose = false
         listener.handleClose()
 
-        expect(listener.manualClose).to.be.false()
         expect(listener.dockerEventStream).to.be.null()
         sinon.assert.calledOnce(destroyStub)
         sinon.assert.calledOnce(listener.reconnect)
@@ -205,10 +180,6 @@ describe('listener unit test', function () {
     describe('reconnect', function () {
       beforeEach(function (done) {
         sinon.stub(listener, 'start')
-        done()
-      })
-
-      afterEach(function (done) {
         done()
       })
 
