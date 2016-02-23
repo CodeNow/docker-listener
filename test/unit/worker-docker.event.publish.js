@@ -66,23 +66,6 @@ describe('docker event publish', function () {
     })
   })
 
-  describe('_isEngineEvent', function () {
-    it('should return true for engine_disconnect', function (done) {
-      expect(DockerEventPublish._isEngineEvent({ status: 'engine_disconnect' })).to.be.true()
-      done()
-    })
-
-    it('should return true for engine_connect', function (done) {
-      expect(DockerEventPublish._isEngineEvent({ status: 'engine_disconnect' })).to.be.true()
-      done()
-    })
-
-    it('should return false for non-container events', function (done) {
-      expect(DockerEventPublish._isEngineEvent({ status: 'engine' })).to.be.false()
-      done()
-    })
-  })
-
   describe('_isUserContainer', function () {
     it('should return true if user container', function (done) {
       var data = {
