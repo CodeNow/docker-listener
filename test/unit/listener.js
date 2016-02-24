@@ -78,7 +78,6 @@ describe('listener unit test', function () {
       it('should setup pipes', function (done) {
         var stubStream = {
           on: sinon.stub().returnsThis(),
-          pipe: sinon.stub(),
           socket: {
             setTimeout: sinon.stub()
           }
@@ -87,12 +86,11 @@ describe('listener unit test', function () {
         sinon.stub(listener, 'emit', function (name) {
           expect(name).to.equal('started')
 
-          sinon.assert.calledTwice(stubStream.on)
+          sinon.assert.callCount(stubStream.on, 4)
           sinon.assert.calledWith(stubStream.on, 'error', sinon.match.func)
           sinon.assert.calledWith(stubStream.on, 'close', sinon.match.func)
-
-          sinon.assert.calledTwice(stubStream.pipe)
-          sinon.assert.calledWith(stubStream.pipe, listener.publisher)
+          sinon.assert.calledWith(stubStream.on, 'data', sinon.match.func)
+          sinon.assert.calledWith(stubStream.on, 'data', sinon.match.func)
           done()
         })
 
