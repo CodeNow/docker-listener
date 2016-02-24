@@ -5,8 +5,8 @@
   "main": "main.js",
   "private": true,
   "scripts": {
-    "test-watch": "node_modules/.bin/rerun-script test",
-    "test": "clear; npm run lint; npm run unit",
+    "test-watch": "rerun-script test",
+    "test": "npm run lint; npm run unit",
     "unit": "NODE_PATH=./lib lab -c -v -m 3000 -a code ./test/unit",
     "start": "NODE_PATH=./lib node index.js",
     "format": "standard --format --verbose",
@@ -44,7 +44,6 @@
     "bunyan-syslog": "^0.3.1",
     "dockerode": "^2.0.7",
     "error-cat": "^1.4.1",
-    "exec-sync": "^0.1.6",
     "express": "^4.10.2",
     "keypather": "^1.10.1",
     "loadenv": "^2.1.0",
