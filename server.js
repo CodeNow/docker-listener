@@ -29,13 +29,19 @@ Server.prototype.start = function (port, cb) {
   log.info({ port: port }, 'Server.prototype.start')
 
   this.server = app.listen(port, function (err) {
-    log.trace({ err: err }, 'start: server listening')
-    if (err) { return cb(err) }
+    if (err) {
+      log.error({ err: err }, 'start: error starting to listen')
+      return cb(err)
+    }
+    log.trace('start: server listening')
 
     monitor.startSocketsMonitor()
     RabbitMQ.connect(function (err) {
-      log.trace({ err: err }, 'start: rabbitmq connected')
-      if (err) { return cb(err) }
+      if (err) {
+        log.error({ err: err }, 'start: error connecting to rabbit')
+        return cb(err)
+      }
+      log.trace('start: rabbitmq connected')
 
       var publisher = new Publisher()
       var listener = new Listener(publisher)
