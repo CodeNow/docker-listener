@@ -6,7 +6,7 @@
 require('loadenv')()
 
 var ErrorCat = require('error-cat')
-var log = require('./lib/logger').getChild(__filename)
+var log = require('./lib/logger')()
 var Server = require('./server')
 
 var error = new ErrorCat()
