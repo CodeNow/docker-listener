@@ -10,7 +10,7 @@ var expect = Code.expect
 var Hermes = require('runnable-hermes')
 var sinon = require('sinon')
 
-var rabbitmq = require('../lib/rabbitmq.js')
+var rabbitmq = require('../../lib/rabbitmq.js')
 
 describe('rabbitmq.js unit test', function () {
   describe('close', function () {

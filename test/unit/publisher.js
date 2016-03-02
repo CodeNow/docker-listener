@@ -6,21 +6,26 @@
 require('loadenv')({ debugName: 'docker-listener' })
 var Code = require('code')
 var Lab = require('lab')
-
 var Readable = require('stream').Readable
-
-var status = require('../lib/status')
-var Publisher = require('../lib/publisher')
-var rabbitmq = require('../lib/rabbitmq')
 var sinon = require('sinon')
+
+var status = require('../../lib/status')
+var Publisher = require('../../lib/publisher')
+var rabbitmq = require('../../lib/rabbitmq')
 
 var lab = exports.lab = Lab.script()
 
+var beforeEach = lab.beforeEach
 var describe = lab.experiment
 var expect = Code.expect
 var it = lab.test
 
 describe('rabbit publisher', function () {
+  beforeEach(function (done) {
+    status.count_events = 0
+    done()
+  })
+
   it('should insert message into rabbitmq queue upon docker contain create event', function (done) {
     var publisher = new Publisher()
     sinon.stub(rabbitmq, 'publish', function () {
@@ -47,13 +52,14 @@ describe('rabbit publisher', function () {
     rs.push(null)
     rs.pipe(publisher)
   })
+
   it('should insert message into rabbitmq for the image builder container start', function (done) {
     var publisher = new Publisher()
     sinon.stub(rabbitmq, 'publish', function () {
       expect(rabbitmq.publish.callCount).to.equal(1)
       rabbitmq.publish.restore()
       expect(status.env).to.equal('test')
-      expect(status.count_events).to.equal(2)
+      expect(status.count_events).to.equal(1)
       // ignore minutes/seconds and millis
       expect(new Date().getTime()).to.be.about(new Date(status.last_event_time).getTime(), 2000)
       done()
