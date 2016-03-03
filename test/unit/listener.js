@@ -10,7 +10,6 @@ var EventEmitter = require('events').EventEmitter
 var Lab = require('lab')
 var sinon = require('sinon')
 
-var datadog = require('../../lib/datadog')
 var docker = require('../../lib/docker')
 var Listener = require('../../lib/listener')
 var status = require('../../lib/status')
@@ -115,13 +114,11 @@ describe('listener unit test', function () {
 
     describe('handleError', function () {
       beforeEach(function (done) {
-        sinon.stub(datadog, 'inc')
         sinon.stub(ErrorCat.prototype, 'createAndReport')
         done()
       })
 
       afterEach(function (done) {
-        datadog.inc.restore()
         ErrorCat.prototype.createAndReport.restore()
         done()
       })
@@ -129,8 +126,6 @@ describe('listener unit test', function () {
       it('should call reporting tools', function (done) {
         var err = 'booms'
         listener.handleError(err)
-        sinon.assert.calledOnce(datadog.inc)
-        sinon.assert.calledWith(datadog.inc, 'error')
 
         sinon.assert.calledOnce(ErrorCat.prototype.createAndReport)
         sinon.assert.calledWith(ErrorCat.prototype.createAndReport, 404, 'Docker streaming error', err)
