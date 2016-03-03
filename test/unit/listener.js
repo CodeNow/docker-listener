@@ -5,14 +5,15 @@
 
 require('loadenv')({ debugName: 'docker-listener' })
 var Code = require('code')
+var ErrorCat = require('error-cat')
+var EventEmitter = require('events').EventEmitter
 var Lab = require('lab')
 var sinon = require('sinon')
-var EventEmitter = require('events').EventEmitter
-var ErrorCat = require('error-cat')
 
-var Listener = require('../../lib/listener')
-var docker = require('../../lib/docker')
 var datadog = require('../../lib/datadog')
+var docker = require('../../lib/docker')
+var Listener = require('../../lib/listener')
+var status = require('../../lib/status')
 
 var lab = exports.lab = Lab.script()
 
@@ -40,7 +41,6 @@ describe('listener unit test', function () {
         listener = new Listener(testPub)
       }).to.not.throw()
       expect(listener.publisher).to.deep.equal(testPub)
-      expect(listener.dockerEventStream).to.be.null()
       expect(listener).to.be.an.instanceOf(EventEmitter)
       done()
     })
@@ -56,17 +56,21 @@ describe('listener unit test', function () {
     describe('start', function () {
       beforeEach(function (done) {
         sinon.stub(docker, 'getEvents')
+        sinon.stub(ErrorCat.prototype, 'createAndReport')
         done()
       })
 
       afterEach(function (done) {
         docker.getEvents.restore()
+        ErrorCat.prototype.createAndReport.restore()
         done()
       })
 
-      it('should reconnect on error', function (done) {
+      it('should on error', function (done) {
         docker.getEvents.yieldsAsync('error')
-        sinon.stub(listener, 'reconnect', function () {
+        ErrorCat.prototype.createAndReport.yieldsAsync()
+
+        sinon.stub(listener, 'handleClose', function () {
           sinon.assert.calledOnce(docker.getEvents)
           sinon.assert.calledWith(docker.getEvents, sinon.match.func)
           done()
@@ -99,33 +103,13 @@ describe('listener unit test', function () {
     }) // end start
 
     describe('stop', function () {
-      beforeEach(function (done) {
-        listener.dockerEventStream = {
-          destroy: sinon.stub()
-        }
-        done()
-      })
+      it('should emit stop and set connection', function (done) {
+        status.docker_connected = true
 
-      it('should call destroy', function (done) {
-        listener.dockerEventStream.destroy.returns()
-
-        sinon.stub(listener, 'emit', function (name) {
-          expect(name).to.equal('stopped')
-          sinon.assert.calledOnce(listener.dockerEventStream.destroy)
+        listener.on('stopped', function () {
+          expect(status.docker_connected).to.be.false()
           done()
         })
-
-        listener.stop()
-      })
-
-      it('should not call destroy', function (done) {
-        delete listener.dockerEventStream
-
-        sinon.stub(listener, 'emit', function (name) {
-          expect(name).to.equal('stopped')
-          done()
-        })
-
         listener.stop()
       })
     }) // end stop
@@ -156,36 +140,23 @@ describe('listener unit test', function () {
     }) // end handleError
 
     describe('handleClose', function () {
-      var destroyStub = sinon.stub()
       beforeEach(function (done) {
-        listener.dockerEventStream = {
-          destroy: destroyStub
-        }
-        sinon.stub(listener, 'reconnect')
+        sinon.stub(process, 'exit')
         done()
       })
 
-      it('should call destroy and reconnect', function (done) {
-        listener.handleClose()
+      afterEach(function (done) {
+        process.exit.restore()
+        done()
+      })
 
-        expect(listener.dockerEventStream).to.be.null()
-        sinon.assert.calledOnce(destroyStub)
-        sinon.assert.calledOnce(listener.reconnect)
+      it('should call exit', function (done) {
+        listener.handleClose()
+        sinon.assert.calledOnce(process.exit)
+        sinon.assert.calledWith(process.exit, 1)
+
         done()
       })
     }) // end handleClose
-
-    describe('reconnect', function () {
-      beforeEach(function (done) {
-        sinon.stub(listener, 'start')
-        done()
-      })
-
-      it('should call reconnect', function (done) {
-        listener.reconnect()
-        sinon.assert.calledOnce(listener.start)
-        done()
-      })
-    }) // end reconnect
   }) // end methods
 })
