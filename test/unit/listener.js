@@ -90,10 +90,9 @@ describe('listener unit test', function () {
         sinon.stub(listener, 'emit', function (name) {
           expect(name).to.equal('started')
 
-          sinon.assert.callCount(stubStream.on, 4)
+          sinon.assert.callCount(stubStream.on, 3)
           sinon.assert.calledWith(stubStream.on, 'error', sinon.match.func)
           sinon.assert.calledWith(stubStream.on, 'close', sinon.match.func)
-          sinon.assert.calledWith(stubStream.on, 'data', sinon.match.func)
           sinon.assert.calledWith(stubStream.on, 'data', sinon.match.func)
           done()
         })
