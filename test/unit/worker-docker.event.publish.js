@@ -181,6 +181,19 @@ describe('docker event publish', function () {
       })
     })
 
+    it('should not publish for blacklisted', function (done) {
+      var payload = eventMock({
+        status: 'start',
+        from: process.env.CONTAINERS_BLACKLIST.split(',')[0]
+      })
+      DockerEventPublish(payload).asCallback(function (err) {
+        expect(err).to.not.exist()
+
+        sinon.assert.notCalled(rabbitmq.publish)
+        done()
+      })
+    })
+
     it('should not call getContainer for non container event', function (done) {
       var payload = eventMock({
         status: 'fake'
@@ -189,6 +202,7 @@ describe('docker event publish', function () {
         expect(err).to.not.exist()
 
         sinon.assert.notCalled(docker.getContainer)
+        sinon.assert.notCalled(rabbitmq.publish)
         done()
       })
     })
@@ -228,15 +242,16 @@ describe('docker event publish', function () {
       var payload = eventMock({
         status: 'create'
       })
+      var parsedPayload = JSON.parse(payload)
       var data = createData('user-container')
       container.inspect.yieldsAsync(null, data)
       DockerEventPublish(payload).asCallback(function (err) {
         expect(err).to.not.exist()
         sinon.assert.calledOnce(DockerEventPublish._addBasicFields)
-        sinon.assert.calledWith(DockerEventPublish._addBasicFields, payload)
+        sinon.assert.calledWithMatch(DockerEventPublish._addBasicFields, parsedPayload)
         sinon.assert.calledOnce(DockerEventPublish._isContainerEvent)
         sinon.assert.calledOnce(docker.getContainer)
-        sinon.assert.calledWith(docker.getContainer, payload.id)
+        sinon.assert.calledWith(docker.getContainer, parsedPayload.id)
         sinon.assert.calledOnce(container.inspect)
         sinon.assert.calledOnce(rabbitmq.publish)
         sinon.assert.calledWith(rabbitmq.publish, 'on-instance-container-create', {
@@ -246,9 +261,9 @@ describe('docker event publish', function () {
           id: sinon.match.string,
           inspectData: data,
           ip: sinon.match.string,
-          node: payload.node,
+          node: parsedPayload.node,
           org: sinon.match.string,
-          status: payload.status,
+          status: parsedPayload.status,
           tags: sinon.match.string,
           time: sinon.match.string,
           uuid: sinon.match.string
@@ -261,15 +276,16 @@ describe('docker event publish', function () {
       var payload = eventMock({
         status: 'create'
       })
+      var parsedPayload = JSON.parse(payload)
       var data = createData('image-builder-container')
       container.inspect.yieldsAsync(null, data)
       DockerEventPublish(payload).asCallback(function (err) {
         expect(err).to.not.exist()
         sinon.assert.calledOnce(DockerEventPublish._addBasicFields)
-        sinon.assert.calledWith(DockerEventPublish._addBasicFields, payload)
+        sinon.assert.calledWithMatch(DockerEventPublish._addBasicFields, parsedPayload)
         sinon.assert.calledOnce(DockerEventPublish._isContainerEvent)
         sinon.assert.calledOnce(docker.getContainer)
-        sinon.assert.calledWith(docker.getContainer, payload.id)
+        sinon.assert.calledWith(docker.getContainer, parsedPayload.id)
         sinon.assert.calledOnce(container.inspect)
         sinon.assert.calledOnce(rabbitmq.publish)
         sinon.assert.calledWith(rabbitmq.publish, 'on-image-builder-container-create', {
@@ -279,9 +295,9 @@ describe('docker event publish', function () {
           id: sinon.match.string,
           inspectData: data,
           ip: sinon.match.string,
-          node: payload.node,
+          node: parsedPayload.node,
           org: sinon.match.string,
-          status: payload.status,
+          status: parsedPayload.status,
           tags: sinon.match.string,
           time: sinon.match.string,
           uuid: sinon.match.string
@@ -307,15 +323,16 @@ describe('docker event publish', function () {
       var payload = eventMock({
         status: 'die'
       })
+      var parsedPayload = JSON.parse(payload)
       var data = createData('user-container')
       container.inspect.yieldsAsync(null, data)
       DockerEventPublish(payload).asCallback(function (err) {
         expect(err).to.not.exist()
         sinon.assert.calledOnce(DockerEventPublish._addBasicFields)
-        sinon.assert.calledWith(DockerEventPublish._addBasicFields, payload)
+        sinon.assert.calledWithMatch(DockerEventPublish._addBasicFields, parsedPayload)
         sinon.assert.calledOnce(DockerEventPublish._isContainerEvent)
         sinon.assert.calledOnce(docker.getContainer)
-        sinon.assert.calledWith(docker.getContainer, payload.id)
+        sinon.assert.calledWith(docker.getContainer, parsedPayload.id)
         sinon.assert.calledOnce(container.inspect)
         sinon.assert.calledTwice(rabbitmq.publish)
         sinon.assert.calledWith(rabbitmq.publish, 'on-instance-container-die', {
@@ -325,9 +342,9 @@ describe('docker event publish', function () {
           id: sinon.match.string,
           inspectData: data,
           ip: sinon.match.string,
-          node: payload.node,
+          node: parsedPayload.node,
           org: sinon.match.string,
-          status: payload.status,
+          status: parsedPayload.status,
           tags: sinon.match.string,
           time: sinon.match.string,
           uuid: sinon.match.string
@@ -339,9 +356,9 @@ describe('docker event publish', function () {
           id: sinon.match.string,
           inspectData: data,
           ip: sinon.match.string,
-          node: payload.node,
+          node: parsedPayload.node,
           org: sinon.match.string,
-          status: payload.status,
+          status: parsedPayload.status,
           tags: sinon.match.string,
           time: sinon.match.string,
           uuid: sinon.match.string
@@ -354,15 +371,16 @@ describe('docker event publish', function () {
       var payload = eventMock({
         status: 'die'
       })
+      var parsedPayload = JSON.parse(payload)
       var data = createData('image-builder-container')
       container.inspect.yieldsAsync(null, data)
       DockerEventPublish(payload).asCallback(function (err) {
         expect(err).to.not.exist()
         sinon.assert.calledOnce(DockerEventPublish._addBasicFields)
-        sinon.assert.calledWith(DockerEventPublish._addBasicFields, payload)
+        sinon.assert.calledWithMatch(DockerEventPublish._addBasicFields, parsedPayload)
         sinon.assert.calledOnce(DockerEventPublish._isContainerEvent)
         sinon.assert.calledOnce(docker.getContainer)
-        sinon.assert.calledWith(docker.getContainer, payload.id)
+        sinon.assert.calledWith(docker.getContainer, parsedPayload.id)
         sinon.assert.calledOnce(container.inspect)
         sinon.assert.calledTwice(rabbitmq.publish)
         sinon.assert.calledWith(rabbitmq.publish, 'on-image-builder-container-die', {
@@ -372,9 +390,9 @@ describe('docker event publish', function () {
           id: sinon.match.string,
           inspectData: data,
           ip: sinon.match.string,
-          node: payload.node,
+          node: parsedPayload.node,
           org: sinon.match.string,
-          status: payload.status,
+          status: parsedPayload.status,
           tags: sinon.match.string,
           time: sinon.match.string,
           uuid: sinon.match.string
@@ -386,9 +404,9 @@ describe('docker event publish', function () {
           id: sinon.match.string,
           inspectData: data,
           ip: sinon.match.string,
-          node: payload.node,
+          node: parsedPayload.node,
           org: sinon.match.string,
-          status: payload.status,
+          status: parsedPayload.status,
           tags: sinon.match.string,
           time: sinon.match.string,
           uuid: sinon.match.string
@@ -401,6 +419,7 @@ describe('docker event publish', function () {
       var payload = eventMock({
         status: 'die'
       })
+      var parsedPayload = JSON.parse(payload)
       var data = {id: 'test'}
       container.inspect.yieldsAsync(null, data)
       DockerEventPublish(payload).asCallback(function (err) {
@@ -414,9 +433,9 @@ describe('docker event publish', function () {
           id: sinon.match.string,
           inspectData: data,
           ip: sinon.match.string,
-          node: payload.node,
+          node: parsedPayload.node,
           org: sinon.match.string,
-          status: payload.status,
+          status: parsedPayload.status,
           tags: sinon.match.string,
           time: sinon.match.string,
           uuid: sinon.match.string
@@ -429,15 +448,16 @@ describe('docker event publish', function () {
       var payload = eventMock({
         status: 'start'
       })
+      var parsedPayload = JSON.parse(payload)
       var data = createData('user-container')
       container.inspect.yieldsAsync(null, data)
       DockerEventPublish(payload).asCallback(function (err) {
         expect(err).to.not.exist()
         sinon.assert.calledOnce(DockerEventPublish._addBasicFields)
-        sinon.assert.calledWith(DockerEventPublish._addBasicFields, payload)
+        sinon.assert.calledWithMatch(DockerEventPublish._addBasicFields, parsedPayload)
         sinon.assert.calledOnce(DockerEventPublish._isContainerEvent)
         sinon.assert.calledOnce(docker.getContainer)
-        sinon.assert.calledWith(docker.getContainer, payload.id)
+        sinon.assert.calledWith(docker.getContainer, parsedPayload.id)
         sinon.assert.calledOnce(container.inspect)
         sinon.assert.calledOnce(rabbitmq.publish)
         sinon.assert.calledWith(rabbitmq.publish, 'container.life-cycle.started', {
@@ -447,9 +467,9 @@ describe('docker event publish', function () {
           id: sinon.match.string,
           inspectData: data,
           ip: sinon.match.string,
-          node: payload.node,
+          node: parsedPayload.node,
           org: sinon.match.string,
-          status: payload.status,
+          status: parsedPayload.status,
           tags: sinon.match.string,
           time: sinon.match.string,
           uuid: sinon.match.string
@@ -462,6 +482,7 @@ describe('docker event publish', function () {
       var payload = eventMock({
         status: 'engine_connect'
       })
+      var parsedPayload = JSON.parse(payload)
       DockerEventPublish(payload).asCallback(function (err) {
         expect(err).to.not.exist()
         sinon.assert.notCalled(container.inspect)
@@ -472,9 +493,9 @@ describe('docker event publish', function () {
           host: sinon.match.string,
           id: sinon.match.string,
           ip: sinon.match.string,
-          node: payload.node,
+          node: parsedPayload.node,
           org: sinon.match.string,
-          status: payload.status,
+          status: parsedPayload.status,
           tags: sinon.match.string,
           time: sinon.match.string,
           uuid: sinon.match.string
@@ -487,6 +508,7 @@ describe('docker event publish', function () {
       var payload = eventMock({
         status: 'engine_disconnect'
       })
+      var parsedPayload = JSON.parse(payload)
       DockerEventPublish(payload).asCallback(function (err) {
         expect(err).to.not.exist()
         sinon.assert.notCalled(container.inspect)
@@ -497,9 +519,9 @@ describe('docker event publish', function () {
           host: sinon.match.string,
           id: sinon.match.string,
           ip: sinon.match.string,
-          node: payload.node,
+          node: parsedPayload.node,
           org: sinon.match.string,
-          status: payload.status,
+          status: parsedPayload.status,
           tags: sinon.match.string,
           time: sinon.match.string,
           uuid: sinon.match.string
@@ -512,10 +534,11 @@ describe('docker event publish', function () {
       var payload = eventMock({
         status: 'invalid-event'
       })
+      var parsedPayload = JSON.parse(payload)
       DockerEventPublish(payload).asCallback(function (err) {
         expect(err).to.not.exist()
         sinon.assert.calledOnce(DockerEventPublish._addBasicFields)
-        sinon.assert.calledWith(DockerEventPublish._addBasicFields, payload)
+        sinon.assert.calledWithMatch(DockerEventPublish._addBasicFields, parsedPayload)
         sinon.assert.calledOnce(DockerEventPublish._isContainerEvent)
         sinon.assert.notCalled(docker.getContainer)
         sinon.assert.notCalled(container.inspect)
