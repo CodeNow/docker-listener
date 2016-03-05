@@ -4,7 +4,7 @@ module.exports = function (opts) {
   var hIp = ip.replace(/\./g, '-')
   var org = opts.org || '123123123'
 
-  return JSON.stringify({
+  return {
     status: opts.status || 'start',
     id: opts.id || '74cef3acf07a3b1171557d24a229dd67bdddd53a84e42c14295ebf72434e0676',
     from: (opts.from || 'ubuntu') + ' node:ip-' + hIp + '.' + org,
@@ -15,5 +15,5 @@ module.exports = function (opts) {
       Addr: ip + ':4242',
       Ip: ip
     }
-  })
+  }
 }
