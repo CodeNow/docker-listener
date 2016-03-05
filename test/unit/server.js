@@ -1,27 +1,31 @@
 'use strict'
+require('loadenv')({ debugName: 'docker-listener' })
 
-var Lab = require('lab')
-var lab = exports.lab = Lab.script()
-var describe = lab.describe
-var it = lab.it
-var afterEach = lab.afterEach
-var beforeEach = lab.beforeEach
 var Code = require('code')
-var expect = Code.expect
-
-var createCount = require('callback-count')
-
-var sinon = require('sinon')
+var Lab = require('lab')
 var monitor = require('monitor-dog')
+var sinon = require('sinon')
+
 var app = require('../../lib/app.js')
+var Listener = require('../../lib/listener')
 var RabbitMQ = require('../../lib/rabbitmq.js')
 var Server = require('../../server.js')
-var Listener = require('../../lib/listener')
+
+var lab = exports.lab = Lab.script()
+
+var afterEach = lab.afterEach
+var beforeEach = lab.beforeEach
+var describe = lab.describe
+var expect = Code.expect
+var it = lab.it
 
 describe('server.js unit test', function () {
   describe('start', function () {
     beforeEach(function (done) {
       sinon.stub(monitor, 'startSocketsMonitor').returns()
+      sinon.stub(app, 'listen')
+      sinon.stub(RabbitMQ, 'connect')
+      sinon.stub(Listener.prototype, 'start')
       done()
     })
 
@@ -29,156 +33,58 @@ describe('server.js unit test', function () {
       app.listen.restore()
       RabbitMQ.connect.restore()
       monitor.startSocketsMonitor.restore()
+      Listener.prototype.start.restore()
       done()
     })
 
     it('should startup all services', function (done) {
       var server = new Server()
-      sinon.stub(app, 'listen').yieldsAsync()
-      sinon.stub(RabbitMQ, 'connect').yieldsAsync()
-      sinon.stub(Listener.prototype, 'start', function () {
-        this.emit('started')
-        return
-      })
+      app.listen.yieldsAsync()
+      Listener.prototype.start.yieldsAsync()
+      monitor.startSocketsMonitor.returns()
+      RabbitMQ.connect.yieldsAsync()
+
       server.start(3000, function (err) {
-        expect(err).to.not.exist()
-        expect(app.listen.calledOnce).to.be.true()
-        expect(monitor.startSocketsMonitor.calledOnce).to.be.true()
-        expect(RabbitMQ.connect.calledOnce).to.be.true()
-        expect(Listener.prototype.start.calledOnce).to.be.true()
-        Listener.prototype.start.restore()
+        if (err) { return done(err) }
+
+        sinon.assert.calledOnce(app.listen)
+        sinon.assert.calledOnce(monitor.startSocketsMonitor)
+        sinon.assert.calledOnce(RabbitMQ.connect)
+        sinon.assert.calledOnce(Listener.prototype.start)
         done()
       })
     })
+
     it('should fail if web server failed to start', function (done) {
       var server = new Server()
-      sinon.stub(app, 'listen').yieldsAsync(new Error('Express error'))
-      sinon.stub(RabbitMQ, 'connect').yieldsAsync()
-      sinon.stub(Listener.prototype, 'start', function () {
-        this.emit('started')
-        return
-      })
+      var testErr = new Error('Express error')
+      app.listen.yieldsAsync(testErr)
+
       server.start(3000, function (err) {
-        expect(err).to.exist()
-        expect(app.listen.calledOnce).to.be.true()
-        expect(monitor.startSocketsMonitor.calledOnce).to.be.false()
-        expect(RabbitMQ.connect.calledOnce).to.be.false()
-        expect(Listener.prototype.start.calledOnce).to.be.false()
-        Listener.prototype.start.restore()
+        expect(err).to.equal(testErr)
+        sinon.assert.calledOnce(app.listen)
+        sinon.assert.notCalled(monitor.startSocketsMonitor)
+        sinon.assert.notCalled(RabbitMQ.connect)
+        sinon.assert.notCalled(Listener.prototype.start)
         done()
       })
     })
+
     it('should fail if rabbit failed to connect', function (done) {
       var server = new Server()
-      sinon.stub(app, 'listen').yieldsAsync()
-      sinon.stub(RabbitMQ, 'connect').yieldsAsync(new Error('Rabbit error'))
-      sinon.stub(Listener.prototype, 'start', function () {
-        this.emit('started')
-        return
-      })
+      var testErr = new Error('RabbitMQ error')
+      app.listen.yieldsAsync()
+      RabbitMQ.connect.yieldsAsync(testErr)
+
       server.start(3000, function (err) {
-        expect(err).to.exist()
-        expect(app.listen.calledOnce).to.be.true()
-        expect(monitor.startSocketsMonitor.calledOnce).to.be.true()
-        expect(RabbitMQ.connect.calledOnce).to.be.true()
-        expect(Listener.prototype.start.calledOnce).to.be.false()
-        Listener.prototype.start.restore()
+        expect(err).to.equal(testErr)
+
+        sinon.assert.calledOnce(app.listen)
+        sinon.assert.calledOnce(monitor.startSocketsMonitor)
+        sinon.assert.calledOnce(RabbitMQ.connect)
+        sinon.assert.notCalled(Listener.prototype.start)
         done()
       })
     })
   }) // end start
-
-  describe('stop', function () {
-    beforeEach(function (done) {
-      sinon.stub(monitor, 'stopSocketsMonitor').returns()
-      done()
-    })
-
-    afterEach(function (done) {
-      monitor.stopSocketsMonitor.restore()
-      done()
-    })
-
-    it('should error if web server was closed with an error', function (done) {
-      var server = new Server()
-      server.server = {
-        close: function (cb) {
-          cb(new Error('Express error'))
-        }
-      }
-      server.stop(function (err) {
-        expect(err).to.exist()
-        expect(err.message).to.equal('Express error')
-        done()
-      })
-    })
-    it('should error if rabbit was closed with an error', function (done) {
-      var server = new Server()
-      server.server = {
-        close: function (cb) {
-          cb(null)
-        }
-      }
-      sinon.stub(RabbitMQ, 'close').yieldsAsync(new Error('Rabbit error'))
-      server.stop(function (err) {
-        expect(err).to.exist()
-        expect(err.message).to.equal('Rabbit error')
-        expect(monitor.stopSocketsMonitor.calledOnce).to.be.true()
-        expect(RabbitMQ.close.calledOnce).to.be.true()
-        RabbitMQ.close.restore()
-        done()
-      })
-    })
-
-    it('should stop everything successfully', function (done) {
-      var server = new Server()
-      server.server = {
-        close: function (cb) {
-          cb(null)
-        }
-      }
-      sinon.stub(RabbitMQ, 'close').yieldsAsync()
-      server.stop(function (err) {
-        expect(err).to.not.exist()
-        expect(monitor.stopSocketsMonitor.calledOnce).to.be.true()
-        expect(RabbitMQ.close.calledOnce).to.be.true()
-        RabbitMQ.close.restore()
-        done()
-      })
-    })
-
-    it('should stop everything+listener successfully', function (done) {
-      var server = new Server()
-      var count = createCount(3, done)
-      server.server = {
-        close: function (cb) {
-          count.next()
-          cb(null)
-        }
-      }
-      server.listener = {
-        stop: function () {
-          count.next()
-          return
-        }
-      }
-      sinon.stub(RabbitMQ, 'close').yieldsAsync()
-      server.stop(function (err) {
-        expect(err).to.not.exist()
-        expect(monitor.stopSocketsMonitor.calledOnce).to.be.true()
-        expect(RabbitMQ.close.calledOnce).to.be.true()
-        RabbitMQ.close.restore()
-        count.next()
-      })
-    })
-
-    it('should cb err if server was not defined', function (done) {
-      var server = new Server()
-      server.stop(function (err) {
-        expect(err).to.exist()
-        expect(err.message).to.equal('Trying to stop when server was not started')
-        done()
-      })
-    })
-  }) // end stop
 }) // end server.js unit test

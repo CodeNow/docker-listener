@@ -6,13 +6,11 @@
 require('loadenv')({ debugName: 'docker-listener' })
 var Code = require('code')
 var ErrorCat = require('error-cat')
-var EventEmitter = require('events').EventEmitter
 var Lab = require('lab')
 var sinon = require('sinon')
 
 var docker = require('../../lib/docker')
 var Listener = require('../../lib/listener')
-var status = require('../../lib/status')
 
 var lab = exports.lab = Lab.script()
 
@@ -24,23 +22,12 @@ var it = lab.test
 
 describe('listener unit test', function () {
   describe('constructor', function () {
-    it('should throw if invalid publisher', function (done) {
-      var l
-      expect(function () {
-        l = new Listener({})
-      }).to.throw(Error)
-      expect(l).to.not.exist()
-      done()
-    })
-
     it('should setup listener', function (done) {
       var listener
-      var testPub = { write: 'hi' }
       expect(function () {
-        listener = new Listener(testPub)
+        listener = new Listener()
       }).to.not.throw()
-      expect(listener.publisher).to.deep.equal(testPub)
-      expect(listener).to.be.an.instanceOf(EventEmitter)
+      expect(listener).to.be.an.instanceOf(Listener)
       done()
     })
   }) // end constructor
@@ -86,31 +73,16 @@ describe('listener unit test', function () {
           }
         }
         docker.getEvents.yieldsAsync(null, stubStream)
-        sinon.stub(listener, 'emit', function (name) {
-          expect(name).to.equal('started')
 
+        listener.start(function () {
           sinon.assert.callCount(stubStream.on, 3)
           sinon.assert.calledWith(stubStream.on, 'error', sinon.match.func)
           sinon.assert.calledWith(stubStream.on, 'close', sinon.match.func)
           sinon.assert.calledWith(stubStream.on, 'data', sinon.match.func)
           done()
         })
-
-        listener.start()
       })
     }) // end start
-
-    describe('stop', function () {
-      it('should emit stop and set connection', function (done) {
-        status.docker_connected = true
-
-        listener.on('stopped', function () {
-          expect(status.docker_connected).to.be.false()
-          done()
-        })
-        listener.stop()
-      })
-    }) // end stop
 
     describe('handleError', function () {
       beforeEach(function (done) {

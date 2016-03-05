@@ -28,11 +28,11 @@ describe('docker event publish', function () {
       var testIp = '10.0.0.0'
       var testOrg = '12341234'
       var testTime = (Date.now() / 1000).toFixed(0)
-      var event = eventMock({
+      var event = JSON.parse(eventMock({
         ip: testIp,
         org: testOrg,
         time: testTime
-      })
+      }))
       var enhanced = DockerEventPublish._addBasicFields(event)
 
       expect(enhanced.uuid).to.exist()
@@ -128,10 +128,9 @@ describe('docker event publish', function () {
 
   describe('worker', function () {
     var container = {
-      inspect: function (cb) {
-        cb()
-      }
+      inspect: function () {}
     }
+
     function createData (type) {
       return {
         Bridge: 'docker0',
@@ -154,6 +153,7 @@ describe('docker event publish', function () {
         }
       }
     }
+
     beforeEach(function (done) {
       sinon.stub(rabbitmq, 'publish')
       sinon.stub(docker, 'getContainer').returns(container)
@@ -162,6 +162,7 @@ describe('docker event publish', function () {
       sinon.spy(DockerEventPublish, '_isContainerEvent')
       done()
     })
+
     afterEach(function (done) {
       rabbitmq.publish.restore()
       docker.getContainer.restore()
@@ -169,6 +170,15 @@ describe('docker event publish', function () {
       DockerEventPublish._addBasicFields.restore()
       DockerEventPublish._isContainerEvent.restore()
       done()
+    })
+
+    it('should task fatal if parse failed', function (done) {
+      DockerEventPublish('junk').asCallback(function (err) {
+        expect(err).to.be.instanceOf(TaskFatalError)
+
+        sinon.assert.notCalled(docker.getContainer)
+        done()
+      })
     })
 
     it('should not call getContainer for non container event', function (done) {
