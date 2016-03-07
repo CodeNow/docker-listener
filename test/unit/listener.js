@@ -40,7 +40,10 @@ describe('listener unit test', function () {
     })
 
     describe('start', function () {
+      var clock
       beforeEach(function (done) {
+        process.env.EVENT_TIMEOUT_MS = 100
+        clock = sinon.useFakeTimers()
         sinon.stub(docker, 'getEvents')
         sinon.stub(ErrorCat.prototype, 'createAndReport')
         sinon.stub(listener, 'handleClose')
@@ -51,17 +54,19 @@ describe('listener unit test', function () {
         docker.getEvents.restore()
         ErrorCat.prototype.createAndReport.restore()
         listener.handleClose.restore()
+        clock.restore()
+        delete process.env.EVENT_TIMEOUT_MS
         done()
       })
 
-      it('should on error', function (done) {
+      it('should report error', function (done) {
         docker.getEvents.yields('error')
         ErrorCat.prototype.createAndReport.yields()
         listener.handleClose.returns()
 
         listener.start()
-        sinon.assert.calledOnce(docker.getEvents)
-        sinon.assert.calledWith(docker.getEvents, sinon.match.func)
+        sinon.assert.calledOnce(listener.handleClose)
+        sinon.assert.calledWith(listener.handleClose, 'error')
         done()
       })
 
@@ -83,6 +88,38 @@ describe('listener unit test', function () {
           done()
         })
       })
+
+      it('should timeout', function (done) {
+        var stubStream = {
+          on: sinon.stub().returnsThis(),
+          once: sinon.stub().returnsThis()
+        }
+        docker.getEvents.yieldsAsync(null, stubStream)
+
+        listener.start(function () {
+          clock.tick(200)
+
+          sinon.assert.calledOnce(listener.handleClose)
+
+          done()
+        })
+      })
+
+      it('should not timeout', function (done) {
+        var stubStream = {
+          on: sinon.stub().returnsThis(),
+          once: sinon.stub().yields()
+        }
+        docker.getEvents.yieldsAsync(null, stubStream)
+
+        listener.start(function () {
+          clock.tick(200)
+
+          sinon.assert.notCalled(listener.handleClose)
+
+          done()
+        })
+      })
     }) // end start
 
     describe('handleError', function () {
@@ -101,7 +138,7 @@ describe('listener unit test', function () {
         listener.handleError(err)
 
         sinon.assert.calledOnce(ErrorCat.prototype.createAndReport)
-        sinon.assert.calledWith(ErrorCat.prototype.createAndReport, 404, 'Docker streaming error', err)
+        sinon.assert.calledWith(ErrorCat.prototype.createAndReport, 500, 'Docker streaming error', err)
         done()
       })
     }) // end handleError
@@ -109,19 +146,21 @@ describe('listener unit test', function () {
     describe('handleClose', function () {
       beforeEach(function (done) {
         sinon.stub(process, 'exit')
+        sinon.stub(ErrorCat.prototype, 'createAndReport')
         done()
       })
 
       afterEach(function (done) {
         process.exit.restore()
+        ErrorCat.prototype.createAndReport.restore()
         done()
       })
 
       it('should call exit', function (done) {
+        ErrorCat.prototype.createAndReport.yields()
         listener.handleClose()
         sinon.assert.calledOnce(process.exit)
         sinon.assert.calledWith(process.exit, 1)
-
         done()
       })
     }) // end handleClose
