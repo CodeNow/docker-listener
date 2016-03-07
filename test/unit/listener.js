@@ -43,34 +43,32 @@ describe('listener unit test', function () {
       beforeEach(function (done) {
         sinon.stub(docker, 'getEvents')
         sinon.stub(ErrorCat.prototype, 'createAndReport')
+        sinon.stub(listener, 'handleClose')
         done()
       })
 
       afterEach(function (done) {
         docker.getEvents.restore()
         ErrorCat.prototype.createAndReport.restore()
+        listener.handleClose.restore()
         done()
       })
 
       it('should on error', function (done) {
-        docker.getEvents.yieldsAsync('error')
-        ErrorCat.prototype.createAndReport.yieldsAsync()
-
-        sinon.stub(listener, 'handleClose', function () {
-          sinon.assert.calledOnce(docker.getEvents)
-          sinon.assert.calledWith(docker.getEvents, sinon.match.func)
-          done()
-        })
+        docker.getEvents.yields('error')
+        ErrorCat.prototype.createAndReport.yields()
+        listener.handleClose.returns()
 
         listener.start()
+        sinon.assert.calledOnce(docker.getEvents)
+        sinon.assert.calledWith(docker.getEvents, sinon.match.func)
+        done()
       })
 
       it('should setup pipes', function (done) {
         var stubStream = {
           on: sinon.stub().returnsThis(),
-          socket: {
-            setTimeout: sinon.stub()
-          }
+          once: sinon.stub().returnsThis()
         }
         docker.getEvents.yieldsAsync(null, stubStream)
 
@@ -79,6 +77,9 @@ describe('listener unit test', function () {
           sinon.assert.calledWith(stubStream.on, 'error', sinon.match.func)
           sinon.assert.calledWith(stubStream.on, 'close', sinon.match.func)
           sinon.assert.calledWith(stubStream.on, 'data', sinon.match.func)
+
+          sinon.assert.calledOnce(stubStream.once)
+          sinon.assert.calledWith(stubStream.once, 'data', sinon.match.func)
           done()
         })
       })
