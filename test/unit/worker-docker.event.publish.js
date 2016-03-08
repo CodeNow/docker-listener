@@ -128,10 +128,9 @@ describe('docker event publish', function () {
 
   describe('worker', function () {
     var container = {
-      inspect: function (cb) {
-        cb()
-      }
+      inspect: function () {}
     }
+
     function createData (type) {
       return {
         Bridge: 'docker0',
@@ -154,6 +153,7 @@ describe('docker event publish', function () {
         }
       }
     }
+
     beforeEach(function (done) {
       sinon.stub(rabbitmq, 'publish')
       sinon.stub(docker, 'getContainer').returns(container)
@@ -162,6 +162,7 @@ describe('docker event publish', function () {
       sinon.spy(DockerEventPublish, '_isContainerEvent')
       done()
     })
+
     afterEach(function (done) {
       rabbitmq.publish.restore()
       docker.getContainer.restore()
@@ -169,6 +170,19 @@ describe('docker event publish', function () {
       DockerEventPublish._addBasicFields.restore()
       DockerEventPublish._isContainerEvent.restore()
       done()
+    })
+
+    it('should not publish for blacklisted', function (done) {
+      var payload = eventMock({
+        status: 'start',
+        from: process.env.CONTAINERS_BLACKLIST.split(',')[0]
+      })
+      DockerEventPublish(payload).asCallback(function (err) {
+        expect(err).to.not.exist()
+
+        sinon.assert.notCalled(rabbitmq.publish)
+        done()
+      })
     })
 
     it('should not call getContainer for non container event', function (done) {
@@ -179,6 +193,7 @@ describe('docker event publish', function () {
         expect(err).to.not.exist()
 
         sinon.assert.notCalled(docker.getContainer)
+        sinon.assert.notCalled(rabbitmq.publish)
         done()
       })
     })
@@ -223,7 +238,7 @@ describe('docker event publish', function () {
       DockerEventPublish(payload).asCallback(function (err) {
         expect(err).to.not.exist()
         sinon.assert.calledOnce(DockerEventPublish._addBasicFields)
-        sinon.assert.calledWith(DockerEventPublish._addBasicFields, payload)
+        sinon.assert.calledWithMatch(DockerEventPublish._addBasicFields, payload)
         sinon.assert.calledOnce(DockerEventPublish._isContainerEvent)
         sinon.assert.calledOnce(docker.getContainer)
         sinon.assert.calledWith(docker.getContainer, payload.id)
@@ -256,7 +271,7 @@ describe('docker event publish', function () {
       DockerEventPublish(payload).asCallback(function (err) {
         expect(err).to.not.exist()
         sinon.assert.calledOnce(DockerEventPublish._addBasicFields)
-        sinon.assert.calledWith(DockerEventPublish._addBasicFields, payload)
+        sinon.assert.calledWithMatch(DockerEventPublish._addBasicFields, payload)
         sinon.assert.calledOnce(DockerEventPublish._isContainerEvent)
         sinon.assert.calledOnce(docker.getContainer)
         sinon.assert.calledWith(docker.getContainer, payload.id)
@@ -302,7 +317,7 @@ describe('docker event publish', function () {
       DockerEventPublish(payload).asCallback(function (err) {
         expect(err).to.not.exist()
         sinon.assert.calledOnce(DockerEventPublish._addBasicFields)
-        sinon.assert.calledWith(DockerEventPublish._addBasicFields, payload)
+        sinon.assert.calledWithMatch(DockerEventPublish._addBasicFields, payload)
         sinon.assert.calledOnce(DockerEventPublish._isContainerEvent)
         sinon.assert.calledOnce(docker.getContainer)
         sinon.assert.calledWith(docker.getContainer, payload.id)
@@ -349,7 +364,7 @@ describe('docker event publish', function () {
       DockerEventPublish(payload).asCallback(function (err) {
         expect(err).to.not.exist()
         sinon.assert.calledOnce(DockerEventPublish._addBasicFields)
-        sinon.assert.calledWith(DockerEventPublish._addBasicFields, payload)
+        sinon.assert.calledWithMatch(DockerEventPublish._addBasicFields, payload)
         sinon.assert.calledOnce(DockerEventPublish._isContainerEvent)
         sinon.assert.calledOnce(docker.getContainer)
         sinon.assert.calledWith(docker.getContainer, payload.id)
@@ -424,7 +439,7 @@ describe('docker event publish', function () {
       DockerEventPublish(payload).asCallback(function (err) {
         expect(err).to.not.exist()
         sinon.assert.calledOnce(DockerEventPublish._addBasicFields)
-        sinon.assert.calledWith(DockerEventPublish._addBasicFields, payload)
+        sinon.assert.calledWithMatch(DockerEventPublish._addBasicFields, payload)
         sinon.assert.calledOnce(DockerEventPublish._isContainerEvent)
         sinon.assert.calledOnce(docker.getContainer)
         sinon.assert.calledWith(docker.getContainer, payload.id)
@@ -505,7 +520,7 @@ describe('docker event publish', function () {
       DockerEventPublish(payload).asCallback(function (err) {
         expect(err).to.not.exist()
         sinon.assert.calledOnce(DockerEventPublish._addBasicFields)
-        sinon.assert.calledWith(DockerEventPublish._addBasicFields, payload)
+        sinon.assert.calledWithMatch(DockerEventPublish._addBasicFields, payload)
         sinon.assert.calledOnce(DockerEventPublish._isContainerEvent)
         sinon.assert.notCalled(docker.getContainer)
         sinon.assert.notCalled(container.inspect)
