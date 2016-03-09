@@ -8,6 +8,7 @@ var Code = require('code')
 var ErrorCat = require('error-cat')
 var Lab = require('lab')
 var sinon = require('sinon')
+var noop = require('101/noop')
 
 var docker = require('../../lib/docker')
 var Listener = require('../../lib/listener')
@@ -26,9 +27,12 @@ describe('listener unit test', function () {
     it('should setup listener', function (done) {
       var listener
       expect(function () {
-        listener = new Listener()
+        listener = new Listener('10.0.0.1:4242', '123', noop)
       }).to.not.throw()
       expect(listener).to.be.an.instanceOf(Listener)
+      expect(listener.host).to.equal('10.0.0.1:4242')
+      expect(listener.org).to.equal('123')
+      expect(listener.closeCb).to.equal(noop)
       done()
     })
   }) // end constructor
