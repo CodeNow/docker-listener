@@ -38,7 +38,7 @@ function createSwarmJob (opts) {
   opts = opts || {}
   return {
     Host: opts.host || '10.0.0.1:4242',
-    org: opts.org || '1234123',
+    org: null,
     event: {
       data: new Buffer(JSON.stringify(swarmEventMock(opts)))
     }
@@ -48,7 +48,7 @@ function createSwarmJob (opts) {
 describe('docker event publish', function () {
   describe('_isBlacklisted', function () {
     it('should return true non engine swarm events', function (done) {
-      var test = DockerEventPublish._isBlacklisted({type: 'swarm', status: 'other'})
+      var test = DockerEventPublish._isBlacklisted({Type: 'swarm', status: 'other'})
       expect(test).to.be.true()
       done()
     })
@@ -574,6 +574,7 @@ describe('docker event publish', function () {
           status: payload.status,
           tags: sinon.match.string,
           time: sinon.match.string,
+          Type: 'swarm',
           uuid: sinon.match.string
         })
         done()
@@ -602,6 +603,7 @@ describe('docker event publish', function () {
           status: payload.status,
           tags: sinon.match.string,
           time: sinon.match.string,
+          Type: 'swarm',
           uuid: sinon.match.string
         })
         done()

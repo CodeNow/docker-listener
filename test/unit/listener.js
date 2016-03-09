@@ -23,11 +23,11 @@ var describe = lab.experiment
 var expect = Code.expect
 var it = lab.test
 
-describe('listener unit test', function () {
-  describe('constructor', function () {
-    it('should setup listener', function (done) {
+describe('listener unit test', () => {
+  describe('constructor', () => {
+    it('should setup listener', (done) => {
       var listener
-      expect(function () {
+      expect(() => {
         listener = new Listener('10.0.0.1:4242', '123', noop)
       }).to.not.throw()
       expect(listener).to.be.an.instanceOf(Listener)
@@ -38,40 +38,38 @@ describe('listener unit test', function () {
       done()
     })
 
-    it('should setup dock', function (done) {
+    it('should setup dock', (done) => {
       var listener
-      expect(function () {
+      expect(() => {
         listener = new Listener('10.0.0.1:4242', '123', noop)
       }).to.not.throw()
-      expect(listener.type).to.equal('dock')
       expect(listener.events).to.deep.equal(['create', 'start', 'die', 'top'])
       done()
     })
 
-    it('should setup swarm', function (done) {
+    it('should setup swarm', (done) => {
       var listener
-      expect(function () {
+      expect(() => {
         listener = new Listener('10.0.0.1:4242', null, noop)
       }).to.not.throw()
-      expect(listener.type).to.equal('swarm')
       expect(listener.events).to.deep.equal(['engine_connect', 'engine_disconnect', 'top'])
       done()
     })
   }) // end constructor
 
-  describe('methods', function () {
+  describe('methods', () => {
     var listener
     var testHost = '10.0.0.1:4242'
     var testOrg = '1234'
     var testCb = sinon.stub()
 
-    beforeEach(function (done) {
+    beforeEach((done) => {
       listener = new Listener(testHost, testOrg, testCb)
       done()
     })
 
-    describe('start', function () {
-      beforeEach(function (done) {
+    describe('start', () => {
+      beforeEach((done) => {
         sinon.stub(listener.docker, 'getEvents')
         sinon.stub(listener.docker, 'testEvent')
         sinon.stub(listener, 'handleClose')
@@ -83,7 +81,7 @@ describe('listener unit test', function () {
         done()
       })
 
-      afterEach(function (done) {
+      afterEach((done) => {
         listener.handleClose.restore()
         listener.handleError.restore()
         listener.publishEvent.restore()
@@ -93,7 +91,7 @@ describe('listener unit test', function () {
         done()
       })
 
-      it('should close if getting events threw error', function (done) {
+      it('should close if getting events threw error', (done) => {
         sinceMap.get.returns()
         listener.docker.getEvents.returns(Promise.reject('error'))
 
@@ -105,7 +103,7 @@ describe('listener unit test', function () {
         })
       })
 
-      it('should pass correct opts', function (done) {
+      it('should pass correct opts', (done) => {
         sinceMap.get.returns(1234)
         listener.docker.getEvents.returns(Promise.reject('error'))
 
@@ -122,7 +120,7 @@ describe('listener unit test', function () {
         })
       })
 
-      it('should default since to 0', function (done) {
+      it('should default since to 0', (done) => {
         sinceMap.get.returns()
         listener.docker.getEvents.returns(Promise.reject('error'))
 
@@ -139,7 +137,7 @@ describe('listener unit test', function () {
         })
       })
 
-      it('should setup pipes', function (done) {
+      it('should setup pipes', (done) => {
         var stubStream = {
           on: sinon.stub().returnsThis(),
           once: sinon.stub().returnsThis()
@@ -166,18 +164,18 @@ describe('listener unit test', function () {
       })
     }) // end start
 
-    describe('handleError', function () {
-      beforeEach(function (done) {
+    describe('handleError', () => {
+      beforeEach((done) => {
         sinon.stub(ErrorCat.prototype, 'createAndReport')
         done()
       })
 
-      afterEach(function (done) {
+      afterEach((done) => {
         ErrorCat.prototype.createAndReport.restore()
         done()
       })
 
-      it('should call reporting tools', function (done) {
+      it('should call reporting tools', (done) => {
         var err = 'booms'
         listener.handleError(err)
 
@@ -187,11 +185,11 @@ describe('listener unit test', function () {
       })
     }) // end handleError
 
-    describe('handleClose', function () {
+    describe('handleClose', () => {
       var eventStreamStub
       var closeCbStub
 
-      beforeEach(function (done) {
+      beforeEach((done) => {
         listener.eventStream = {
           destroy: eventStreamStub = sinon.stub()
         }
@@ -200,12 +198,12 @@ describe('listener unit test', function () {
         done()
       })
 
-      afterEach(function (done) {
+      afterEach((done) => {
         ErrorCat.prototype.createAndReport.restore()
         done()
       })
 
-      it('should report', function (done) {
+      it('should report', (done) => {
         var testErr = new Error('dissatisfactory')
         ErrorCat.prototype.createAndReport.returns()
         listener.handleClose(testErr)
@@ -214,7 +212,7 @@ describe('listener unit test', function () {
         done()
       })
 
-      it('should report default message', function (done) {
+      it('should report default message', (done) => {
         ErrorCat.prototype.createAndReport.returns()
         listener.handleClose()
         sinon.assert.calledOnce(ErrorCat.prototype.createAndReport)
@@ -222,7 +220,7 @@ describe('listener unit test', function () {
         done()
       })
 
-      it('should destroy stream', function (done) {
+      it('should destroy stream', (done) => {
         var testErr = new Error('dissatisfactory')
         ErrorCat.prototype.createAndReport.returns()
         listener.handleClose(testErr)
@@ -231,7 +229,7 @@ describe('listener unit test', function () {
         done()
       })
 
-      it('should not throw if no destroy', function (done) {
+      it('should not throw if no destroy', (done) => {
         var testErr = new Error('dissatisfactory')
         ErrorCat.prototype.createAndReport.returns()
         delete listener.eventStream.destroy
@@ -243,7 +241,7 @@ describe('listener unit test', function () {
         done()
       })
 
-      it('should not throw if no eventStream', function (done) {
+      it('should not throw if no eventStream', (done) => {
         var testErr = new Error('dissatisfactory')
         ErrorCat.prototype.createAndReport.returns()
         delete listener.eventStream
@@ -255,7 +253,7 @@ describe('listener unit test', function () {
         done()
       })
 
-      it('should not throw if no closeCb', function (done) {
+      it('should not throw if no closeCb', (done) => {
         var testErr = new Error('dissatisfactory')
         ErrorCat.prototype.createAndReport.returns()
         delete listener.closeCb
@@ -267,7 +265,7 @@ describe('listener unit test', function () {
         done()
       })
 
-      it('should call closeCb', function (done) {
+      it('should call closeCb', (done) => {
         var testErr = new Error('dissatisfactory')
         ErrorCat.prototype.createAndReport.returns()
         expect(() => {
@@ -279,18 +277,18 @@ describe('listener unit test', function () {
       })
     }) // end handleClose
 
-    describe('publishEvent', function () {
-      beforeEach(function (done) {
+    describe('publishEvent', () => {
+      beforeEach((done) => {
         sinon.stub(rabbitmq, 'createPublishJob')
         done()
       })
 
-      afterEach(function (done) {
+      afterEach((done) => {
         rabbitmq.createPublishJob.restore()
         done()
       })
 
-      it('should publish event', function (done) {
+      it('should publish event', (done) => {
         var testEvent = { type: 'abhorrent' }
         listener.publishEvent(testEvent)
 
@@ -303,16 +301,16 @@ describe('listener unit test', function () {
         done()
       })
 
-      it('should not publish event', function (done) {
+      it('should not publish event', (done) => {
         listener.publishEvent()
         sinon.assert.notCalled(rabbitmq.createPublishJob)
         done()
       })
     }) // end publishEvent
 
-    describe('startTimeout', function () {
+    describe('startTimeout', () => {
       var clock
-      beforeEach(function (done) {
+      beforeEach((done) => {
         process.env.EVENT_TIMEOUT_MS = 15
         clock = sinon.useFakeTimers()
         sinon.stub(listener.docker, 'testEvent')
@@ -320,13 +318,13 @@ describe('listener unit test', function () {
         done()
       })
 
-      afterEach(function (done) {
+      afterEach((done) => {
         delete process.env.EVENT_TIMEOUT_MS
         clock.restore()
         done()
       })
 
-      it('should timeout', function (done) {
+      it('should timeout', (done) => {
         listener.startTimeout()
         clock.tick(20)
         sinon.assert.calledOnce(listener.handleClose)
@@ -334,7 +332,7 @@ describe('listener unit test', function () {
         done()
       })
 
-      it('should not timeout and call test Event', function (done) {
+      it('should not timeout and call test Event', (done) => {
         listener.startTimeout()
         clock.tick(5)
         sinon.assert.notCalled(listener.handleClose)
@@ -343,19 +341,19 @@ describe('listener unit test', function () {
       })
     }) // end startTimeout
 
-    describe('clearTimeout', function () {
+    describe('clearTimeout', () => {
       var clock
-      beforeEach(function (done) {
+      beforeEach((done) => {
         clock = sinon.useFakeTimers()
         done()
       })
 
-      afterEach(function (done) {
+      afterEach((done) => {
         clock.restore()
         done()
       })
 
-      it('should clearTimeout', function (done) {
+      it('should clearTimeout', (done) => {
         var testStub = sinon.stub()
         listener.timeout = setTimeout(testStub, 15)
         listener.clearTimeout()
