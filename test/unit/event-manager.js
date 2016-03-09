@@ -61,25 +61,29 @@ describe('event-manager.js unit test', function () {
           sinon.assert.calledWith(eventManager.startDockListener, testNode1)
           done()
         })
+      })
 
-        it('should skip listening nodes', function (done) {
-          var testNode1 = {Host: '10.0.0.1:4242'}
-          var testNode2 = {Host: '10.0.0.2:4242'}
-          var testNode3 = {Host: '10.0.0.3:4242'}
-          eventManager.dockListeners = {
-            '10.0.0.1:4242': 'stuff'
-          }
-          eventManager.start().asCallback((err) => {
-            if (err) { return done(err) }
+      it('should skip listening nodes', function (done) {
+        var testNode1 = {Host: '10.0.0.1:4242'}
+        var testNode2 = {Host: '10.0.0.2:4242'}
+        var testNode3 = {Host: '10.0.0.3:4242'}
+        eventManager.dockListeners = {
+          '10.0.0.1:4242': 'stuff'
+        }
+        eventManager.startSwarmListener.returns(Promise.resolve())
+        eventManager.startDockListener.returns(Promise.resolve())
+        Docker.prototype.getNodes.returns(Promise.resolve([testNode1, testNode2, testNode3]))
 
-            sinon.assert.calledOnce(eventManager.startSwarmListener)
+        eventManager.start().asCallback((err) => {
+          if (err) { return done(err) }
 
-            sinon.assert.calledTwice(eventManager.startDockListener)
-            sinon.assert.calledWith(eventManager.startDockListener, testNode3)
-            sinon.assert.calledWith(eventManager.startDockListener, testNode2)
-            sinon.assert.notCalledWith(eventManager.startDockListener, testNode1)
-            done()
-          })
+          sinon.assert.calledOnce(eventManager.startSwarmListener)
+
+          sinon.assert.calledTwice(eventManager.startDockListener)
+          sinon.assert.calledWith(eventManager.startDockListener, testNode3)
+          sinon.assert.calledWith(eventManager.startDockListener, testNode2)
+          sinon.assert.neverCalledWith(eventManager.startDockListener, testNode1)
+          done()
         })
       })
     }) // end start
