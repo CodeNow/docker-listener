@@ -8,7 +8,7 @@ require('loadenv')()
 var monitor = require('monitor-dog')
 
 var app = require('./lib/app.js')
-var EventManager = require('./lib/event-manager')
+var eventManager = require('./lib/event-manager')
 var log = require('./lib/logger')()
 var RabbitMQ = require('./lib/rabbitmq')
 
@@ -39,8 +39,7 @@ Server.prototype.start = function (port, cb) {
       }
       log.trace('start: rabbitmq connected')
 
-      var eventManager = new EventManager()
-      eventManager.start()
+      eventManager.start().asCallback(cb)
     })
   })
 }

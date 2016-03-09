@@ -1,13 +1,14 @@
 'use strict'
-require('loadenv')({ debugName: 'docker-listener' })
+require('loadenv')()
 
 var Code = require('code')
 var Lab = require('lab')
 var monitor = require('monitor-dog')
+var Promise = require('bluebird')
 var sinon = require('sinon')
 
 var app = require('../../lib/app.js')
-var Listener = require('../../lib/listener')
+var eventManager = require('../../lib/event-manager')
 var RabbitMQ = require('../../lib/rabbitmq.js')
 var Server = require('../../server.js')
 
@@ -25,7 +26,7 @@ describe('server.js unit test', function () {
       sinon.stub(monitor, 'startSocketsMonitor').returns()
       sinon.stub(app, 'listen')
       sinon.stub(RabbitMQ, 'connect')
-      sinon.stub(Listener.prototype, 'start')
+      sinon.stub(eventManager, 'start')
       done()
     })
 
@@ -33,14 +34,14 @@ describe('server.js unit test', function () {
       app.listen.restore()
       RabbitMQ.connect.restore()
       monitor.startSocketsMonitor.restore()
-      Listener.prototype.start.restore()
+      eventManager.start.restore()
       done()
     })
 
     it('should startup all services', function (done) {
       var server = new Server()
       app.listen.yieldsAsync()
-      Listener.prototype.start.yieldsAsync()
+      eventManager.start.returns(Promise.resolve())
       monitor.startSocketsMonitor.returns()
       RabbitMQ.connect.yieldsAsync()
 
@@ -50,7 +51,7 @@ describe('server.js unit test', function () {
         sinon.assert.calledOnce(app.listen)
         sinon.assert.calledOnce(monitor.startSocketsMonitor)
         sinon.assert.calledOnce(RabbitMQ.connect)
-        sinon.assert.calledOnce(Listener.prototype.start)
+        sinon.assert.calledOnce(eventManager.start)
         done()
       })
     })
@@ -65,7 +66,7 @@ describe('server.js unit test', function () {
         sinon.assert.calledOnce(app.listen)
         sinon.assert.notCalled(monitor.startSocketsMonitor)
         sinon.assert.notCalled(RabbitMQ.connect)
-        sinon.assert.notCalled(Listener.prototype.start)
+        sinon.assert.notCalled(eventManager.start)
         done()
       })
     })
@@ -82,7 +83,7 @@ describe('server.js unit test', function () {
         sinon.assert.calledOnce(app.listen)
         sinon.assert.calledOnce(monitor.startSocketsMonitor)
         sinon.assert.calledOnce(RabbitMQ.connect)
-        sinon.assert.notCalled(Listener.prototype.start)
+        sinon.assert.notCalled(eventManager.start)
         done()
       })
     })
