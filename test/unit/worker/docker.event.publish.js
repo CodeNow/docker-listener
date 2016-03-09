@@ -9,11 +9,11 @@ var Lab = require('lab')
 var sinon = require('sinon')
 var TaskFatalError = require('ponos').TaskFatalError
 
-var Docker = require('../../lib/docker')
-var DockerEventPublish = require('../../lib/workers/docker.event.publish.js')
-var eventMock = require('../fixtures/event-mock.js')
-var swarmEventMock = require('../fixtures/swarm-event-mock.js')
-var rabbitmq = require('../../lib/rabbitmq')
+var Docker = require('../../../lib/docker')
+var DockerEventPublish = require('../../../lib/workers/docker.event.publish.js')
+var eventMock = require('../../fixtures/event-mock.js')
+var swarmEventMock = require('../../fixtures/swarm-event-mock.js')
+var rabbitmq = require('../../../lib/rabbitmq')
 
 var lab = exports.lab = Lab.script()
 
@@ -46,6 +46,35 @@ function createSwarmJob (opts) {
 }
 
 describe('docker event publish', function () {
+  describe('_isBlacklisted', function () {
+    it('should return true non engine swarm events', function (done) {
+      var test = DockerEventPublish._isBlacklisted({type: 'swarm', status: 'other'})
+      expect(test).to.be.true()
+      done()
+    })
+
+    it('should return false engine_connect event', function (done) {
+      var test = DockerEventPublish._isBlacklisted({status: 'engine_connect'})
+      expect(test).to.be.false()
+      done()
+    })
+
+    it('should return false engine_disconnect event', function (done) {
+      var test = DockerEventPublish._isBlacklisted({status: 'engine_disconnect'})
+      expect(test).to.be.false()
+      done()
+    })
+
+    it('should return true for blacklisted image', function (done) {
+      var test = DockerEventPublish._isBlacklisted({
+        status: 'start',
+        from: process.env.CONTAINERS_BLACKLIST.split(',')[0]
+      })
+      expect(test).to.be.true()
+      done()
+    })
+  }) // end _isBlacklisted
+
   describe('_formatEvent', function () {
     it('should add extra fields and keep existing ones', function (done) {
       var testIp = '10.0.0.0'
@@ -184,6 +213,7 @@ describe('docker event publish', function () {
     beforeEach(function (done) {
       sinon.stub(rabbitmq, 'publish')
       sinon.stub(Docker.prototype, 'inspectContainer')
+      sinon.stub(DockerEventPublish, '_isBlacklisted')
       sinon.spy(DockerEventPublish, '_formatEvent')
       sinon.spy(DockerEventPublish, '_isContainerEvent')
       done()
@@ -194,6 +224,7 @@ describe('docker event publish', function () {
       Docker.prototype.inspectContainer.restore()
       DockerEventPublish._formatEvent.restore()
       DockerEventPublish._isContainerEvent.restore()
+      DockerEventPublish._isBlacklisted.restore()
       done()
     })
 
@@ -203,6 +234,8 @@ describe('docker event publish', function () {
         from: process.env.CONTAINERS_BLACKLIST.split(',')[0]
       }
       var testJob = createJob(payload)
+      DockerEventPublish._isBlacklisted.returns(true)
+
       DockerEventPublish(testJob).asCallback(function (err) {
         if (err) { return done(err) }
 
