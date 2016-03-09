@@ -50,7 +50,8 @@
     "morgan": "^1.5.0",
     "node-uuid": "^1.4.1",
     "ponos": "^2.0.0",
-    "runnable-hermes": "6.6.0"
+    "runnable-hermes": "6.6.0",
+    "swarmerode": "git+ssh://git@github.com:Runnable/swarmerode#swarm-1.1.2"
   },
   "devDependencies": {
     "callback-count": "^0.2.0",
