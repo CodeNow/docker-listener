@@ -62,6 +62,7 @@ describe('docker event publish', function () {
         time: testTime,
         timeNano: testTime * 1000000
       })
+      event.event = new Buffer(event.event.data)
       var enhanced = DockerEventPublish._formatEvent(event)
 
       expect(enhanced.status).to.equal('start')
