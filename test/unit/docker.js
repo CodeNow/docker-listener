@@ -1,11 +1,13 @@
 'use strict'
 
 require('loadenv')()
+
 var Code = require('code')
+var Dockerode = require('dockerode')
 var ErrorCat = require('error-cat')
 var Lab = require('lab')
+var noop = require('101/noop')
 var sinon = require('sinon')
-var Dockerode = require('dockerode')
 
 var Docker = require('../../lib/docker')
 
@@ -39,7 +41,7 @@ describe('docker unit test', () => {
 
     describe('testEvent', () => {
       var topMock = {
-        top: () => { }
+        top: noop
       }
       beforeEach((done) => {
         sinon.stub(docker.docker, 'listContainers')
@@ -133,12 +135,35 @@ describe('docker unit test', () => {
 
       it('should get docker event', (done) => {
         docker.docker.getEvents.yieldsAsync()
-        docker.getEvents().asCallback(() => {
+        docker.getEvents().asCallback((err) => {
+          if (err) { return done(err) }
           sinon.assert.calledOnce(docker.docker.getEvents)
           done()
         })
       })
     }) // end getEvents
+
+    describe('inspectContainer', () => {
+      var inspectMock = {
+        inspect: sinon.stub()
+      }
+      beforeEach((done) => {
+        sinon.stub(docker.docker, 'getContainer').returns(inspectMock)
+        done()
+      })
+
+      it('should inspect container', (done) => {
+        var testId = 'fallacious'
+        inspectMock.inspect.yieldsAsync()
+        docker.inspectContainer(testId).asCallback((err) => {
+          if (err) { return done(err) }
+          sinon.assert.calledOnce(inspectMock.inspect)
+          sinon.assert.calledOnce(docker.docker.getContainer)
+          sinon.assert.calledWith(docker.docker.getContainer, testId)
+          done()
+        })
+      })
+    }) // end inspectContainer
 
     describe('getNodes', () => {
       beforeEach((done) => {
