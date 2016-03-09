@@ -214,6 +214,14 @@ describe('listener unit test', function () {
         done()
       })
 
+      it('should report default message', function (done) {
+        ErrorCat.prototype.createAndReport.returns()
+        listener.handleClose()
+        sinon.assert.calledOnce(ErrorCat.prototype.createAndReport)
+        sinon.assert.calledWith(ErrorCat.prototype.createAndReport, 500, 'unknown error')
+        done()
+      })
+
       it('should destroy stream', function (done) {
         var testErr = new Error('dissatisfactory')
         ErrorCat.prototype.createAndReport.returns()
