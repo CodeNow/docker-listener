@@ -8,7 +8,7 @@ require('loadenv')()
 var monitor = require('monitor-dog')
 
 var app = require('./lib/app.js')
-var Listener = require('./lib/listener')
+var EventManager = require('./lib/listener')
 var log = require('./lib/logger')()
 var RabbitMQ = require('./lib/rabbitmq')
 
@@ -39,8 +39,8 @@ Server.prototype.start = function (port, cb) {
       }
       log.trace('start: rabbitmq connected')
 
-      var listener = new Listener()
-      listener.start(cb)
+      var eventManager = new EventManager()
+      eventManager.start()
     })
   })
 }
