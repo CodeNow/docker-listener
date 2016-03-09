@@ -134,10 +134,12 @@ describe('docker unit test', () => {
       })
 
       it('should get docker event', (done) => {
+        var testOpts = { since: 1000 }
         docker.docker.getEvents.yieldsAsync()
-        docker.getEvents().asCallback((err) => {
+        docker.getEvents(testOpts).asCallback((err) => {
           if (err) { return done(err) }
           sinon.assert.calledOnce(docker.docker.getEvents)
+          sinon.assert.calledWith(docker.docker.getEvents, testOpts)
           done()
         })
       })
