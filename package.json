@@ -52,7 +52,7 @@
     "node-uuid": "^1.4.7",
     "ponos": "^2.0.0",
     "runnable-hermes": "^6.6.0",
-    "swarmerode": "git+ssh://git@github.com/Runnable/swarmerode.git#swarm-1.1.2"
+    "swarmerode": "^0.2.0"
   },
   "devDependencies": {
     "code": "^2.1.0",
