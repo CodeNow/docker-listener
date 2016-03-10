@@ -4,12 +4,9 @@ require('loadenv')()
 var Code = require('code')
 var Lab = require('lab')
 var monitor = require('monitor-dog')
-var Promise = require('bluebird')
 var sinon = require('sinon')
 
-var app = require('../../lib/app.js')
-var eventManager = require('../../lib/event-manager')
-var RabbitMQ = require('../../lib/rabbitmq.js')
+var rabbitmq = require('../../lib/rabbitmq.js')
 var Server = require('../../server.js')
 
 var lab = exports.lab = Lab.script()
@@ -23,67 +20,44 @@ var it = lab.it
 describe('server.js unit test', function () {
   describe('start', function () {
     beforeEach(function (done) {
-      sinon.stub(monitor, 'startSocketsMonitor').returns()
-      sinon.stub(app, 'listen')
-      sinon.stub(RabbitMQ, 'connect')
-      sinon.stub(eventManager, 'start')
+      sinon.stub(monitor, 'startSocketsMonitor')
+      sinon.stub(rabbitmq, 'connect')
+      sinon.stub(rabbitmq, 'createStreamConnectJob')
       done()
     })
 
     afterEach(function (done) {
-      app.listen.restore()
-      RabbitMQ.connect.restore()
       monitor.startSocketsMonitor.restore()
-      eventManager.start.restore()
+      rabbitmq.connect.restore()
+      rabbitmq.createStreamConnectJob.restore()
       done()
     })
 
     it('should startup all services', function (done) {
-      var server = new Server()
-      app.listen.yieldsAsync()
-      eventManager.start.returns(Promise.resolve())
       monitor.startSocketsMonitor.returns()
-      RabbitMQ.connect.yieldsAsync()
+      rabbitmq.connect.yieldsAsync()
+      rabbitmq.createStreamConnectJob.returns()
 
-      server.start(3000, function (err) {
+      Server.start(3000, function (err) {
         if (err) { return done(err) }
 
-        sinon.assert.calledOnce(app.listen)
         sinon.assert.calledOnce(monitor.startSocketsMonitor)
-        sinon.assert.calledOnce(RabbitMQ.connect)
-        sinon.assert.calledOnce(eventManager.start)
-        done()
-      })
-    })
-
-    it('should fail if web server failed to start', function (done) {
-      var server = new Server()
-      var testErr = new Error('Express error')
-      app.listen.yieldsAsync(testErr)
-
-      server.start(3000, function (err) {
-        expect(err).to.equal(testErr)
-        sinon.assert.calledOnce(app.listen)
-        sinon.assert.notCalled(monitor.startSocketsMonitor)
-        sinon.assert.notCalled(RabbitMQ.connect)
-        sinon.assert.notCalled(eventManager.start)
+        sinon.assert.calledOnce(rabbitmq.connect)
+        sinon.assert.calledOnce(rabbitmq.createStreamConnectJob)
         done()
       })
     })
 
     it('should fail if rabbit failed to connect', function (done) {
-      var server = new Server()
-      var testErr = new Error('RabbitMQ error')
-      app.listen.yieldsAsync()
-      RabbitMQ.connect.yieldsAsync(testErr)
+      var testErr = new Error('rabbitmq error')
+      rabbitmq.connect.yieldsAsync(testErr)
 
-      server.start(3000, function (err) {
+      Server.start(3000, function (err) {
         expect(err).to.equal(testErr)
 
-        sinon.assert.calledOnce(app.listen)
         sinon.assert.calledOnce(monitor.startSocketsMonitor)
-        sinon.assert.calledOnce(RabbitMQ.connect)
-        sinon.assert.notCalled(eventManager.start)
+        sinon.assert.calledOnce(rabbitmq.connect)
+        sinon.assert.notCalled(rabbitmq.createStreamConnectJob)
         done()
       })
     })

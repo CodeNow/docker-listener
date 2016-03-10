@@ -71,7 +71,7 @@ describe('listener unit test', () => {
         sinon.stub(listener, 'handleClose')
         sinon.stub(listener, 'handleError')
         sinon.stub(listener, 'publishEvent')
-        sinon.stub(listener, 'clearTimeout')
+        sinon.stub(listener, 'connectHandler')
         sinon.stub(sinceMap, 'get')
         done()
       })
@@ -82,7 +82,7 @@ describe('listener unit test', () => {
         listener.handleClose.restore()
         listener.handleError.restore()
         listener.publishEvent.restore()
-        listener.clearTimeout.restore()
+        listener.connectHandler.restore()
         sinceMap.get.restore()
         done()
       })
@@ -317,26 +317,30 @@ describe('listener unit test', () => {
       })
     }) // end publishEvent
 
-    describe('clearTimeout', () => {
+    describe('connectHandler', () => {
       var clock
       beforeEach((done) => {
         clock = sinon.useFakeTimers()
+        sinon.stub(rabbitmq, 'createConnectedJob')
         done()
       })
 
       afterEach((done) => {
         clock.restore()
+        rabbitmq.createConnectedJob.restore()
         done()
       })
 
-      it('should clearTimeout', (done) => {
+      it('should clear timeout and emit job', (done) => {
         var testStub = sinon.stub()
         listener.timeout = setTimeout(testStub, 15)
-        listener.clearTimeout()
+        listener.connectHandler()
         clock.tick(100)
         sinon.assert.notCalled(testStub)
+        sinon.assert.calledOnce(rabbitmq.createConnectedJob)
+        sinon.assert.calledWith(rabbitmq.createConnectedJob, 'docker', testHost, testOrg)
         done()
       })
-    }) // end clearTimeout
+    }) // end connectHandler
   }) // end methods
 })
