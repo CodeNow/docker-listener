@@ -145,6 +145,36 @@ describe('docker unit test', () => {
       })
     }) // end getEvents
 
+    describe('swarmHostExists', () => {
+      beforeEach((done) => {
+        sinon.stub(docker.docker, 'swarmHostExists')
+        done()
+      })
+
+      it('should return true', (done) => {
+        var testHost = '10.0.0.0:3232'
+        docker.docker.swarmHostExists.yieldsAsync(null, true)
+        docker.swarmHostExists(testHost).asCallback((err, exist) => {
+          if (err) { return done(err) }
+          expect(exist).to.be.true()
+          sinon.assert.calledOnce(docker.docker.swarmHostExists)
+          sinon.assert.calledWith(docker.docker.swarmHostExists, testHost)
+          done()
+        })
+      })
+
+      it('should return error', (done) => {
+        var testErr = new Error('eerie')
+        docker.docker.swarmHostExists.yieldsAsync(testErr)
+        docker.swarmHostExists(testHost).asCallback((err) => {
+          expect(testErr).to.be.equal(err.cause)
+          sinon.assert.calledOnce(docker.docker.swarmHostExists)
+          sinon.assert.calledWith(docker.docker.swarmHostExists, testHost)
+          done()
+        })
+      })
+    }) // end swarmHostExists
+
     describe('inspectContainer', () => {
       var inspectMock = {
         inspect: sinon.stub()

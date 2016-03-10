@@ -3,11 +3,9 @@ require('loadenv')()
 
 var Code = require('code')
 var Lab = require('lab')
-var Promise = require('bluebird')
 var sinon = require('sinon')
 
 var eventManager = require('../../lib/event-manager')
-var Docker = require('../../lib/docker')
 var Listener = require('../../lib/listener')
 
 var lab = exports.lab = Lab.script()
@@ -28,65 +26,10 @@ describe('event-manager.js unit test', function () {
   }) // end singleton
 
   describe('methods', function () {
-    describe('start', function () {
-      beforeEach(function (done) {
-        eventManager.dockListeners = {}
-        sinon.stub(eventManager, 'startSwarmListener')
-        sinon.stub(eventManager, 'startDockListener')
-        sinon.stub(Docker.prototype, 'getNodes')
-        done()
-      })
-
-      afterEach(function (done) {
-        eventManager.startSwarmListener.restore()
-        eventManager.startDockListener.restore()
-        Docker.prototype.getNodes.restore()
-        done()
-      })
-
-      it('should listen on all nodes', function (done) {
-        var testNode1 = {Host: '10.1.1.1'}
-        var testNode2 = {Host: '10.1.1.2'}
-        eventManager.startSwarmListener.returns(Promise.resolve())
-        eventManager.startDockListener.returns(Promise.resolve())
-        Docker.prototype.getNodes.returns(Promise.resolve([testNode1, testNode2]))
-
-        eventManager.start().asCallback((err) => {
-          if (err) { return done(err) }
-
-          sinon.assert.calledOnce(eventManager.startSwarmListener)
-
-          sinon.assert.calledTwice(eventManager.startDockListener)
-          sinon.assert.calledWith(eventManager.startDockListener, testNode2)
-          sinon.assert.calledWith(eventManager.startDockListener, testNode1)
-          done()
-        })
-      })
-
-      it('should skip listening nodes', function (done) {
-        var testNode1 = {Host: '10.0.0.1:4242'}
-        var testNode2 = {Host: '10.0.0.2:4242'}
-        var testNode3 = {Host: '10.0.0.3:4242'}
-        eventManager.dockListeners = {
-          '10.0.0.1:4242': 'stuff'
-        }
-        eventManager.startSwarmListener.returns(Promise.resolve())
-        eventManager.startDockListener.returns(Promise.resolve())
-        Docker.prototype.getNodes.returns(Promise.resolve([testNode1, testNode2, testNode3]))
-
-        eventManager.start().asCallback((err) => {
-          if (err) { return done(err) }
-
-          sinon.assert.calledOnce(eventManager.startSwarmListener)
-
-          sinon.assert.calledTwice(eventManager.startDockListener)
-          sinon.assert.calledWith(eventManager.startDockListener, testNode3)
-          sinon.assert.calledWith(eventManager.startDockListener, testNode2)
-          sinon.assert.neverCalledWith(eventManager.startDockListener, testNode1)
-          done()
-        })
-      })
-    }) // end start
+    beforeEach(function (done) {
+      eventManager.dockListeners = {}
+      done()
+    })
 
     describe('startSwarmListener', function () {
       beforeEach(function (done) {
@@ -118,16 +61,40 @@ describe('event-manager.js unit test', function () {
       })
 
       it('should start dock listener', function (done) {
-        eventManager.startDockListener({ Host: 'a', Labels: { org: '1' } })
+        eventManager.startDockListener('host', 'org')
         sinon.assert.calledOnce(Listener.prototype.start)
         done()
       })
 
       it('should start add listener to map', function (done) {
-        eventManager.startDockListener({ Host: 'a', Labels: { org: '1' } })
-        expect(eventManager.dockListeners['a']).to.be.an.instanceOf(Listener)
+        eventManager.startDockListener('host', 'org')
+        expect(eventManager.dockListeners['host']).to.be.an.instanceOf(Listener)
+        expect(eventManager.dockListeners['host'].host).to.equal('host')
+        expect(eventManager.dockListeners['host'].org).to.equal('org')
         done()
       })
     }) // end startDockListener
+
+    describe('hasListener', function () {
+      it('should return true', function (done) {
+        eventManager.dockListeners['host'] = 'test'
+        expect(eventManager.hasListener('host')).to.be.true()
+        done()
+      })
+
+      it('should return false', function (done) {
+        expect(eventManager.hasListener('host')).to.be.false()
+        done()
+      })
+    }) // end hasListener
+
+    describe('hasListener', function () {
+      it('should remove listener', function (done) {
+        eventManager.dockListeners['host'] = 'test'
+        eventManager.removeDockListener('host')
+        expect(eventManager.dockListeners['host']).to.be.undefined()
+        done()
+      })
+    }) // end hasListener
   }) // end methods
 }) // end event-manager.js unit test
