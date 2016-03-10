@@ -8,16 +8,15 @@ require('loadenv')()
 var monitor = require('monitor-dog')
 
 var app = require('./lib/app.js')
-var eventManager = require('./lib/event-manager')
 var log = require('./lib/logger')()
-var RabbitMQ = require('./lib/rabbitmq')
+var rabbitmq = require('./lib/rabbitmq')
 
 function Server () {}
 
 module.exports = Server
 
 /**
- * Listen for events from Docker and publish to RabbitMQ
+ * Listen for events from Docker and publish to rabbitmq
  * @param {String} port
  * @param {Function} cb
  */
@@ -32,14 +31,14 @@ Server.prototype.start = function (port, cb) {
     log.trace('start: server listening')
 
     monitor.startSocketsMonitor()
-    RabbitMQ.connect(function (err) {
+    rabbitmq.connect(function (err) {
       if (err) {
         log.error({ err: err }, 'start: error connecting to rabbit')
         return cb(err)
       }
       log.trace('start: rabbitmq connected')
 
-      eventManager.start().asCallback(cb)
+      rabbitmq.createStreamConnectJob('swarm', process.env.SWARM_HOST, null)
     })
   })
 }
