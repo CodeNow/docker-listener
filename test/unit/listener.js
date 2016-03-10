@@ -1,6 +1,3 @@
-/**
- * @module test/listener
- */
 'use strict'
 require('loadenv')()
 
