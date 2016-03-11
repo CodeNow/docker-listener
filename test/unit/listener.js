@@ -156,6 +156,98 @@ describe('listener unit test', () => {
         })
       })
 
+      it('should handle error event', (done) => {
+        const EventEmitter = require('events')
+        const emitter = new EventEmitter()
+        sinceMap.get.returns()
+        listener.docker.getEvents.returns(Promise.resolve(emitter))
+
+        listener.start().asCallback((err) => {
+          if (err) { return done(err) }
+          emitter.emit('error')
+          sinon.assert.calledOnce(listener.handleError)
+          done()
+        })
+      })
+
+      it('should handle close event', (done) => {
+        const EventEmitter = require('events')
+        const emitter = new EventEmitter()
+        sinceMap.get.returns()
+        listener.docker.getEvents.returns(Promise.resolve(emitter))
+
+        listener.start().asCallback((err) => {
+          if (err) { return done(err) }
+          emitter.emit('close')
+          sinon.assert.calledOnce(listener.handleClose)
+          sinon.assert.calledWith(listener.handleClose, sinon.match.instanceOf(Error))
+          done()
+        })
+      })
+
+      it('should handle end event', (done) => {
+        const EventEmitter = require('events')
+        const emitter = new EventEmitter()
+        sinceMap.get.returns()
+        listener.docker.getEvents.returns(Promise.resolve(emitter))
+
+        listener.start().asCallback((err) => {
+          if (err) { return done(err) }
+          emitter.emit('end')
+          sinon.assert.calledOnce(listener.handleClose)
+          sinon.assert.calledWith(listener.handleClose, sinon.match.instanceOf(Error))
+          done()
+        })
+      })
+
+      it('should handle disconnect event', (done) => {
+        const EventEmitter = require('events')
+        const emitter = new EventEmitter()
+        sinceMap.get.returns()
+        listener.docker.getEvents.returns(Promise.resolve(emitter))
+
+        listener.start().asCallback((err) => {
+          if (err) { return done(err) }
+          emitter.emit('disconnect')
+          sinon.assert.calledOnce(listener.handleClose)
+          sinon.assert.calledWith(listener.handleClose, sinon.match.instanceOf(Error))
+          done()
+        })
+      })
+
+      it('should handle data event', (done) => {
+        const EventEmitter = require('events')
+        const emitter = new EventEmitter()
+        sinceMap.get.returns()
+        listener.docker.getEvents.returns(Promise.resolve(emitter))
+
+        listener.start().asCallback((err) => {
+          if (err) { return done(err) }
+          emitter.emit('data', 'testData')
+          emitter.emit('data', 'testData')
+          sinon.assert.calledTwice(listener.publishEvent)
+          sinon.assert.calledWith(listener.publishEvent, 'testData')
+
+          sinon.assert.calledOnce(listener.connectHandler)
+          done()
+        })
+      })
+
+      it('should handle readable event', (done) => {
+        const EventEmitter = require('events')
+        const emitter = new EventEmitter()
+        sinceMap.get.returns()
+        listener.docker.getEvents.returns(Promise.resolve(emitter))
+
+        listener.start().asCallback((err) => {
+          if (err) { return done(err) }
+          emitter.emit('readable')
+          emitter.emit('readable')
+          sinon.assert.calledOnce(listener.docker.testEvent)
+          done()
+        })
+      })
+
       it('should not timeout and call test Event', (done) => {
         const stubStream = {
           on: sinon.stub().returnsThis(),
