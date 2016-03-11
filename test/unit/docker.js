@@ -7,6 +7,7 @@ var Dockerode = require('dockerode')
 var ErrorCat = require('error-cat')
 var Lab = require('lab')
 var noop = require('101/noop')
+var Promise = require('bluebird')
 var sinon = require('sinon')
 
 var Docker = require('../../lib/docker')
@@ -44,7 +45,7 @@ describe('docker unit test', () => {
         top: noop
       }
       beforeEach((done) => {
-        sinon.stub(docker.docker, 'listContainers')
+        sinon.stub(docker.docker, 'listContainersAsync')
         sinon.stub(topMock, 'top')
         sinon.stub(docker.docker, 'getContainer').returns(topMock)
         sinon.stub(ErrorCat.prototype, 'createAndReport')
@@ -59,7 +60,7 @@ describe('docker unit test', () => {
 
       it('should report error on list fail', (done) => {
         var testErr = new Error('calamitous')
-        docker.docker.listContainers.yieldsAsync(testErr)
+        docker.docker.listContainersAsync.returns(Promise.reject(testErr))
         docker.testEvent().asCallback((err) => {
           if (err) { return done(err) }
 
@@ -67,7 +68,7 @@ describe('docker unit test', () => {
           sinon.assert.calledWith(ErrorCat.prototype.createAndReport,
             500,
             testErr.message,
-            sinon.match({ cause: testErr })
+            testErr
           )
           done()
         })
@@ -75,7 +76,7 @@ describe('docker unit test', () => {
 
       it('should report error on empty containers', (done) => {
         var testErr = new Error('no running containers found')
-        docker.docker.listContainers.yieldsAsync(null, [])
+        docker.docker.listContainersAsync.returns(Promise.resolve([]))
         docker.testEvent().asCallback((err) => {
           if (err) { return done(err) }
 
@@ -91,7 +92,7 @@ describe('docker unit test', () => {
 
       it('should report error top fail', (done) => {
         var testErr = new Error('grievous')
-        docker.docker.listContainers.yieldsAsync(null, [{Id: 1}])
+        docker.docker.listContainersAsync.returns(Promise.resolve([{Id: 1}]))
         topMock.top.yieldsAsync(testErr)
         docker.testEvent().asCallback((err) => {
           if (err) { return done(err) }
@@ -108,12 +109,12 @@ describe('docker unit test', () => {
 
       it('should call docker with correct opts', (done) => {
         var testId = 'heinous'
-        docker.docker.listContainers.yieldsAsync(null, [{Id: testId}])
+        docker.docker.listContainersAsync.returns(Promise.resolve([{Id: testId}]))
         topMock.top.yieldsAsync()
         docker.testEvent().asCallback((err) => {
           if (err) { return done(err) }
-          sinon.assert.calledOnce(docker.docker.listContainers)
-          sinon.assert.calledWith(docker.docker.listContainers, {
+          sinon.assert.calledOnce(docker.docker.listContainersAsync)
+          sinon.assert.calledWith(docker.docker.listContainersAsync, {
             filters: {
               state: ['running']
             }
@@ -129,17 +130,17 @@ describe('docker unit test', () => {
 
     describe('getEvents', () => {
       beforeEach((done) => {
-        sinon.stub(docker.docker, 'getEvents')
+        sinon.stub(docker.docker, 'getEventsAsync')
         done()
       })
 
       it('should get docker event', (done) => {
         var testOpts = { since: 1000 }
-        docker.docker.getEvents.yieldsAsync()
+        docker.docker.getEventsAsync.returns(Promise.resolve())
         docker.getEvents(testOpts).asCallback((err) => {
           if (err) { return done(err) }
-          sinon.assert.calledOnce(docker.docker.getEvents)
-          sinon.assert.calledWith(docker.docker.getEvents, testOpts)
+          sinon.assert.calledOnce(docker.docker.getEventsAsync)
+          sinon.assert.calledWith(docker.docker.getEventsAsync, testOpts)
           done()
         })
       })
@@ -147,29 +148,29 @@ describe('docker unit test', () => {
 
     describe('swarmHostExists', () => {
       beforeEach((done) => {
-        sinon.stub(docker.docker, 'swarmHostExists')
+        sinon.stub(docker.docker, 'swarmHostExistsAsync')
         done()
       })
 
       it('should return true', (done) => {
         var testHost = '10.0.0.0:3232'
-        docker.docker.swarmHostExists.yieldsAsync(null, true)
+        docker.docker.swarmHostExistsAsync.returns(Promise.resolve(true))
         docker.swarmHostExists(testHost).asCallback((err, exist) => {
           if (err) { return done(err) }
           expect(exist).to.be.true()
-          sinon.assert.calledOnce(docker.docker.swarmHostExists)
-          sinon.assert.calledWith(docker.docker.swarmHostExists, testHost)
+          sinon.assert.calledOnce(docker.docker.swarmHostExistsAsync)
+          sinon.assert.calledWith(docker.docker.swarmHostExistsAsync, testHost)
           done()
         })
       })
 
       it('should return error', (done) => {
         var testErr = new Error('eerie')
-        docker.docker.swarmHostExists.yieldsAsync(testErr)
+        docker.docker.swarmHostExistsAsync.returns(Promise.reject(testErr))
         docker.swarmHostExists(testHost).asCallback((err) => {
-          expect(testErr).to.be.equal(err.cause)
-          sinon.assert.calledOnce(docker.docker.swarmHostExists)
-          sinon.assert.calledWith(docker.docker.swarmHostExists, testHost)
+          expect(testErr).to.be.equal(err)
+          sinon.assert.calledOnce(docker.docker.swarmHostExistsAsync)
+          sinon.assert.calledWith(docker.docker.swarmHostExistsAsync, testHost)
           done()
         })
       })
@@ -199,27 +200,27 @@ describe('docker unit test', () => {
 
     describe('getNodes', () => {
       beforeEach((done) => {
-        sinon.stub(docker.docker, 'swarmInfo')
+        sinon.stub(docker.docker, 'swarmInfoAsync')
         done()
       })
 
       it('should get nodes event', (done) => {
-        docker.docker.swarmInfo.yieldsAsync(null, {
+        docker.docker.swarmInfoAsync.returns(Promise.resolve({
           parsedSystemStatus: {
             ParsedNodes: {
               one: { id: 1 },
               two: { id: 2 }
             }
           }
-        })
+        }))
         docker.getNodes().asCallback((err, nodes) => {
           if (err) { return done(err) }
-          sinon.assert.calledOnce(docker.docker.swarmInfo)
+          sinon.assert.calledOnce(docker.docker.swarmInfoAsync)
 
           expect(nodes).to.deep.equal([{ id: 1 }, { id: 2 }])
           done()
         })
       })
-    }) // end getEvents
+    }) // end getNodes
   }) // end methods
 }) // end testEvent
