@@ -58,53 +58,22 @@ describe('docker unit test', () => {
         done()
       })
 
-      it('should report error on list fail', (done) => {
+      it('should ignore error on list fail', (done) => {
         const testErr = new Error('calamitous')
         docker.docker.listContainersAsync.returns(Promise.reject(testErr))
-        docker.testEvent().asCallback((err) => {
-          if (err) { return done(err) }
-
-          sinon.assert.calledOnce(ErrorCat.prototype.createAndReport)
-          sinon.assert.calledWith(ErrorCat.prototype.createAndReport,
-            500,
-            testErr.message,
-            testErr
-          )
-          done()
-        })
+        docker.testEvent().asCallback(done)
       })
 
-      it('should report error on empty containers', (done) => {
-        const testErr = new Error('no running containers found')
+      it('should ignore error on empty containers', (done) => {
         docker.docker.listContainersAsync.returns(Promise.resolve([]))
-        docker.testEvent().asCallback((err) => {
-          if (err) { return done(err) }
-
-          sinon.assert.calledOnce(ErrorCat.prototype.createAndReport)
-          sinon.assert.calledWith(ErrorCat.prototype.createAndReport,
-            500,
-            testErr.message,
-            testErr
-          )
-          done()
-        })
+        docker.testEvent().asCallback(done)
       })
 
-      it('should report error top fail', (done) => {
+      it('should ignore error top fail', (done) => {
         const testErr = new Error('grievous')
         docker.docker.listContainersAsync.returns(Promise.resolve([{Id: 1}]))
         topMock.top.yieldsAsync(testErr)
-        docker.testEvent().asCallback((err) => {
-          if (err) { return done(err) }
-
-          sinon.assert.calledOnce(ErrorCat.prototype.createAndReport)
-          sinon.assert.calledWith(ErrorCat.prototype.createAndReport,
-            500,
-            testErr.message,
-            sinon.match({ cause: testErr })
-          )
-          done()
-        })
+        docker.testEvent().asCallback(done)
       })
 
       it('should call docker with correct opts', (done) => {
