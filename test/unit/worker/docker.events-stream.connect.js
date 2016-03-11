@@ -1,5 +1,4 @@
 'use strict'
-require('loadenv')()
 
 const Code = require('code')
 const Lab = require('lab')
@@ -65,7 +64,7 @@ describe('docker.events-stream.connect unit test', () => {
     })
   })
 
-  it('should TaskFatalError if invalid job', function (done) {
+  it('should TaskFatalError if invalid job', (done) => {
     DockerEventsSteamConnect({}).asCallback((err) => {
       expect(err).to.be.an.instanceOf(TaskFatalError)
       done()

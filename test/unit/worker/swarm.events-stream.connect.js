@@ -26,7 +26,7 @@ describe('swarm.events-stream.connect unit test', () => {
     done()
   })
 
-  it('should startSwarmListener', function (done) {
+  it('should startSwarmListener', (done) => {
     eventManager.startSwarmListener.returns(Promise.resolve())
     SwarmEventsSteamConnect().asCallback((err) => {
       if (err) { return done(err) }

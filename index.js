@@ -1,17 +1,14 @@
-/**
- * @module index
- */
 'use strict'
 
 require('loadenv')()
 
-var ErrorCat = require('error-cat')
-var log = require('./lib/logger')()
-var Server = require('./server')
+const ErrorCat = require('error-cat')
+const log = require('./lib/logger')()
+const Server = require('./server')
 
-var error = new ErrorCat()
+const error = new ErrorCat()
 
-Server.start(process.env.PORT, function (err) {
+Server.start(process.env.PORT, (err) => {
   if (err) {
     log.fatal({ err: err }, 'server failed to start')
     error.createAndReport(500, 'failed to start', err)

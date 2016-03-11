@@ -5,10 +5,10 @@
 'use strict'
 require('loadenv')()
 
-var monitor = require('monitor-dog')
+const monitor = require('monitor-dog')
 
-var log = require('./lib/logger')()
-var rabbitmq = require('./lib/rabbitmq')
+const log = require('./lib/logger')()
+const rabbitmq = require('./lib/rabbitmq')
 
 module.exports = class Server {
   /**

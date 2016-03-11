@@ -1,4 +1,4 @@
-module.exports = function (opts) {
+module.exports = (opts) => {
   opts = opts || {}
   const ip = opts.ip || '10.1.1.1'
   const hIp = ip.replace(/\./g, '-')

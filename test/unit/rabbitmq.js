@@ -1,5 +1,4 @@
 'use strict'
-require('loadenv')()
 
 const Code = require('code')
 const ErrorCat = require('error-cat')
@@ -18,51 +17,6 @@ const expect = Code.expect
 const it = lab.it
 
 describe('rabbitmq.js unit test', () => {
-  describe('close', () => {
-    it('should do nothing if it was not connected', (done) => {
-      sinon.stub(Hermes.prototype, 'close').yields(null)
-      rabbitmq.close((err) => {
-        expect(err).to.not.exist()
-        expect(Hermes.prototype.close.called).to.be.false()
-        Hermes.prototype.close.restore()
-        done()
-      })
-    })
-
-    it('should call hermes close', (done) => {
-      sinon.stub(Hermes.prototype, 'connect').yields(null)
-      sinon.stub(Hermes.prototype, 'close').yields(null)
-      rabbitmq.connect((err) => {
-        expect(err).to.not.exist()
-        expect(Hermes.prototype.connect.callCount).to.equal(3)
-        Hermes.prototype.connect.restore()
-        rabbitmq.close((err) => {
-          expect(err).to.be.null()
-          expect(Hermes.prototype.close.callCount).to.equal(3)
-          Hermes.prototype.close.restore()
-          done()
-        })
-      })
-    })
-
-    it('should fail if hermes close failed', (done) => {
-      sinon.stub(Hermes.prototype, 'connect').yields(null)
-      sinon.stub(Hermes.prototype, 'close').yields(new Error('Hermes error'))
-      rabbitmq.connect((err) => {
-        expect(err).to.be.null()
-        expect(Hermes.prototype.connect.callCount).to.equal(3)
-        Hermes.prototype.connect.restore()
-        rabbitmq.close((err) => {
-          expect(err).to.exist()
-          expect(err.message).to.equal('Hermes error')
-          expect(Hermes.prototype.close.calledOnce).to.be.true()
-          Hermes.prototype.close.restore()
-          done()
-        })
-      })
-    })
-  })
-
   describe('connect', () => {
     it('should call hermes connect', (done) => {
       sinon.stub(Hermes.prototype, 'connect').yields(null)
@@ -100,15 +54,15 @@ describe('rabbitmq.js unit test', () => {
     })
   })
 
-  describe('publish', function () {
-    beforeEach(function (done) {
+  describe('publish', () => {
+    beforeEach((done) => {
       rabbitmq.publisher = {
         publish: sinon.stub()
       }
       done()
     })
 
-    it('should publish job', function (done) {
+    it('should publish job', (done) => {
       var testData = { some: 'data' }
       rabbitmq.publish('thename', testData)
       sinon.assert.calledOnce(rabbitmq.publisher.publish)
@@ -117,18 +71,18 @@ describe('rabbitmq.js unit test', () => {
     })
   }) // end publish
 
-  describe('createPublishJob', function () {
-    beforeEach(function (done) {
+  describe('createPublishJob', () => {
+    beforeEach((done) => {
       sinon.stub(rabbitmq, 'publish')
       done()
     })
 
-    afterEach(function (done) {
+    afterEach((done) => {
       rabbitmq.publish.restore()
       done()
     })
 
-    it('should publish job', function (done) {
+    it('should publish job', (done) => {
       var testData = { some: 'data' }
       rabbitmq.createPublishJob(testData)
       sinon.assert.calledOnce(rabbitmq.publish)
@@ -137,18 +91,18 @@ describe('rabbitmq.js unit test', () => {
     })
   }) // end createPublishJob
 
-  describe('createConnectedJob', function () {
-    beforeEach(function (done) {
+  describe('createConnectedJob', () => {
+    beforeEach((done) => {
       sinon.stub(rabbitmq, 'publish')
       done()
     })
 
-    afterEach(function (done) {
+    afterEach((done) => {
       rabbitmq.publish.restore()
       done()
     })
 
-    it('should publish job', function (done) {
+    it('should publish job', (done) => {
       rabbitmq.createConnectedJob('type', 'host', 'org')
       sinon.assert.calledOnce(rabbitmq.publish)
       sinon.assert.calledWith(rabbitmq.publish, 'type.events-stream.connected', {
@@ -160,18 +114,18 @@ describe('rabbitmq.js unit test', () => {
     })
   }) // end createConnectedJob
 
-  describe('createStreamConnectJob', function () {
-    beforeEach(function (done) {
+  describe('createStreamConnectJob', () => {
+    beforeEach((done) => {
       sinon.stub(rabbitmq, 'publish')
       done()
     })
 
-    afterEach(function (done) {
+    afterEach((done) => {
       rabbitmq.publish.restore()
       done()
     })
 
-    it('should publish job', function (done) {
+    it('should publish job', (done) => {
       rabbitmq.createStreamConnectJob('type', 'host', 'org')
       sinon.assert.calledOnce(rabbitmq.publish)
       sinon.assert.calledWith(rabbitmq.publish, 'type.events-stream.connect', {
@@ -182,18 +136,18 @@ describe('rabbitmq.js unit test', () => {
     })
   }) // end createStreamConnectJob
 
-  describe('_handleFatalError', function () {
-    beforeEach(function (done) {
+  describe('_handleFatalError', () => {
+    beforeEach((done) => {
       sinon.stub(ErrorCat.prototype, 'createAndReport')
       done()
     })
 
-    afterEach(function (done) {
+    afterEach((done) => {
       ErrorCat.prototype.createAndReport.restore()
       done()
     })
 
-    it('should throw error', function (done) {
+    it('should throw error', (done) => {
       expect(() => {
         rabbitmq._handleFatalError('err')
       }).to.throw()
