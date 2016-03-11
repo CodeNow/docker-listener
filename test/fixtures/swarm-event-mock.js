@@ -1,8 +1,8 @@
 module.exports = function (opts) {
   opts = opts || {}
-  var ip = opts.ip || '10.1.1.1'
-  var hIp = ip.replace(/\./g, '-')
-  var org = opts.org || '123123123'
+  const ip = opts.ip || '10.1.1.1'
+  const hIp = ip.replace(/\./g, '-')
+  const org = opts.org || '123123123'
 
   return {
     status: opts.status || 'start',

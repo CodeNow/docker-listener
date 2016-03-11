@@ -1,29 +1,26 @@
-/**
- * @module test/publisher
- */
 'use strict'
 require('loadenv')({ debugName: 'docker-listener' })
 
-var Code = require('code')
-var Lab = require('lab')
-var sinon = require('sinon')
-var TaskFatalError = require('ponos').TaskFatalError
+const Code = require('code')
+const Lab = require('lab')
+const sinon = require('sinon')
+const TaskFatalError = require('ponos').TaskFatalError
 
-var Docker = require('../../../lib/docker')
-var DockerEventPublish = require('../../../lib/workers/docker.event.publish.js')
-var eventMock = require('../../fixtures/event-mock.js')
-var swarmEventMock = require('../../fixtures/swarm-event-mock.js')
-var rabbitmq = require('../../../lib/rabbitmq')
+const Docker = require('../../../lib/docker')
+const DockerEventPublish = require('../../../lib/workers/docker.event.publish.js')
+const eventMock = require('../../fixtures/event-mock.js')
+const swarmEventMock = require('../../fixtures/swarm-event-mock.js')
+const rabbitmq = require('../../../lib/rabbitmq')
 
-var lab = exports.lab = Lab.script()
+const lab = exports.lab = Lab.script()
 
-var afterEach = lab.afterEach
-var beforeEach = lab.beforeEach
-var describe = lab.experiment
-var expect = Code.expect
-var it = lab.test
+const afterEach = lab.afterEach
+const beforeEach = lab.beforeEach
+const describe = lab.experiment
+const expect = Code.expect
+const it = lab.test
 
-function createJob (opts) {
+const createJob = (opts) => {
   opts = opts || {}
   return {
     Host: opts.host || '10.0.0.1:4242',
@@ -32,7 +29,7 @@ function createJob (opts) {
   }
 }
 
-function createSwarmJob (opts) {
+const createSwarmJob = (opts) => {
   opts = opts || {}
   return {
     Host: opts.host || '10.0.0.1:4242',
@@ -44,25 +41,25 @@ function createSwarmJob (opts) {
 describe('docker event publish', () => {
   describe('_isBlacklisted', () => {
     it('should return true non engine swarm events', (done) => {
-      var test = DockerEventPublish._isBlacklisted({type: 'swarm', status: 'other'})
+      const test = DockerEventPublish._isBlacklisted({type: 'swarm', status: 'other'})
       expect(test).to.be.true()
       done()
     })
 
     it('should return false engine_connect event', (done) => {
-      var test = DockerEventPublish._isBlacklisted({status: 'engine_connect'})
+      const test = DockerEventPublish._isBlacklisted({status: 'engine_connect'})
       expect(test).to.be.false()
       done()
     })
 
     it('should return false engine_disconnect event', (done) => {
-      var test = DockerEventPublish._isBlacklisted({status: 'engine_disconnect'})
+      const test = DockerEventPublish._isBlacklisted({status: 'engine_disconnect'})
       expect(test).to.be.false()
       done()
     })
 
     it('should return true for blacklisted image', (done) => {
-      var test = DockerEventPublish._isBlacklisted({
+      const test = DockerEventPublish._isBlacklisted({
         status: 'start',
         from: process.env.CONTAINERS_BLACKLIST.split(',')[0]
       })
@@ -73,12 +70,12 @@ describe('docker event publish', () => {
 
   describe('_formatEvent', () => {
     it('should format docker event', (done) => {
-      var testIp = '10.0.0.0'
-      var testPort = '4242'
-      var testHost = testIp + ':' + testPort
-      var testOrg = '12341234'
-      var testTime = (Date.now() / 1000).toFixed(0)
-      var event = createJob({
+      const testIp = '10.0.0.0'
+      const testPort = '4242'
+      const testHost = testIp + ':' + testPort
+      const testOrg = '12341234'
+      const testTime = (Date.now() / 1000).toFixed(0)
+      const event = createJob({
         host: testHost,
         org: testOrg,
         status: 'start',
@@ -88,7 +85,7 @@ describe('docker event publish', () => {
         timeNano: testTime * 1000000
       })
       event.event = JSON.parse(event.event)
-      var enhanced = DockerEventPublish._formatEvent(event)
+      const enhanced = DockerEventPublish._formatEvent(event)
 
       expect(enhanced.status).to.equal('start')
       expect(enhanced.id).to.equal('id')
@@ -102,19 +99,19 @@ describe('docker event publish', () => {
       expect(enhanced.dockerPort).to.equal(testPort)
       expect(enhanced.tags).to.equal(testOrg)
       expect(enhanced.org).to.equal(testOrg)
-      var dockerUrl = 'http://' + testIp + ':4242'
+      const dockerUrl = 'http://' + testIp + ':4242'
       expect(enhanced.host).to.equal(dockerUrl)
       expect(enhanced.dockerUrl).to.equal(dockerUrl)
       done()
     })
 
     it('should format docker event', (done) => {
-      var testIp = '10.0.0.0'
-      var testPort = '4242'
-      var testHost = testIp + ':' + testPort
-      var testOrg = '12341234'
-      var testTime = (Date.now() / 1000).toFixed(0)
-      var event = createSwarmJob({
+      const testIp = '10.0.0.0'
+      const testPort = '4242'
+      const testHost = testIp + ':' + testPort
+      const testOrg = '12341234'
+      const testTime = (Date.now() / 1000).toFixed(0)
+      const event = createSwarmJob({
         host: testHost,
         org: testOrg,
         status: 'start',
@@ -125,7 +122,7 @@ describe('docker event publish', () => {
         timeNano: testTime * 1000000
       })
       event.event = JSON.parse(event.event)
-      var enhanced = DockerEventPublish._formatEvent(event)
+      const enhanced = DockerEventPublish._formatEvent(event)
 
       expect(enhanced.status).to.equal('start')
       expect(enhanced.id).to.equal('id')
@@ -139,7 +136,7 @@ describe('docker event publish', () => {
       expect(enhanced.dockerPort).to.equal(testPort)
       expect(enhanced.tags).to.equal(testOrg)
       expect(enhanced.org).to.equal(testOrg)
-      var dockerUrl = 'http://' + testIp + ':4242'
+      const dockerUrl = 'http://' + testIp + ':4242'
       expect(enhanced.host).to.equal(dockerUrl)
       expect(enhanced.dockerUrl).to.equal(dockerUrl)
       done()
@@ -162,7 +159,7 @@ describe('docker event publish', () => {
 
   describe('_isUserContainer', () => {
     it('should return true if user container', (done) => {
-      var data = {
+      const data = {
         inspectData: {
           Config: {
             Labels: {
@@ -176,7 +173,7 @@ describe('docker event publish', () => {
     })
 
     it('should return false if not user container', (done) => {
-      var data = {
+      const data = {
         inspectData: {
           Config: {
             Labels: {
@@ -192,7 +189,7 @@ describe('docker event publish', () => {
 
   describe('_isBuildContainer', () => {
     it('should return true if user container', (done) => {
-      var data = {
+      const data = {
         inspectData: {
           Config: {
             Labels: {
@@ -206,7 +203,7 @@ describe('docker event publish', () => {
     })
 
     it('should return false if not user container', (done) => {
-      var data = {
+      const data = {
         inspectData: {
           Config: {
             Labels: {
@@ -221,7 +218,7 @@ describe('docker event publish', () => {
   })
 
   describe('worker', () => {
-    function createData (type) {
+    const createData = (type) => {
       return {
         Bridge: 'docker0',
         Gateway: '172.17.42.1',
@@ -274,11 +271,11 @@ describe('docker event publish', () => {
     })
 
     it('should not publish for blacklisted', (done) => {
-      var payload = {
+      const payload = {
         status: 'start',
         from: process.env.CONTAINERS_BLACKLIST.split(',')[0]
       }
-      var testJob = createJob(payload)
+      const testJob = createJob(payload)
       DockerEventPublish._isBlacklisted.returns(true)
 
       DockerEventPublish(testJob).asCallback((err) => {
@@ -290,10 +287,10 @@ describe('docker event publish', () => {
     })
 
     it('should not call inspectContainer for non container event', (done) => {
-      var payload = {
+      const payload = {
         status: 'fake'
       }
-      var testJob = createJob(payload)
+      const testJob = createJob(payload)
       DockerEventPublish(testJob).asCallback((err) => {
         if (err) { return done(err) }
 
@@ -304,12 +301,12 @@ describe('docker event publish', () => {
     })
 
     it('should work for user container create events', (done) => {
-      var payload = {
+      const payload = {
         status: 'create',
         id: 'id'
       }
-      var testJob = createJob(payload)
-      var data = createData('user-container')
+      const testJob = createJob(payload)
+      const data = createData('user-container')
       Docker.prototype.inspectContainer.returns(Promise.resolve(data))
       DockerEventPublish(testJob).asCallback((err) => {
         if (err) { return done(err) }
@@ -341,12 +338,12 @@ describe('docker event publish', () => {
     })
 
     it('should work for image-builder container create events', (done) => {
-      var payload = {
+      const payload = {
         status: 'create',
         id: 'id'
       }
-      var testJob = createJob(payload)
-      var data = createData('image-builder-container')
+      const testJob = createJob(payload)
+      const data = createData('image-builder-container')
       Docker.prototype.inspectContainer.returns(Promise.resolve(data))
       DockerEventPublish(testJob).asCallback((err) => {
         if (err) { return done(err) }
@@ -379,10 +376,10 @@ describe('docker event publish', () => {
     })
 
     it('should not publish for non user or non build container create', (done) => {
-      var payload = {
+      const payload = {
         status: 'create'
       }
-      var testJob = createJob(payload)
+      const testJob = createJob(payload)
       Docker.prototype.inspectContainer.returns(Promise.resolve())
       DockerEventPublish(testJob).asCallback((err) => {
         if (err) { return done(err) }
@@ -393,12 +390,12 @@ describe('docker event publish', () => {
     })
 
     it('should work for user container die events', (done) => {
-      var payload = {
+      const payload = {
         status: 'die',
         id: 'id'
       }
-      var testJob = createJob(payload)
-      var data = createData('user-container')
+      const testJob = createJob(payload)
+      const data = createData('user-container')
       Docker.prototype.inspectContainer.returns(Promise.resolve(data))
       DockerEventPublish(testJob).asCallback((err) => {
         if (err) { return done(err) }
@@ -448,12 +445,12 @@ describe('docker event publish', () => {
     })
 
     it('should work for image-builder container die events', (done) => {
-      var payload = {
+      const payload = {
         status: 'die',
         id: 'id'
       }
-      var testJob = createJob(payload)
-      var data = createData('image-builder-container')
+      const testJob = createJob(payload)
+      const data = createData('image-builder-container')
       Docker.prototype.inspectContainer.returns(Promise.resolve(data))
       DockerEventPublish(testJob).asCallback((err) => {
         if (err) { return done(err) }
@@ -503,11 +500,11 @@ describe('docker event publish', () => {
     })
 
     it('should publish only container.life-cycle.died', (done) => {
-      var payload = {
+      const payload = {
         status: 'die'
       }
-      var testJob = createJob(payload)
-      var data = {id: 'test'}
+      const testJob = createJob(payload)
+      const data = {id: 'test'}
       Docker.prototype.inspectContainer.returns(Promise.resolve(data))
       DockerEventPublish(testJob).asCallback((err) => {
         if (err) { return done(err) }
@@ -535,12 +532,12 @@ describe('docker event publish', () => {
     })
 
     it('should work container start event', (done) => {
-      var payload = {
+      const payload = {
         status: 'start',
         id: 'id'
       }
-      var testJob = createJob(payload)
-      var data = createData('user-container')
+      const testJob = createJob(payload)
+      const data = createData('user-container')
       Docker.prototype.inspectContainer.returns(Promise.resolve(data))
       DockerEventPublish(testJob).asCallback((err) => {
         if (err) { return done(err) }
@@ -573,12 +570,12 @@ describe('docker event publish', () => {
     })
 
     it('should publish docker.events-stream.connected job', (done) => {
-      var payload = {
+      const payload = {
         status: 'engine_connect',
         ip: '10.0.0.1',
         org: 'orgorg'
       }
-      var testJob = createSwarmJob(payload)
+      const testJob = createSwarmJob(payload)
       DockerEventPublish(testJob).asCallback((err) => {
         if (err) { return done(err) }
         sinon.assert.notCalled(Docker.prototype.inspectContainer)
@@ -589,11 +586,11 @@ describe('docker event publish', () => {
     })
 
     it('should do nothing for invalid event', (done) => {
-      var payload = {
+      const payload = {
         status: 'invalid-event',
         id: 'id'
       }
-      var testJob = createJob(payload)
+      const testJob = createJob(payload)
       DockerEventPublish(testJob).asCallback((err) => {
         if (err) { return done(err) }
         sinon.assert.calledOnce(DockerEventPublish._formatEvent)
