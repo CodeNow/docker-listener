@@ -9,7 +9,8 @@ module.exports = function (opts) {
     id: opts.id || '74cef3acf07a3b1171557d24a229dd67bdddd53a84e42c14295ebf72434e0676',
     from: (opts.from || 'ubuntu') + ' node:ip-' + hIp + '.' + org,
     time: opts.time || (Date.now() / 1000).toFixed(0),
-    Type: 'swarm',
+    timeNano: opts.time ? (opts.time * 1000000) : (Date.now() * 1000000),
+    Type: '',
     node: {
       Name: 'ip-' + hIp + '.' + org,
       Id: 'U4AO:ZZAG:VJFC:PVDZ:LPUM:FNAC:UV7J:3KUH:UIYT:MKTM:TGA7:CPOI',
