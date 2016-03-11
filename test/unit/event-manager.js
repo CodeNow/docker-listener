@@ -1,19 +1,19 @@
 'use strict'
 
-var Code = require('code')
-var Lab = require('lab')
-var sinon = require('sinon')
+const Code = require('code')
+const Lab = require('lab')
+const sinon = require('sinon')
 
-var eventManager = require('../../lib/event-manager')
-var Listener = require('../../lib/listener')
+const eventManager = require('../../lib/event-manager')
+const Listener = require('../../lib/listener')
 
-var lab = exports.lab = Lab.script()
+const lab = exports.lab = Lab.script()
 
-var afterEach = lab.afterEach
-var beforeEach = lab.beforeEach
-var describe = lab.describe
-var expect = Code.expect
-var it = lab.it
+const afterEach = lab.afterEach
+const beforeEach = lab.beforeEach
+const describe = lab.describe
+const expect = Code.expect
+const it = lab.it
 
 describe('event-manager.js unit test', () => {
   describe('singleton', () => {

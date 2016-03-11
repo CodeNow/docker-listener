@@ -1,29 +1,29 @@
 'use strict'
 require('loadenv')()
 
-var Code = require('code')
-var ErrorCat = require('error-cat')
-var Lab = require('lab')
-var Promise = require('bluebird')
-var sinon = require('sinon')
+const Code = require('code')
+const ErrorCat = require('error-cat')
+const Lab = require('lab')
+const Promise = require('bluebird')
+const sinon = require('sinon')
 
-var Docker = require('../../lib/docker')
-var Listener = require('../../lib/listener')
-var rabbitmq = require('../../lib/rabbitmq')
-var sinceMap = require('../../lib/since-map')
+const Docker = require('../../lib/docker')
+const Listener = require('../../lib/listener')
+const rabbitmq = require('../../lib/rabbitmq')
+const sinceMap = require('../../lib/since-map')
 
-var lab = exports.lab = Lab.script()
+const lab = exports.lab = Lab.script()
 
-var afterEach = lab.afterEach
-var beforeEach = lab.beforeEach
-var describe = lab.experiment
-var expect = Code.expect
-var it = lab.test
+const afterEach = lab.afterEach
+const beforeEach = lab.beforeEach
+const describe = lab.experiment
+const expect = Code.expect
+const it = lab.test
 
 describe('listener unit test', () => {
   describe('constructor', () => {
     it('should setup docker listener', (done) => {
-      var listener
+      let listener
       expect(() => {
         listener = new Listener('10.0.0.1:4242', '123')
       }).to.not.throw()
@@ -37,7 +37,7 @@ describe('listener unit test', () => {
     })
 
     it('should setup swarm listener', (done) => {
-      var listener
+      let listener
       expect(() => {
         listener = new Listener('10.0.0.1:4242', null)
       }).to.not.throw()
@@ -52,9 +52,9 @@ describe('listener unit test', () => {
   }) // end constructor
 
   describe('methods', () => {
-    var listener
-    var testHost = '10.0.0.1:4242'
-    var testOrg = '1234'
+    let listener
+    const testHost = '10.0.0.1:4242'
+    const testOrg = '1234'
 
     beforeEach((done) => {
       listener = new Listener(testHost, testOrg)
@@ -62,7 +62,7 @@ describe('listener unit test', () => {
     })
 
     describe('start', () => {
-      var clock
+      let clock
       beforeEach((done) => {
         process.env.EVENT_TIMEOUT_MS = 15
         clock = sinon.useFakeTimers()
@@ -88,7 +88,7 @@ describe('listener unit test', () => {
       })
 
       it('should throw if getting events threw error', (done) => {
-        var testErr = new Error('uncanny')
+        const testErr = new Error('uncanny')
         sinceMap.get.returns()
         listener.docker.getEvents.returns(Promise.reject(testErr))
 
@@ -131,7 +131,7 @@ describe('listener unit test', () => {
       })
 
       it('should setup pipes', (done) => {
-        var stubStream = {
+        const stubStream = {
           on: sinon.stub().returnsThis(),
           once: sinon.stub().returnsThis()
         }
@@ -157,7 +157,7 @@ describe('listener unit test', () => {
       })
 
       it('should not timeout and call test Event', (done) => {
-        var stubStream = {
+        const stubStream = {
           on: sinon.stub().returnsThis(),
           once: sinon.stub().returnsThis()
         }
@@ -173,7 +173,7 @@ describe('listener unit test', () => {
       })
 
       it('should timeout', (done) => {
-        var stubStream = {
+        const stubStream = {
           on: sinon.stub().returnsThis(),
           once: sinon.stub().returnsThis()
         }
@@ -203,7 +203,7 @@ describe('listener unit test', () => {
       })
 
       it('should call reporting tools', (done) => {
-        var err = 'booms'
+        const err = 'booms'
         listener.handleError(err)
 
         sinon.assert.calledOnce(ErrorCat.prototype.createAndReport)
@@ -213,7 +213,7 @@ describe('listener unit test', () => {
     }) // end handleError
 
     describe('handleClose', () => {
-      var eventStreamStub
+      let eventStreamStub
 
       beforeEach((done) => {
         listener.eventStream = {
@@ -231,7 +231,7 @@ describe('listener unit test', () => {
       })
 
       it('should report', (done) => {
-        var testErr = new Error('dissatisfactory')
+        const testErr = new Error('dissatisfactory')
         ErrorCat.prototype.createAndReport.returns()
         listener.handleClose(testErr)
         sinon.assert.calledOnce(ErrorCat.prototype.createAndReport)
@@ -240,7 +240,7 @@ describe('listener unit test', () => {
       })
 
       it('should create job', (done) => {
-        var testErr = new Error('dissatisfactory')
+        const testErr = new Error('dissatisfactory')
         ErrorCat.prototype.createAndReport.returns()
         listener.handleClose(testErr)
         sinon.assert.calledOnce(rabbitmq.createStreamConnectJob)
@@ -257,7 +257,7 @@ describe('listener unit test', () => {
       })
 
       it('should destroy stream', (done) => {
-        var testErr = new Error('dissatisfactory')
+        const testErr = new Error('dissatisfactory')
         ErrorCat.prototype.createAndReport.returns()
         listener.handleClose(testErr)
         sinon.assert.calledOnce(eventStreamStub)
@@ -266,7 +266,7 @@ describe('listener unit test', () => {
       })
 
       it('should not throw if no destroy', (done) => {
-        var testErr = new Error('dissatisfactory')
+        const testErr = new Error('dissatisfactory')
         delete listener.eventStream.destroy
         expect(() => {
           listener.handleClose(testErr)
@@ -298,7 +298,7 @@ describe('listener unit test', () => {
       })
 
       it('should publish event', (done) => {
-        var testEvent = new Buffer(JSON.stringify({ type: 'abhorrent' }))
+        const testEvent = new Buffer(JSON.stringify({ type: 'abhorrent' }))
         listener.publishEvent(testEvent)
 
         sinon.assert.calledOnce(rabbitmq.createPublishJob)
@@ -318,7 +318,7 @@ describe('listener unit test', () => {
     }) // end publishEvent
 
     describe('connectHandler', () => {
-      var clock
+      let clock
       beforeEach((done) => {
         clock = sinon.useFakeTimers()
         sinon.stub(rabbitmq, 'createConnectedJob')
@@ -332,7 +332,7 @@ describe('listener unit test', () => {
       })
 
       it('should clear timeout and emit job', (done) => {
-        var testStub = sinon.stub()
+        const testStub = sinon.stub()
         listener.timeout = setTimeout(testStub, 15)
         listener.connectHandler()
         clock.tick(100)

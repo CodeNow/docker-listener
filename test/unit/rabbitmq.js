@@ -63,7 +63,7 @@ describe('rabbitmq.js unit test', () => {
     })
 
     it('should publish job', (done) => {
-      var testData = { some: 'data' }
+      const testData = { some: 'data' }
       rabbitmq.publish('thename', testData)
       sinon.assert.calledOnce(rabbitmq.publisher.publish)
       sinon.assert.calledWith(rabbitmq.publisher.publish, 'thename', testData)
@@ -83,7 +83,7 @@ describe('rabbitmq.js unit test', () => {
     })
 
     it('should publish job', (done) => {
-      var testData = { some: 'data' }
+      const testData = { some: 'data' }
       rabbitmq.createPublishJob(testData)
       sinon.assert.calledOnce(rabbitmq.publish)
       sinon.assert.calledWith(rabbitmq.publish, 'docker.event.publish', testData)

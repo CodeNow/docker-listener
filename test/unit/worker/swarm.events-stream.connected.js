@@ -33,9 +33,9 @@ describe('swarm.events-stream.connected unit test', () => {
   })
 
   it('should createStreamConnectJob for new listeners', (done) => {
-    var node1 = {Host: '10.0.0.1:4242', Labels: {org: '1234'}}
-    var node2 = {Host: '10.0.0.2:4242', Labels: {org: '1234'}}
-    var node3 = {Host: '10.0.0.3:4242', Labels: {org: 'asdf'}}
+    const node1 = {Host: '10.0.0.1:4242', Labels: {org: '1234'}}
+    const node2 = {Host: '10.0.0.2:4242', Labels: {org: '1234'}}
+    const node3 = {Host: '10.0.0.3:4242', Labels: {org: 'asdf'}}
 
     Docker.prototype.getNodes.returns(Promise.resolve([node1, node2, node3]))
     eventManager.hasListener.returns(false)

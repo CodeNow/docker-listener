@@ -1,17 +1,17 @@
 'use strict'
 require('loadenv')()
 
-var Code = require('code')
-var Lab = require('lab')
+const Code = require('code')
+const Lab = require('lab')
 
-var sinceMap = require('../../lib/since-map.js')
+const sinceMap = require('../../lib/since-map.js')
 
-var lab = exports.lab = Lab.script()
+const lab = exports.lab = Lab.script()
 
-var beforeEach = lab.beforeEach
-var describe = lab.describe
-var expect = Code.expect
-var it = lab.it
+const beforeEach = lab.beforeEach
+const describe = lab.describe
+const expect = Code.expect
+const it = lab.it
 
 describe('since-map.js unit test', () => {
   beforeEach((done) => {

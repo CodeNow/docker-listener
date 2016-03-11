@@ -1,20 +1,20 @@
 'use strict'
 
-var Code = require('code')
-var Lab = require('lab')
-var monitor = require('monitor-dog')
-var sinon = require('sinon')
+const Code = require('code')
+const Lab = require('lab')
+const monitor = require('monitor-dog')
+const sinon = require('sinon')
 
-var rabbitmq = require('../../lib/rabbitmq.js')
-var Server = require('../../server.js')
+const rabbitmq = require('../../lib/rabbitmq.js')
+const Server = require('../../server.js')
 
-var lab = exports.lab = Lab.script()
+const lab = exports.lab = Lab.script()
 
-var afterEach = lab.afterEach
-var beforeEach = lab.beforeEach
-var describe = lab.describe
-var expect = Code.expect
-var it = lab.it
+const afterEach = lab.afterEach
+const beforeEach = lab.beforeEach
+const describe = lab.describe
+const expect = Code.expect
+const it = lab.it
 
 describe('server.js unit test', () => {
   describe('start', () => {
@@ -48,7 +48,7 @@ describe('server.js unit test', () => {
     })
 
     it('should fail if rabbit failed to connect', (done) => {
-      var testErr = new Error('rabbitmq error')
+      const testErr = new Error('rabbitmq error')
       rabbitmq.connect.yieldsAsync(testErr)
 
       Server.start(3000, (err) => {

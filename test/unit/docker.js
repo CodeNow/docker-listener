@@ -2,28 +2,28 @@
 
 require('loadenv')()
 
-var Code = require('code')
-var Dockerode = require('dockerode')
-var ErrorCat = require('error-cat')
-var Lab = require('lab')
-var noop = require('101/noop')
-var Promise = require('bluebird')
-var sinon = require('sinon')
+const Code = require('code')
+const Dockerode = require('dockerode')
+const ErrorCat = require('error-cat')
+const Lab = require('lab')
+const noop = require('101/noop')
+const Promise = require('bluebird')
+const sinon = require('sinon')
 
-var Docker = require('../../lib/docker')
+const Docker = require('../../lib/docker')
 
-var lab = exports.lab = Lab.script()
+const lab = exports.lab = Lab.script()
 
-var afterEach = lab.afterEach
-var beforeEach = lab.beforeEach
-var describe = lab.experiment
-var expect = Code.expect
-var it = lab.test
+const afterEach = lab.afterEach
+const beforeEach = lab.beforeEach
+const describe = lab.experiment
+const expect = Code.expect
+const it = lab.test
 
 describe('docker unit test', () => {
   describe('constructor', () => {
     it('should setup docker', (done) => {
-      var docker
+      let docker
       expect(() => {
         docker = new Docker('10.0.0.1:4242')
       }).to.not.throw()
@@ -32,8 +32,8 @@ describe('docker unit test', () => {
     })
   }) // end constructor
   describe('methods', () => {
-    var docker
-    var testHost = '10.0.0.1:4242'
+    let docker
+    const testHost = '10.0.0.1:4242'
 
     beforeEach((done) => {
       docker = new Docker(testHost)
@@ -41,7 +41,7 @@ describe('docker unit test', () => {
     })
 
     describe('testEvent', () => {
-      var topMock = {
+      const topMock = {
         top: noop
       }
       beforeEach((done) => {
@@ -59,7 +59,7 @@ describe('docker unit test', () => {
       })
 
       it('should report error on list fail', (done) => {
-        var testErr = new Error('calamitous')
+        const testErr = new Error('calamitous')
         docker.docker.listContainersAsync.returns(Promise.reject(testErr))
         docker.testEvent().asCallback((err) => {
           if (err) { return done(err) }
@@ -75,7 +75,7 @@ describe('docker unit test', () => {
       })
 
       it('should report error on empty containers', (done) => {
-        var testErr = new Error('no running containers found')
+        const testErr = new Error('no running containers found')
         docker.docker.listContainersAsync.returns(Promise.resolve([]))
         docker.testEvent().asCallback((err) => {
           if (err) { return done(err) }
@@ -91,7 +91,7 @@ describe('docker unit test', () => {
       })
 
       it('should report error top fail', (done) => {
-        var testErr = new Error('grievous')
+        const testErr = new Error('grievous')
         docker.docker.listContainersAsync.returns(Promise.resolve([{Id: 1}]))
         topMock.top.yieldsAsync(testErr)
         docker.testEvent().asCallback((err) => {
@@ -108,7 +108,7 @@ describe('docker unit test', () => {
       })
 
       it('should call docker with correct opts', (done) => {
-        var testId = 'heinous'
+        const testId = 'heinous'
         docker.docker.listContainersAsync.returns(Promise.resolve([{Id: testId}]))
         topMock.top.yieldsAsync()
         docker.testEvent().asCallback((err) => {
@@ -135,7 +135,7 @@ describe('docker unit test', () => {
       })
 
       it('should get docker event', (done) => {
-        var testOpts = { since: 1000 }
+        const testOpts = { since: 1000 }
         docker.docker.getEventsAsync.returns(Promise.resolve())
         docker.getEvents(testOpts).asCallback((err) => {
           if (err) { return done(err) }
@@ -153,7 +153,7 @@ describe('docker unit test', () => {
       })
 
       it('should return true', (done) => {
-        var testHost = '10.0.0.0:3232'
+        const testHost = '10.0.0.0:3232'
         docker.docker.swarmHostExistsAsync.returns(Promise.resolve(true))
         docker.swarmHostExists(testHost).asCallback((err, exist) => {
           if (err) { return done(err) }
@@ -165,7 +165,7 @@ describe('docker unit test', () => {
       })
 
       it('should return error', (done) => {
-        var testErr = new Error('eerie')
+        const testErr = new Error('eerie')
         docker.docker.swarmHostExistsAsync.returns(Promise.reject(testErr))
         docker.swarmHostExists(testHost).asCallback((err) => {
           expect(testErr).to.be.equal(err)
@@ -177,7 +177,7 @@ describe('docker unit test', () => {
     }) // end swarmHostExists
 
     describe('inspectContainer', () => {
-      var inspectMock = {
+      const inspectMock = {
         inspect: sinon.stub()
       }
       beforeEach((done) => {
@@ -186,7 +186,7 @@ describe('docker unit test', () => {
       })
 
       it('should inspect container', (done) => {
-        var testId = 'fallacious'
+        const testId = 'fallacious'
         inspectMock.inspect.yieldsAsync()
         docker.inspectContainer(testId).asCallback((err) => {
           if (err) { return done(err) }
