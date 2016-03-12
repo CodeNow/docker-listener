@@ -5,42 +5,29 @@
 'use strict'
 require('loadenv')()
 
-var monitor = require('monitor-dog')
+const monitor = require('monitor-dog')
 
-var app = require('./lib/app.js')
-var Listener = require('./lib/listener')
-var log = require('./lib/logger')()
-var RabbitMQ = require('./lib/rabbitmq')
+const log = require('./lib/logger')()
+const rabbitmq = require('./lib/rabbitmq')
 
-function Server () {}
-
-module.exports = Server
-
-/**
- * Listen for events from Docker and publish to RabbitMQ
- * @param {String} port
- * @param {Function} cb
- */
-Server.prototype.start = function (port, cb) {
-  log.info({ port: port }, 'Server.prototype.start')
-
-  app.listen(port, function (err) {
-    if (err) {
-      log.error({ err: err }, 'start: error starting to listen')
-      return cb(err)
-    }
-    log.trace('start: server listening')
-
+module.exports = class Server {
+  /**
+   * Listen for events from Docker and publish to rabbitmq
+   * @param {String} port
+   * @param {Function} cb
+   */
+  static start (port, cb) {
+    log.info({ port: port }, 'Server.prototype.start')
     monitor.startSocketsMonitor()
-    RabbitMQ.connect(function (err) {
+    rabbitmq.connect((err) => {
       if (err) {
         log.error({ err: err }, 'start: error connecting to rabbit')
         return cb(err)
       }
       log.trace('start: rabbitmq connected')
 
-      var listener = new Listener()
-      listener.start(cb)
+      rabbitmq.createStreamConnectJob('swarm', process.env.SWARM_HOST, null)
+      cb()
     })
-  })
+  }
 }
