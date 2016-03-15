@@ -3,6 +3,7 @@ require('loadenv')()
 
 const Code = require('code')
 const ErrorCat = require('error-cat')
+const EventEmitter = require('events')
 const Lab = require('lab')
 const Promise = require('bluebird')
 const sinon = require('sinon')
@@ -72,6 +73,7 @@ describe('listener unit test', () => {
         sinon.stub(listener, 'handleError')
         sinon.stub(listener, 'publishEvent')
         sinon.stub(listener, 'connectHandler')
+        sinon.stub(listener, 'setTimeout')
         sinon.stub(sinceMap, 'get')
         done()
       })
@@ -83,6 +85,7 @@ describe('listener unit test', () => {
         listener.handleError.restore()
         listener.publishEvent.restore()
         listener.connectHandler.restore()
+        listener.setTimeout.restore()
         sinceMap.get.restore()
         done()
       })
@@ -152,12 +155,13 @@ describe('listener unit test', () => {
           sinon.assert.calledWith(stubStream.once, 'readable', sinon.match.func)
 
           sinon.assert.notCalled(listener.handleClose)
+
+          sinon.assert.calledOnce(listener.setTimeout)
           done()
         })
       })
 
       it('should handle error event', (done) => {
-        const EventEmitter = require('events')
         const emitter = new EventEmitter()
         sinceMap.get.returns()
         listener.docker.getEvents.returns(Promise.resolve(emitter))
@@ -247,41 +251,42 @@ describe('listener unit test', () => {
           done()
         })
       })
+    }) // end start
 
-      it('should not timeout and call test Event', (done) => {
-        const stubStream = {
-          on: sinon.stub().returnsThis(),
-          once: sinon.stub().returnsThis()
-        }
-        sinceMap.get.returns()
-        listener.docker.getEvents.returns(Promise.resolve(stubStream))
+    describe('setTimeout', function () {
+      let clock
+      beforeEach((done) => {
+        process.env.EVENT_TIMEOUT_MS = 15
+        listener.eventStream = new EventEmitter()
+        sinon.spy(listener.eventStream, 'once')
+        clock = sinon.useFakeTimers()
+        done()
+      })
 
-        listener.start().then(() => {
-          clock.tick(10)
-          sinon.assert.notCalled(listener.handleClose)
+      afterEach((done) => {
+        delete process.env.EVENT_TIMEOUT_MS
+        clock.restore()
+        done()
+      })
+
+      it('should resolve without timeout', (done) => {
+        listener.setTimeout().asCallback(() => {
+          sinon.assert.calledOnce(listener.eventStream.once)
+          sinon.assert.calledWith(listener.eventStream.once, 'data', sinon.match.func)
           done()
         })
-        .catch(done)
+        clock.tick(10)
+        listener.eventStream.emit('data')
       })
 
       it('should timeout', (done) => {
-        const stubStream = {
-          on: sinon.stub().returnsThis(),
-          once: sinon.stub().returnsThis()
-        }
-        sinceMap.get.returns()
-        listener.docker.getEvents.returns(Promise.resolve(stubStream))
-
-        listener.start().asCallback((err) => {
-          if (err) { return done(err) }
-
-          clock.tick(20)
-          sinon.assert.calledOnce(listener.handleClose)
-          sinon.assert.calledWith(listener.handleClose, sinon.match.instanceOf(Error))
+        listener.setTimeout().asCallback((err) => {
+          expect(err.message).to.equal('timeout getting events')
           done()
         })
+        clock.tick(20)
       })
-    }) // end start
+    }) // end setTimeout
 
     describe('handleError', () => {
       beforeEach((done) => {
