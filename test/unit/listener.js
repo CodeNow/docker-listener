@@ -386,6 +386,8 @@ describe('listener unit test', () => {
     describe('publishEvent', () => {
       beforeEach((done) => {
         sinon.stub(rabbitmq, 'createPublishJob')
+        sinon.stub(listener, 'isBlacklisted')
+        sinon.stub(listener, 'formatEvent')
         done()
       })
 
@@ -394,22 +396,43 @@ describe('listener unit test', () => {
         done()
       })
 
-      it('should publish event', (done) => {
+      it('should publish formatted event', (done) => {
         const testEvent = new Buffer(JSON.stringify({ type: 'abhorrent' }))
+        const testFormat = { formatted: 'true' }
+        listener.isBlacklisted.returns(false)
+        listener.formatEvent.returns(testFormat)
         listener.publishEvent(testEvent)
 
         sinon.assert.calledOnce(rabbitmq.createPublishJob)
-        sinon.assert.calledWith(rabbitmq.createPublishJob, {
-          event: testEvent.toString(),
-          Host: testHost,
-          org: testOrg
-        })
+        sinon.assert.calledWith(rabbitmq.createPublishJob, testFormat)
+
+        sinon.assert.calledOnce(listener.formatEvent)
+        sinon.assert.calledWith(listener.formatEvent, testEvent)
+
         done()
       })
 
-      it('should not publish event', (done) => {
+      it('should not publish if parse failed', (done) => {
+        listener.publishEvent('defective')
+        sinon.assert.notCalled(rabbitmq.createPublishJob)
+        sinon.assert.notCalled(listener.isBlacklisted)
+        done()
+      })
+
+      it('should not publish if event null', (done) => {
         listener.publishEvent()
         sinon.assert.notCalled(rabbitmq.createPublishJob)
+        done()
+      })
+
+      it('should not publish if event is blacklisted', (done) => {
+        const testEvent = new Buffer(JSON.stringify({ type: 'abhorrent' }))
+        listener.isBlacklisted.returns(true)
+        listener.publishEvent(testEvent)
+        sinon.assert.notCalled(rabbitmq.createPublishJob)
+
+        sinon.assert.calledOnce(listener.isBlacklisted)
+        sinon.assert.calledWith(listener.isBlacklisted, testEvent)
         done()
       })
     }) // end publishEvent
