@@ -61,7 +61,7 @@ describe('docker event publish', () => {
     it('should return true for blacklisted image', (done) => {
       const test = DockerEventPublish._isBlacklisted({
         status: 'start',
-        from: process.env.CONTAINERS_BLACKLIST.split(',')[0]
+        from: process.env.IMAGE_BLACKLIST.split(',')[0]
       })
       expect(test).to.be.true()
       done()
@@ -273,7 +273,7 @@ describe('docker event publish', () => {
     it('should not publish for blacklisted', (done) => {
       const payload = {
         status: 'start',
-        from: process.env.CONTAINERS_BLACKLIST.split(',')[0]
+        from: process.env.IMAGE_BLACKLIST.split(',')[0]
       }
       const testJob = createJob(payload)
       DockerEventPublish._isBlacklisted.returns(true)
