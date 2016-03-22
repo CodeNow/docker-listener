@@ -9,9 +9,11 @@ const Promise = require('bluebird')
 const sinon = require('sinon')
 
 const Docker = require('../../lib/docker')
+const eventMock = require('../fixtures/event-mock.js')
 const Listener = require('../../lib/listener')
 const rabbitmq = require('../../lib/rabbitmq')
 const sinceMap = require('../../lib/since-map')
+const swarmEventMock = require('../fixtures/swarm-event-mock.js')
 
 const lab = exports.lab = Lab.script()
 
@@ -54,7 +56,8 @@ describe('listener unit test', () => {
 
   describe('methods', () => {
     let listener
-    const testHost = '10.0.0.1:4242'
+    const testIp = '10.0.0.1'
+    const testHost = testIp + ':4242'
     const testOrg = '1234'
 
     beforeEach((done) => {
@@ -63,40 +66,29 @@ describe('listener unit test', () => {
     })
 
     describe('start', () => {
-      let clock
       beforeEach((done) => {
-        process.env.EVENT_TIMEOUT_MS = 15
-        clock = sinon.useFakeTimers()
         sinon.stub(listener.docker, 'getEvents')
-        sinon.stub(listener.docker, 'testEvent')
         sinon.stub(listener, 'handleClose')
         sinon.stub(listener, 'handleError')
         sinon.stub(listener, 'publishEvent')
-        sinon.stub(listener, 'connectHandler')
         sinon.stub(listener, 'setTimeout')
         sinon.stub(sinceMap, 'get')
         done()
       })
 
       afterEach((done) => {
-        delete process.env.EVENT_TIMEOUT_MS
-        clock.restore()
-        listener.handleClose.restore()
-        listener.handleError.restore()
-        listener.publishEvent.restore()
-        listener.connectHandler.restore()
-        listener.setTimeout.restore()
         sinceMap.get.restore()
         done()
       })
 
-      it('should throw if getting events threw error', (done) => {
+      it('should throw set state disconnected on event error', (done) => {
         const testErr = new Error('uncanny')
         sinceMap.get.returns()
         listener.docker.getEvents.returns(Promise.reject(testErr))
 
         listener.start().asCallback((err) => {
           expect(err).to.equal(testErr)
+          expect(listener.state).to.equal('disconnected')
           done()
         })
       })
@@ -150,12 +142,7 @@ describe('listener unit test', () => {
           sinon.assert.calledWith(stubStream.on, 'disconnect', sinon.match.func)
           sinon.assert.calledWith(stubStream.on, 'data', sinon.match.func)
 
-          sinon.assert.calledTwice(stubStream.once)
-          sinon.assert.calledWith(stubStream.once, 'data', sinon.match.func)
-          sinon.assert.calledWith(stubStream.once, 'readable', sinon.match.func)
-
           sinon.assert.notCalled(listener.handleClose)
-
           sinon.assert.calledOnce(listener.setTimeout)
           done()
         })
@@ -231,23 +218,6 @@ describe('listener unit test', () => {
           emitter.emit('data', 'testData')
           sinon.assert.calledTwice(listener.publishEvent)
           sinon.assert.calledWith(listener.publishEvent, 'testData')
-
-          sinon.assert.calledOnce(listener.connectHandler)
-          done()
-        })
-      })
-
-      it('should handle readable event', (done) => {
-        const EventEmitter = require('events')
-        const emitter = new EventEmitter()
-        sinceMap.get.returns()
-        listener.docker.getEvents.returns(Promise.resolve(emitter))
-
-        listener.start().asCallback((err) => {
-          if (err) { return done(err) }
-          emitter.emit('readable')
-          emitter.emit('readable')
-          sinon.assert.calledOnce(listener.docker.testEvent)
           done()
         })
       })
@@ -259,29 +229,36 @@ describe('listener unit test', () => {
         process.env.EVENT_TIMEOUT_MS = 15
         listener.eventStream = new EventEmitter()
         sinon.spy(listener.eventStream, 'once')
+        sinon.stub(rabbitmq, 'createConnectedJob')
+        sinon.stub(listener.docker, 'testEvent')
         clock = sinon.useFakeTimers()
         done()
       })
 
       afterEach((done) => {
         delete process.env.EVENT_TIMEOUT_MS
+        rabbitmq.createConnectedJob.restore()
         clock.restore()
         done()
       })
 
-      it('should resolve without timeout', (done) => {
-        listener.setTimeout().asCallback(() => {
+      it('should resolve and emit connected event', (done) => {
+        listener.setTimeout().asCallback((err) => {
+          if (err) { return done(err) }
+          expect(listener.state).to.equal('connected')
           sinon.assert.calledOnce(listener.eventStream.once)
           sinon.assert.calledWith(listener.eventStream.once, 'data', sinon.match.func)
+          sinon.assert.calledOnce(listener.docker.testEvent)
           done()
         })
         clock.tick(10)
         listener.eventStream.emit('data')
       })
 
-      it('should timeout', (done) => {
+      it('should reject on timeout and set state', (done) => {
         listener.setTimeout().asCallback((err) => {
           expect(err.message).to.equal('timeout getting events')
+          expect(listener.state).to.equal('disconnected')
           done()
         })
         clock.tick(20)
@@ -338,10 +315,29 @@ describe('listener unit test', () => {
 
       it('should create job', (done) => {
         const testErr = new Error('dissatisfactory')
+        listener.state = 'connected'
         ErrorCat.prototype.createAndReport.returns()
         listener.handleClose(testErr)
         sinon.assert.calledOnce(rabbitmq.createStreamConnectJob)
         sinon.assert.calledWith(rabbitmq.createStreamConnectJob, 'docker', testHost, testOrg)
+        done()
+      })
+
+      it('should set disconnected state', (done) => {
+        const testErr = new Error('dissatisfactory')
+        listener.state = 'connected'
+        ErrorCat.prototype.createAndReport.returns()
+        listener.handleClose(testErr)
+        expect(listener.state).to.equal('disconnected')
+        done()
+      })
+
+      it('should not create job', (done) => {
+        const testErr = new Error('dissatisfactory')
+        listener.state = 'disconnected'
+        ErrorCat.prototype.createAndReport.returns()
+        listener.handleClose(testErr)
+        sinon.assert.notCalled(rabbitmq.createStreamConnectJob)
         done()
       })
 
@@ -397,7 +393,8 @@ describe('listener unit test', () => {
       })
 
       it('should publish formatted event', (done) => {
-        const testEvent = new Buffer(JSON.stringify({ type: 'abhorrent' }))
+        const testJob = { type: 'abhorrent' }
+        const testEvent = new Buffer(JSON.stringify(testJob))
         const testFormat = { formatted: 'true' }
         listener.isBlacklisted.returns(false)
         listener.formatEvent.returns(testFormat)
@@ -407,7 +404,7 @@ describe('listener unit test', () => {
         sinon.assert.calledWith(rabbitmq.createPublishJob, testFormat)
 
         sinon.assert.calledOnce(listener.formatEvent)
-        sinon.assert.calledWith(listener.formatEvent, testEvent)
+        sinon.assert.calledWith(listener.formatEvent, testJob)
 
         done()
       })
@@ -426,41 +423,156 @@ describe('listener unit test', () => {
       })
 
       it('should not publish if event is blacklisted', (done) => {
-        const testEvent = new Buffer(JSON.stringify({ type: 'abhorrent' }))
+        const testJob = { type: 'abhorrent' }
+        const testEvent = new Buffer(JSON.stringify(testJob))
         listener.isBlacklisted.returns(true)
         listener.publishEvent(testEvent)
         sinon.assert.notCalled(rabbitmq.createPublishJob)
 
         sinon.assert.calledOnce(listener.isBlacklisted)
-        sinon.assert.calledWith(listener.isBlacklisted, testEvent)
+        sinon.assert.calledWith(listener.isBlacklisted, testJob)
         done()
       })
     }) // end publishEvent
 
-    describe('connectHandler', () => {
-      let clock
-      beforeEach((done) => {
-        clock = sinon.useFakeTimers()
-        sinon.stub(rabbitmq, 'createConnectedJob')
+    describe('formatEvent', () => {
+      it('should format docker event', (done) => {
+        const testPort = '4242'
+        const testTime = (Date.now() / 1000).toFixed(0)
+        const event = eventMock({
+          status: 'start',
+          id: 'id',
+          from: 'ubuntu',
+          time: testTime,
+          timeNano: testTime * 1000000
+        })
+        const enhanced = listener.formatEvent(event)
+
+        expect(enhanced.status).to.equal('start')
+        expect(enhanced.id).to.equal('id')
+        expect(enhanced.from).to.equal('ubuntu')
+        expect(enhanced.time).to.equal(testTime)
+        expect(enhanced.timeNano).to.equal(testTime * 1000000)
+
+        expect(enhanced.uuid).to.exist()
+        expect(enhanced.ip).to.equal(testIp)
+        expect(enhanced.dockerPort).to.equal(testPort)
+        expect(enhanced.tags).to.equal(testOrg)
+        expect(enhanced.org).to.equal(testOrg)
+        const dockerUrl = 'http://' + testIp + ':4242'
+        expect(enhanced.host).to.equal(dockerUrl)
+        expect(enhanced.dockerUrl).to.equal(dockerUrl)
         done()
       })
 
-      afterEach((done) => {
-        clock.restore()
-        rabbitmq.createConnectedJob.restore()
+      it('should format swarm event', (done) => {
+        listener.type = 'swarm'
+        const testPort = '4242'
+        const testHost = testIp + ':' + testPort
+        const testOrg = '12341234'
+        const testTime = (Date.now() / 1000).toFixed(0)
+        const event = swarmEventMock({
+          host: testHost,
+          org: testOrg,
+          status: 'start',
+          ip: testIp,
+          from: 'ubuntu',
+          time: testTime,
+          timeNano: testTime * 1000000
+        })
+        const enhanced = listener.formatEvent(event)
+
+        expect(enhanced.status).to.equal('start')
+        expect(enhanced.id).to.equal(enhanced.uuid)
+        expect(enhanced.from).to.equal(event.from)
+        expect(enhanced.time).to.equal(testTime)
+        expect(enhanced.timeNano).to.equal(testTime * 1000000)
+
+        expect(enhanced.uuid).to.exist()
+        expect(enhanced.ip).to.equal(testIp)
+        expect(enhanced.dockerPort).to.equal(testPort)
+        expect(enhanced.tags).to.equal(testOrg)
+        expect(enhanced.org).to.equal(testOrg)
+        const dockerUrl = 'http://' + testIp + ':4242'
+        expect(enhanced.host).to.equal(dockerUrl)
+        expect(enhanced.dockerUrl).to.equal(dockerUrl)
         done()
       })
 
-      it('should clear timeout and emit job', (done) => {
-        const testStub = sinon.stub()
-        listener.timeout = setTimeout(testStub, 15)
-        listener.connectHandler()
-        clock.tick(100)
-        sinon.assert.notCalled(testStub)
-        sinon.assert.calledOnce(rabbitmq.createConnectedJob)
-        sinon.assert.calledWith(rabbitmq.createConnectedJob, 'docker', testHost, testOrg)
+      it('should set needsInspect to true', function (done) {
+        process.env.IMAGE_INSPECT_LIST = 'black,blue'
+        const event = swarmEventMock({
+          from: 'black'
+        })
+        const enhanced = listener.formatEvent(event)
+
+        expect(enhanced.needsInspect).to.be.true()
         done()
       })
-    }) // end connectHandler
+
+      it('should set needsInspect to false', function (done) {
+        process.env.IMAGE_INSPECT_LIST = 'black,blue'
+        const event = swarmEventMock({
+          from: 'orange'
+        })
+        const enhanced = listener.formatEvent(event)
+
+        expect(enhanced.needsInspect).to.be.false()
+        done()
+      })
+    })
+
+    describe('isBlacklisted', () => {
+      beforeEach(function (done) {
+        listener.events = ['one', 'two']
+        process.env.IMAGE_BLACKLIST = 'white,black'
+        done()
+      })
+
+      afterEach(function (done) {
+        delete process.env.IMAGE_BLACKLIST
+        done()
+      })
+
+      it('should return true not event in list', (done) => {
+        const test = listener.isBlacklisted({status: 'five'})
+        expect(test).to.be.true()
+        done()
+      })
+
+      it('should return true for blacklisted image', (done) => {
+        const test = listener.isBlacklisted({
+          status: 'one',
+          from: 'white'
+        })
+        expect(test).to.be.true()
+        done()
+      })
+
+      it('should return false', (done) => {
+        const test = listener.isBlacklisted({
+          status: 'one',
+          from: 'blue'
+        })
+        expect(test).to.be.false()
+        done()
+      })
+    }) // end isBlacklisted
+
+    describe('isDisconnected', function () {
+      it('should return true', function (done) {
+        listener.state = 'disconnected'
+        var out = listener.isDisconnected()
+        expect(out).to.be.true()
+        done()
+      })
+
+      it('should return false', function (done) {
+        listener.state = 'connected'
+        var out = listener.isDisconnected()
+        expect(out).to.be.false()
+        done()
+      })
+    }) // end isDisconnected
   }) // end methods
 })

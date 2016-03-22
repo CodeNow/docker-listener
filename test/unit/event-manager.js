@@ -1,8 +1,10 @@
 'use strict'
+require('loadenv')()
 
 const Code = require('code')
 const Lab = require('lab')
 const sinon = require('sinon')
+const TaskFatalError = require('ponos').TaskFatalError
 
 const eventManager = require('../../lib/event-manager')
 const Listener = require('../../lib/listener')
@@ -20,6 +22,7 @@ describe('event-manager.js unit test', () => {
     it('should be a singleton', (done) => {
       expect(eventManager).to.be.an.instanceOf(eventManager.constructor)
       expect(eventManager.dockListeners).to.deep.equal({})
+      expect(eventManager.swarmConnected).to.be.null()
       done()
     })
   }) // end singleton
@@ -27,23 +30,29 @@ describe('event-manager.js unit test', () => {
   describe('methods', () => {
     beforeEach((done) => {
       eventManager.dockListeners = {}
+      eventManager.swarmConnected = null
       done()
     })
 
     describe('startSwarmListener', () => {
       beforeEach((done) => {
         sinon.stub(Listener.prototype, 'start')
+        sinon.stub(eventManager, '_throwIfConnected')
         done()
       })
 
       afterEach((done) => {
         Listener.prototype.start.restore()
+        eventManager._throwIfConnected.restore()
         done()
       })
 
       it('should start swarm listener', (done) => {
+        eventManager.swarmListener = 'test'
         eventManager.startSwarmListener()
         sinon.assert.calledOnce(Listener.prototype.start)
+        sinon.assert.calledOnce(eventManager._throwIfConnected)
+        sinon.assert.calledWith(eventManager._throwIfConnected, 'test')
         done()
       })
     }) // end startSwarmListener
@@ -51,17 +60,22 @@ describe('event-manager.js unit test', () => {
     describe('startDockListener', () => {
       beforeEach((done) => {
         sinon.stub(Listener.prototype, 'start')
+        sinon.stub(eventManager, '_throwIfConnected')
         done()
       })
 
       afterEach((done) => {
         Listener.prototype.start.restore()
+        eventManager._throwIfConnected.restore()
         done()
       })
 
       it('should start dock listener', (done) => {
+        eventManager.dockListeners.host = 'test'
         eventManager.startDockListener('host', 'org')
         sinon.assert.calledOnce(Listener.prototype.start)
+        sinon.assert.calledOnce(eventManager._throwIfConnected)
+        sinon.assert.calledWith(eventManager._throwIfConnected, 'test')
         done()
       })
 
@@ -73,6 +87,33 @@ describe('event-manager.js unit test', () => {
         done()
       })
     }) // end startDockListener
+
+    describe('_throwIfConnected', function () {
+      it('should throw', function (done) {
+        expect(() => {
+          eventManager._throwIfConnected({
+            isDisconnected: sinon.stub().returns(false)
+          })
+        }).to.throw(TaskFatalError)
+        done()
+      })
+
+      it('should not throw', function (done) {
+        expect(() => {
+          eventManager._throwIfConnected({
+            isDisconnected: sinon.stub().returns(true)
+          })
+        }).to.not.throw()
+        done()
+      })
+
+      it('should not throw', function (done) {
+        expect(() => {
+          eventManager._throwIfConnected()
+        }).to.not.throw()
+        done()
+      })
+    }) // end _throwIfConnected
 
     describe('hasListener', () => {
       it('should return true', (done) => {

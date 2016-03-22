@@ -1,18 +1,37 @@
 'use strict'
-require('loadenv')({ debugName: 'docker-listener' })
+require('loadenv')()
 
 const Code = require('code')
+const defaults = require('101/defaults')
 const Lab = require('lab')
+const Promise = require('bluebird')
 const sinon = require('sinon')
 const TaskFatalError = require('ponos').TaskFatalError
 
 const Docker = require('../../../lib/docker')
 const DockerEventPublish = require('../../../lib/workers/docker.event.publish.js')
-const eventMock = require('../../fixtures/event-mock.js')
-const swarmEventMock = require('../../fixtures/swarm-event-mock.js')
 const rabbitmq = require('../../../lib/rabbitmq')
+const sinceMap = require('../../../lib/since-map')
 
 const lab = exports.lab = Lab.script()
+
+const eventMock = (opts) => {
+  return defaults(opts, {
+    dockerPort: '4242',
+    dockerUrl: 'http://10.0.0.1:4242',
+    from: 'ubuntu',
+    host: 'http://10.0.0.1:4242',
+    Host: '10.0.0.1:4242',
+    id: 'id',
+    ip: '10.0.0.1',
+    org: '123456789',
+    status: 'start',
+    tags: '123456789',
+    time: 123456789,
+    uuid: '1234-1234-1234',
+    needsInspect: false
+  })
+}
 
 const afterEach = lab.afterEach
 const beforeEach = lab.beforeEach
@@ -20,143 +39,7 @@ const describe = lab.experiment
 const expect = Code.expect
 const it = lab.test
 
-const createJob = (opts) => {
-  opts = opts || {}
-  return {
-    Host: opts.host || '10.0.0.1:4242',
-    org: opts.org || '1234123',
-    event: JSON.stringify(eventMock(opts))
-  }
-}
-
-const createSwarmJob = (opts) => {
-  opts = opts || {}
-  return {
-    Host: opts.host || '10.0.0.1:4242',
-    org: null,
-    event: JSON.stringify(swarmEventMock(opts))
-  }
-}
-
 describe('docker event publish', () => {
-  describe('_isBlacklisted', () => {
-    it('should return true non engine swarm events', (done) => {
-      const test = DockerEventPublish._isBlacklisted({type: 'swarm', status: 'other'})
-      expect(test).to.be.true()
-      done()
-    })
-
-    it('should return false engine_connect event', (done) => {
-      const test = DockerEventPublish._isBlacklisted({status: 'engine_connect'})
-      expect(test).to.be.false()
-      done()
-    })
-
-    it('should return false engine_disconnect event', (done) => {
-      const test = DockerEventPublish._isBlacklisted({status: 'engine_disconnect'})
-      expect(test).to.be.false()
-      done()
-    })
-
-    it('should return true for blacklisted image', (done) => {
-      const test = DockerEventPublish._isBlacklisted({
-        status: 'start',
-        from: process.env.IMAGE_BLACKLIST.split(',')[0]
-      })
-      expect(test).to.be.true()
-      done()
-    })
-  }) // end _isBlacklisted
-
-  describe('_formatEvent', () => {
-    it('should format docker event', (done) => {
-      const testIp = '10.0.0.0'
-      const testPort = '4242'
-      const testHost = testIp + ':' + testPort
-      const testOrg = '12341234'
-      const testTime = (Date.now() / 1000).toFixed(0)
-      const event = createJob({
-        host: testHost,
-        org: testOrg,
-        status: 'start',
-        id: 'id',
-        from: 'ubuntu',
-        time: testTime,
-        timeNano: testTime * 1000000
-      })
-      event.event = JSON.parse(event.event)
-      const enhanced = DockerEventPublish._formatEvent(event)
-
-      expect(enhanced.status).to.equal('start')
-      expect(enhanced.id).to.equal('id')
-      expect(enhanced.from).to.equal('ubuntu')
-      expect(enhanced.time).to.equal(testTime)
-      expect(enhanced.timeNano).to.equal(testTime * 1000000)
-
-      expect(enhanced.type).to.equal('docker')
-      expect(enhanced.uuid).to.exist()
-      expect(enhanced.ip).to.equal(testIp)
-      expect(enhanced.dockerPort).to.equal(testPort)
-      expect(enhanced.tags).to.equal(testOrg)
-      expect(enhanced.org).to.equal(testOrg)
-      const dockerUrl = 'http://' + testIp + ':4242'
-      expect(enhanced.host).to.equal(dockerUrl)
-      expect(enhanced.dockerUrl).to.equal(dockerUrl)
-      done()
-    })
-
-    it('should format docker event', (done) => {
-      const testIp = '10.0.0.0'
-      const testPort = '4242'
-      const testHost = testIp + ':' + testPort
-      const testOrg = '12341234'
-      const testTime = (Date.now() / 1000).toFixed(0)
-      const event = createSwarmJob({
-        host: testHost,
-        org: testOrg,
-        status: 'start',
-        id: 'id',
-        ip: testIp,
-        from: 'ubuntu',
-        time: testTime,
-        timeNano: testTime * 1000000
-      })
-      event.event = JSON.parse(event.event)
-      const enhanced = DockerEventPublish._formatEvent(event)
-
-      expect(enhanced.status).to.equal('start')
-      expect(enhanced.id).to.equal('id')
-      expect(enhanced.from).to.equal(event.event.from)
-      expect(enhanced.time).to.equal(testTime)
-      expect(enhanced.timeNano).to.equal(testTime * 1000000)
-
-      expect(enhanced.type).to.equal('swarm')
-      expect(enhanced.uuid).to.exist()
-      expect(enhanced.ip).to.equal(testIp)
-      expect(enhanced.dockerPort).to.equal(testPort)
-      expect(enhanced.tags).to.equal(testOrg)
-      expect(enhanced.org).to.equal(testOrg)
-      const dockerUrl = 'http://' + testIp + ':4242'
-      expect(enhanced.host).to.equal(dockerUrl)
-      expect(enhanced.dockerUrl).to.equal(dockerUrl)
-      done()
-    })
-  })
-
-  describe('_isContainerEvent', () => {
-    it('should return true for container events', (done) => {
-      expect(DockerEventPublish._isContainerEvent({ status: 'create' })).to.be.true()
-      expect(DockerEventPublish._isContainerEvent({ status: 'die' })).to.be.true()
-      expect(DockerEventPublish._isContainerEvent({ status: 'start' })).to.be.true()
-      done()
-    })
-
-    it('should return false for non-container events', (done) => {
-      expect(DockerEventPublish._isContainerEvent({ status: 'launch' })).to.be.false()
-      done()
-    })
-  })
-
   describe('_isUserContainer', () => {
     it('should return true if user container', (done) => {
       const data = {
@@ -218,48 +101,19 @@ describe('docker event publish', () => {
   })
 
   describe('worker', () => {
-    const createData = (type) => {
-      return {
-        Bridge: 'docker0',
-        Gateway: '172.17.42.1',
-        IPAddress: '172.17.0.4',
-        IPPrefixLen: 16,
-        PortMapping: null,
-        Config: {
-          Labels: {
-            type: type || 'user-container'
-          }
-        },
-        Ports: {
-          '5000/tcp': [
-            {
-              'HostIp': '0.0.0.0',
-              'HostPort': '5000'
-            }
-          ]
-        }
-      }
-    }
-
     beforeEach((done) => {
-      sinon.stub(rabbitmq, 'publish')
-      sinon.stub(rabbitmq, 'createStreamConnectJob')
       sinon.stub(Docker.prototype, 'inspectContainer')
-      sinon.stub(Docker.prototype, 'swarmHostExists')
-      sinon.stub(DockerEventPublish, '_isBlacklisted')
-      sinon.spy(DockerEventPublish, '_formatEvent')
-      sinon.spy(DockerEventPublish, '_isContainerEvent')
+      sinon.stub(DockerEventPublish, '_handleInspectError')
+      sinon.stub(DockerEventPublish, '_handlePublish')
+      sinon.stub(sinceMap, 'set')
       done()
     })
 
     afterEach((done) => {
-      rabbitmq.publish.restore()
-      rabbitmq.createStreamConnectJob.restore()
       Docker.prototype.inspectContainer.restore()
-      Docker.prototype.swarmHostExists.restore()
-      DockerEventPublish._formatEvent.restore()
-      DockerEventPublish._isContainerEvent.restore()
-      DockerEventPublish._isBlacklisted.restore()
+      DockerEventPublish._handleInspectError.restore()
+      DockerEventPublish._handlePublish.restore()
+      sinceMap.set.restore()
       done()
     })
 
@@ -270,385 +124,285 @@ describe('docker event publish', () => {
       })
     })
 
-    it('should not publish for blacklisted', (done) => {
-      const payload = {
-        status: 'start',
-        from: process.env.IMAGE_BLACKLIST.split(',')[0]
-      }
-      const testJob = createJob(payload)
-      DockerEventPublish._isBlacklisted.returns(true)
-
-      DockerEventPublish(testJob).asCallback((err) => {
-        if (err) { return done(err) }
-
-        sinon.assert.notCalled(rabbitmq.publish)
-        done()
-      })
-    })
-
-    it('should not call inspectContainer for non container event', (done) => {
-      const payload = {
-        status: 'fake'
-      }
-      const testJob = createJob(payload)
-      DockerEventPublish(testJob).asCallback((err) => {
-        if (err) { return done(err) }
-
-        sinon.assert.notCalled(Docker.prototype.inspectContainer)
-        sinon.assert.notCalled(rabbitmq.publish)
-        done()
-      })
-    })
-
-    it('should work for user container create events', (done) => {
-      const payload = {
-        status: 'create',
-        id: 'id'
-      }
-      const testJob = createJob(payload)
-      const data = createData('user-container')
-      Docker.prototype.inspectContainer.returns(Promise.resolve(data))
-      DockerEventPublish(testJob).asCallback((err) => {
-        if (err) { return done(err) }
-        sinon.assert.calledOnce(DockerEventPublish._formatEvent)
-        sinon.assert.calledWithMatch(DockerEventPublish._formatEvent, testJob)
-        sinon.assert.calledOnce(DockerEventPublish._isContainerEvent)
-        sinon.assert.calledOnce(Docker.prototype.inspectContainer)
-        sinon.assert.calledWith(Docker.prototype.inspectContainer, payload.id)
-        sinon.assert.calledOnce(rabbitmq.publish)
-        sinon.assert.calledWith(rabbitmq.publish, 'on-instance-container-create', {
-          dockerUrl: sinon.match.string,
-          from: sinon.match.string,
-          host: sinon.match.string,
-          Host: sinon.match.string,
-          dockerPort: sinon.match.string,
-          id: sinon.match.string,
-          inspectData: data,
-          ip: sinon.match.string,
-          org: sinon.match.string,
-          status: payload.status,
-          tags: sinon.match.string,
-          time: sinon.match.number,
-          timeNano: sinon.match.number,
-          type: 'docker',
-          uuid: sinon.match.string
-        })
-        done()
-      })
-    })
-
-    it('should work for image-builder container create events', (done) => {
-      const payload = {
-        status: 'create',
-        id: 'id'
-      }
-      const testJob = createJob(payload)
-      const data = createData('image-builder-container')
-      Docker.prototype.inspectContainer.returns(Promise.resolve(data))
-      DockerEventPublish(testJob).asCallback((err) => {
-        if (err) { return done(err) }
-        sinon.assert.calledOnce(DockerEventPublish._formatEvent)
-        sinon.assert.calledWithMatch(DockerEventPublish._formatEvent, testJob)
-        sinon.assert.calledOnce(DockerEventPublish._isContainerEvent)
-        sinon.assert.calledOnce(Docker.prototype.inspectContainer)
-        sinon.assert.calledWith(Docker.prototype.inspectContainer, payload.id)
-        sinon.assert.calledOnce(Docker.prototype.inspectContainer)
-        sinon.assert.calledOnce(rabbitmq.publish)
-        sinon.assert.calledWith(rabbitmq.publish, 'on-image-builder-container-create', {
-          dockerUrl: sinon.match.string,
-          from: sinon.match.string,
-          host: sinon.match.string,
-          Host: sinon.match.string,
-          dockerPort: sinon.match.string,
-          id: sinon.match.string,
-          inspectData: data,
-          ip: sinon.match.string,
-          org: sinon.match.string,
-          status: payload.status,
-          tags: sinon.match.string,
-          time: sinon.match.number,
-          timeNano: sinon.match.number,
-          type: 'docker',
-          uuid: sinon.match.string
-        })
-        done()
-      })
-    })
-
-    it('should not publish for non user or non build container create', (done) => {
-      const payload = {
-        status: 'create'
-      }
-      const testJob = createJob(payload)
+    it('should set sinceMap', (done) => {
+      const testJob = eventMock()
       Docker.prototype.inspectContainer.returns(Promise.resolve())
       DockerEventPublish(testJob).asCallback((err) => {
         if (err) { return done(err) }
-        sinon.assert.calledOnce(Docker.prototype.inspectContainer)
-        sinon.assert.notCalled(rabbitmq.publish)
+
+        sinon.assert.calledOnce(sinceMap.set)
+        sinon.assert.calledWith(sinceMap.set, testJob.Host, testJob.time)
         done()
       })
     })
 
-    it('should work for user container die events', (done) => {
-      const payload = {
-        status: 'die',
-        id: 'id'
-      }
-      const testJob = createJob(payload)
-      const data = createData('user-container')
-      Docker.prototype.inspectContainer.returns(Promise.resolve(data))
+    it('should not call inspect when needsInspect false', (done) => {
+      const testJob = eventMock({
+        needsInspect: false
+      })
       DockerEventPublish(testJob).asCallback((err) => {
         if (err) { return done(err) }
-        sinon.assert.calledOnce(DockerEventPublish._formatEvent)
-        sinon.assert.calledWithMatch(DockerEventPublish._formatEvent, testJob)
-        sinon.assert.calledOnce(DockerEventPublish._isContainerEvent)
-        sinon.assert.calledOnce(Docker.prototype.inspectContainer)
-        sinon.assert.calledWith(Docker.prototype.inspectContainer, payload.id)
-        sinon.assert.calledOnce(Docker.prototype.inspectContainer)
-        sinon.assert.calledTwice(rabbitmq.publish)
-        sinon.assert.calledWith(rabbitmq.publish, 'on-instance-container-die', {
-          dockerUrl: sinon.match.string,
-          from: sinon.match.string,
-          host: sinon.match.string,
-          Host: sinon.match.string,
-          dockerPort: sinon.match.string,
-          id: sinon.match.string,
-          inspectData: data,
-          ip: sinon.match.string,
-          org: sinon.match.string,
-          status: payload.status,
-          tags: sinon.match.string,
-          time: sinon.match.number,
-          timeNano: sinon.match.number,
-          type: 'docker',
-          uuid: sinon.match.string
-        })
-        sinon.assert.calledWith(rabbitmq.publish, 'container.life-cycle.died', {
-          dockerUrl: sinon.match.string,
-          from: sinon.match.string,
-          host: sinon.match.string,
-          Host: sinon.match.string,
-          dockerPort: sinon.match.string,
-          id: sinon.match.string,
-          inspectData: data,
-          ip: sinon.match.string,
-          org: sinon.match.string,
-          status: payload.status,
-          tags: sinon.match.string,
-          time: sinon.match.number,
-          timeNano: sinon.match.number,
-          type: 'docker',
-          uuid: sinon.match.string
-        })
+
+        sinon.assert.notCalled(Docker.prototype.inspectContainer)
         done()
       })
     })
 
-    it('should work for image-builder container die events', (done) => {
-      const payload = {
-        status: 'die',
-        id: 'id'
-      }
-      const testJob = createJob(payload)
-      const data = createData('image-builder-container')
-      Docker.prototype.inspectContainer.returns(Promise.resolve(data))
+    it('should call inspect when needsInspect true', (done) => {
+      const testJob = eventMock({
+        needsInspect: true
+      })
+      const testInspect = { cool: 'gear' }
+      Docker.prototype.inspectContainer.returns(Promise.resolve(testInspect))
       DockerEventPublish(testJob).asCallback((err) => {
         if (err) { return done(err) }
-        sinon.assert.calledOnce(DockerEventPublish._formatEvent)
-        sinon.assert.calledWithMatch(DockerEventPublish._formatEvent, testJob)
-        sinon.assert.calledOnce(DockerEventPublish._isContainerEvent)
+        expect(testJob.inspectData).to.equal(testInspect)
         sinon.assert.calledOnce(Docker.prototype.inspectContainer)
-        sinon.assert.calledWith(Docker.prototype.inspectContainer, payload.id)
-        sinon.assert.calledOnce(Docker.prototype.inspectContainer)
-        sinon.assert.calledTwice(rabbitmq.publish)
-        sinon.assert.calledWith(rabbitmq.publish, 'on-image-builder-container-die', {
-          dockerUrl: sinon.match.string,
-          from: sinon.match.string,
-          host: sinon.match.string,
-          Host: sinon.match.string,
-          dockerPort: sinon.match.string,
-          id: sinon.match.string,
-          inspectData: data,
-          ip: sinon.match.string,
-          org: sinon.match.string,
-          status: payload.status,
-          tags: sinon.match.string,
-          time: sinon.match.number,
-          timeNano: sinon.match.number,
-          type: 'docker',
-          uuid: sinon.match.string
-        })
-        sinon.assert.calledWith(rabbitmq.publish, 'container.life-cycle.died', {
-          dockerUrl: sinon.match.string,
-          from: sinon.match.string,
-          host: sinon.match.string,
-          Host: sinon.match.string,
-          dockerPort: sinon.match.string,
-          id: sinon.match.string,
-          inspectData: data,
-          ip: sinon.match.string,
-          org: sinon.match.string,
-          status: payload.status,
-          tags: sinon.match.string,
-          time: sinon.match.number,
-          timeNano: sinon.match.number,
-          type: 'docker',
-          uuid: sinon.match.string
-        })
+        sinon.assert.calledWith(Docker.prototype.inspectContainer, testJob.id)
         done()
       })
     })
 
-    it('should publish only container.life-cycle.died', (done) => {
-      const payload = {
-        status: 'die'
-      }
-      const testJob = createJob(payload)
-      const data = {id: 'test'}
-      Docker.prototype.inspectContainer.returns(Promise.resolve(data))
+    it('should handle inspect error', function (done) {
+      const testJob = eventMock({
+        needsInspect: true
+      })
+      const testError = new Error('baaam')
+      Docker.prototype.inspectContainer.returns(Promise.reject(testError))
       DockerEventPublish(testJob).asCallback((err) => {
         if (err) { return done(err) }
-        sinon.assert.calledOnce(Docker.prototype.inspectContainer)
-        sinon.assert.calledOnce(rabbitmq.publish)
-        sinon.assert.calledWith(rabbitmq.publish, 'container.life-cycle.died', {
-          dockerUrl: sinon.match.string,
-          from: sinon.match.string,
-          host: sinon.match.string,
-          Host: sinon.match.string,
-          dockerPort: sinon.match.string,
-          id: sinon.match.string,
-          inspectData: data,
-          ip: sinon.match.string,
-          org: sinon.match.string,
-          status: payload.status,
-          tags: sinon.match.string,
-          time: sinon.match.number,
-          timeNano: sinon.match.number,
-          type: 'docker',
-          uuid: sinon.match.string
-        })
+
+        sinon.assert.calledOnce(DockerEventPublish._handleInspectError)
+        sinon.assert.calledWith(DockerEventPublish._handleInspectError, testJob.Host, testError, sinon.match.object)
         done()
       })
     })
 
-    it('should work container start event', (done) => {
+    it('should call publish for event', function (done) {
+      const testJob = eventMock()
+      Docker.prototype.inspectContainer.returns(Promise.resolve())
+      DockerEventPublish(testJob).asCallback((err) => {
+        if (err) { return done(err) }
+
+        sinon.assert.calledOnce(DockerEventPublish._handlePublish)
+        sinon.assert.calledWith(DockerEventPublish._handlePublish, testJob, sinon.match.object)
+        done()
+      })
+    })
+  }) // end worker
+
+  describe('_handlePublish', function () {
+    beforeEach((done) => {
+      sinon.stub(rabbitmq, 'publish')
+      sinon.stub(rabbitmq, 'createStreamConnectJob')
+      sinon.stub(DockerEventPublish, '_isUserContainer')
+      sinon.stub(DockerEventPublish, '_isBuildContainer')
+      sinon.stub(sinceMap, 'set')
+      done()
+    })
+
+    afterEach((done) => {
+      rabbitmq.publish.restore()
+      rabbitmq.createStreamConnectJob.restore()
+      DockerEventPublish._isUserContainer.restore()
+      DockerEventPublish._isBuildContainer.restore()
+      sinceMap.set.restore()
+      done()
+    })
+
+    it('should publish on-instance-container-create', (done) => {
+      const payload = {
+        status: 'create',
+        data: 'big'
+      }
+      DockerEventPublish._isUserContainer.returns(true)
+
+      DockerEventPublish._handlePublish(payload)
+
+      sinon.assert.calledOnce(rabbitmq.publish)
+      sinon.assert.calledWith(rabbitmq.publish, 'on-instance-container-create', payload)
+      done()
+    })
+
+    it('should publish on-image-builder-container-create', (done) => {
+      const payload = {
+        status: 'create',
+        data: 'big'
+      }
+      DockerEventPublish._isUserContainer.returns(false)
+      DockerEventPublish._isBuildContainer.returns(true)
+
+      DockerEventPublish._handlePublish(payload)
+
+      sinon.assert.calledOnce(rabbitmq.publish)
+      sinon.assert.calledWith(rabbitmq.publish, 'on-image-builder-container-create', payload)
+      done()
+    })
+
+    it('should publish nothing', (done) => {
+      const payload = {
+        status: 'create'
+      }
+      DockerEventPublish._isUserContainer.returns(false)
+      DockerEventPublish._isBuildContainer.returns(false)
+
+      DockerEventPublish._handlePublish(payload)
+
+      sinon.assert.notCalled(rabbitmq.publish)
+      sinon.assert.notCalled(rabbitmq.createStreamConnectJob)
+      done()
+    })
+
+    it('should publish container.life-cycle.started', (done) => {
       const payload = {
         status: 'start',
-        id: 'id'
+        data: 'big'
       }
-      const testJob = createJob(payload)
-      const data = createData('user-container')
-      Docker.prototype.inspectContainer.returns(Promise.resolve(data))
-      DockerEventPublish(testJob).asCallback((err) => {
-        if (err) { return done(err) }
-        sinon.assert.calledOnce(DockerEventPublish._formatEvent)
-        sinon.assert.calledWithMatch(DockerEventPublish._formatEvent, testJob)
-        sinon.assert.calledOnce(DockerEventPublish._isContainerEvent)
-        sinon.assert.calledOnce(Docker.prototype.inspectContainer)
-        sinon.assert.calledWith(Docker.prototype.inspectContainer, payload.id)
-        sinon.assert.calledOnce(Docker.prototype.inspectContainer)
-        sinon.assert.calledOnce(rabbitmq.publish)
-        sinon.assert.calledWith(rabbitmq.publish, 'container.life-cycle.started', {
-          dockerUrl: sinon.match.string,
-          from: sinon.match.string,
-          host: sinon.match.string,
-          Host: sinon.match.string,
-          dockerPort: sinon.match.string,
-          id: sinon.match.string,
-          inspectData: data,
-          ip: sinon.match.string,
-          org: sinon.match.string,
-          status: payload.status,
-          tags: sinon.match.string,
-          time: sinon.match.number,
-          timeNano: sinon.match.number,
-          type: 'docker',
-          uuid: sinon.match.string
-        })
-        done()
-      })
+      DockerEventPublish._handlePublish(payload)
+
+      sinon.assert.calledOnce(rabbitmq.publish)
+      sinon.assert.calledWith(rabbitmq.publish, 'container.life-cycle.started', payload)
+      done()
     })
 
-    it('should publish docker.events-stream.connected job', (done) => {
+    it('should publish on-instance-container-die and container.life-cycle.died', (done) => {
+      const payload = {
+        status: 'die',
+        data: 'big'
+      }
+      DockerEventPublish._isUserContainer.returns(true)
+
+      DockerEventPublish._handlePublish(payload)
+
+      sinon.assert.calledTwice(rabbitmq.publish)
+      sinon.assert.calledWith(rabbitmq.publish, 'on-instance-container-die', payload)
+      sinon.assert.calledWith(rabbitmq.publish, 'container.life-cycle.died', payload)
+      done()
+    })
+
+    it('should publish on-image-builder-container-die and container.life-cycle.died', (done) => {
+      const payload = {
+        status: 'die',
+        data: 'big'
+      }
+      DockerEventPublish._isUserContainer.returns(false)
+      DockerEventPublish._isBuildContainer.returns(true)
+
+      DockerEventPublish._handlePublish(payload)
+
+      sinon.assert.calledTwice(rabbitmq.publish)
+      sinon.assert.calledWith(rabbitmq.publish, 'on-image-builder-container-die', payload)
+      sinon.assert.calledWith(rabbitmq.publish, 'container.life-cycle.died', payload)
+      done()
+    })
+
+    it('should publish container.life-cycle.died', (done) => {
+      const payload = {
+        status: 'die',
+        data: 'big'
+      }
+      DockerEventPublish._isUserContainer.returns(false)
+      DockerEventPublish._isBuildContainer.returns(false)
+
+      DockerEventPublish._handlePublish(payload)
+
+      sinon.assert.calledOnce(rabbitmq.publish)
+      sinon.assert.calledWith(rabbitmq.publish, 'container.life-cycle.died', payload)
+      done()
+    })
+
+    it('should call createStreamConnectJob', (done) => {
       const payload = {
         status: 'engine_connect',
-        ip: '10.0.0.1',
-        org: 'orgorg'
+        Host: '10.0.0.1:4242',
+        org: '123456'
       }
-      const testJob = createSwarmJob(payload)
-      DockerEventPublish(testJob).asCallback((err) => {
-        if (err) { return done(err) }
-        sinon.assert.notCalled(Docker.prototype.inspectContainer)
-        sinon.assert.calledOnce(rabbitmq.createStreamConnectJob)
-        sinon.assert.calledWith(rabbitmq.createStreamConnectJob, 'docker', '10.0.0.1:4242', 'orgorg')
-        done()
-      })
+
+      DockerEventPublish._handlePublish(payload)
+
+      sinon.assert.calledOnce(rabbitmq.createStreamConnectJob)
+      sinon.assert.calledWith(rabbitmq.createStreamConnectJob, 'docker', payload.Host, payload.org)
+      done()
     })
 
-    it('should do nothing for invalid event', (done) => {
+    it('should do nothing for top', (done) => {
       const payload = {
-        status: 'invalid-event',
-        id: 'id'
+        status: 'top'
       }
-      const testJob = createJob(payload)
-      DockerEventPublish(testJob).asCallback((err) => {
-        if (err) { return done(err) }
-        sinon.assert.calledOnce(DockerEventPublish._formatEvent)
-        sinon.assert.calledWithMatch(DockerEventPublish._formatEvent, testJob)
-        sinon.assert.calledOnce(DockerEventPublish._isContainerEvent)
-        sinon.assert.notCalled(Docker.prototype.inspectContainer)
-        sinon.assert.notCalled(rabbitmq.publish)
-        done()
-      })
+
+      DockerEventPublish._handlePublish(payload)
+
+      sinon.assert.notCalled(rabbitmq.createStreamConnectJob)
+      sinon.assert.notCalled(rabbitmq.publish)
+      done()
     })
 
-    it('should fail fatally if container was not found', (done) => {
-      const payload = {}
-      const job = createJob(payload)
-      const error = new Error('Docker error')
-      error.statusCode = 404
-      Docker.prototype.inspectContainer.returns(Promise.reject(error))
-      DockerEventPublish(job).asCallback((err) => {
-        expect(err).to.be.instanceOf(TaskFatalError)
-        expect(err.message).to.contain(error.message)
+    it('should log error for unknown', (done) => {
+      const payload = {
+        status: 'fake'
+      }
+      const logStub = {
+        error: sinon.stub()
+      }
+      DockerEventPublish._handlePublish(payload, logStub)
 
-        sinon.assert.calledOnce(Docker.prototype.inspectContainer)
-        sinon.assert.notCalled(rabbitmq.publish)
-        done()
-      })
+      sinon.assert.notCalled(rabbitmq.createStreamConnectJob)
+      sinon.assert.notCalled(rabbitmq.publish)
+      sinon.assert.calledOnce(logStub.error)
+      done()
     })
 
-    it('should throw original error if check host failed', (done) => {
-      const testErr = new Error('bully')
-      const testJob = createJob()
-      Docker.prototype.inspectContainer.returns(Promise.reject(testErr))
-      Docker.prototype.swarmHostExists.returns(Promise.reject('reject'))
-      DockerEventPublish(testJob).asCallback((err) => {
-        expect(err).to.equal(testErr)
+    describe('_handleInspectError', function () {
+      const logStub = {
+        trace: sinon.spy(),
+        error: sinon.spy()
+      }
+      beforeEach((done) => {
+        sinon.stub(Docker.prototype, 'swarmHostExists')
         done()
       })
-    })
 
-    it('should throw original error if host exists', (done) => {
-      const testErr = new Error('bully')
-      const testJob = createJob()
-      Docker.prototype.inspectContainer.returns(Promise.reject(testErr))
-      Docker.prototype.swarmHostExists.returns(Promise.resolve(true))
-      DockerEventPublish(testJob).asCallback((err) => {
-        expect(err).to.equal(testErr)
+      afterEach((done) => {
+        Docker.prototype.swarmHostExists.restore()
         done()
       })
-    })
 
-    it('should throw TaskFatalError error if host !exists', (done) => {
-      const testErr = new Error('bully')
-      const testJob = createJob()
-      Docker.prototype.inspectContainer.returns(Promise.reject(testErr))
-      Docker.prototype.swarmHostExists.returns(Promise.resolve(false))
-      DockerEventPublish(testJob).asCallback((err) => {
-        expect(err).to.be.an.instanceOf(TaskFatalError)
+      it('should fail fatally if 404 error', (done) => {
+        const error = new Error('Docker error')
+        error.statusCode = 404
+        expect(() => {
+          DockerEventPublish._handleInspectError('test', error, logStub)
+        }).to.throw(TaskFatalError, 'docker.event.publish: Docker error')
         done()
       })
-    })
+
+      it('should throw original error if check host failed', (done) => {
+        const testErr = new Error('bully')
+        testErr.statusCode = 500
+        Docker.prototype.swarmHostExists.returns(Promise.reject('reject'))
+        DockerEventPublish._handleInspectError('host', testErr, logStub).asCallback((err) => {
+          expect(err).to.equal(testErr)
+          done()
+        })
+      })
+
+      it('should throw original error if host exists', (done) => {
+        const testErr = new Error('ruffian')
+        Docker.prototype.swarmHostExists.returns(Promise.resolve(true))
+        DockerEventPublish._handleInspectError('host', testErr, logStub).asCallback((err) => {
+          expect(err).to.equal(testErr)
+          done()
+        })
+      })
+
+      it('should throw TaskFatalError error if host !exists', (done) => {
+        const testErr = new Error('hooligan')
+        Docker.prototype.swarmHostExists.returns(Promise.resolve(false))
+        DockerEventPublish._handleInspectError('host', testErr, logStub).asCallback((err) => {
+          expect(err).to.be.an.instanceOf(TaskFatalError)
+          done()
+        })
+      })
+    }) // end _handleInspectError
   })
 })
