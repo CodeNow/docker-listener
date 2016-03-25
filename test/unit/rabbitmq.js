@@ -114,6 +114,29 @@ describe('rabbitmq.js unit test', () => {
     })
   }) // end createConnectedJob
 
+  describe('createDisconnectedJob', () => {
+    beforeEach((done) => {
+      sinon.stub(rabbitmq, 'publish')
+      done()
+    })
+
+    afterEach((done) => {
+      rabbitmq.publish.restore()
+      done()
+    })
+
+    it('should publish job', (done) => {
+      rabbitmq.createDisconnectedJob('host', 'org')
+      sinon.assert.calledOnce(rabbitmq.publish)
+      sinon.assert.calledWith(rabbitmq.publish, 'docker.events-stream.disconnected', {
+        host: 'http://host',
+        org: 'org',
+        tags: 'org'
+      })
+      done()
+    })
+  }) // end createDisconnectedJob
+
   describe('createStreamConnectJob', () => {
     beforeEach((done) => {
       sinon.stub(rabbitmq, 'publish')
