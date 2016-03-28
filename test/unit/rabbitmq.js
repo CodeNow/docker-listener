@@ -130,8 +130,7 @@ describe('rabbitmq.js unit test', () => {
       sinon.assert.calledOnce(rabbitmq.publish)
       sinon.assert.calledWith(rabbitmq.publish, 'docker.events-stream.disconnected', {
         host: 'http://host',
-        org: 'org',
-        tags: 'org'
+        org: 'org'
       })
       done()
     })
