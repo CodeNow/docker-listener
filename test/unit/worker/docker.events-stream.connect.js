@@ -8,6 +8,7 @@ const TaskFatalError = require('ponos').TaskFatalError
 const Docker = require('../../../lib/docker')
 const DockerEventsSteamConnect = require('../../../lib/workers/docker.events-stream.connect.js')
 const eventManager = require('../../../lib/event-manager')
+const rabbitmq = require('../../../lib/rabbitmq')
 const sinceMap = require('../../../lib/since-map')
 
 const lab = exports.lab = Lab.script()
@@ -31,6 +32,7 @@ describe('docker.events-stream.connect unit test', () => {
     sinon.stub(eventManager, 'removeDockListener')
     sinon.stub(eventManager, 'startDockListener')
     sinon.stub(sinceMap, 'delete')
+    sinon.stub(rabbitmq, 'createDisconnectedJob')
     done()
   })
 
@@ -39,6 +41,7 @@ describe('docker.events-stream.connect unit test', () => {
     eventManager.removeDockListener.restore()
     eventManager.startDockListener.restore()
     sinceMap.delete.restore()
+    rabbitmq.createDisconnectedJob.restore()
     done()
   })
 
@@ -60,6 +63,8 @@ describe('docker.events-stream.connect unit test', () => {
       sinon.assert.calledWith(sinceMap.delete, testHost)
       sinon.assert.calledOnce(eventManager.removeDockListener)
       sinon.assert.calledWith(eventManager.removeDockListener, testHost)
+      sinon.assert.calledOnce(rabbitmq.createDisconnectedJob)
+      sinon.assert.calledWith(rabbitmq.createDisconnectedJob, testHost, testOrg)
       done()
     })
   })
