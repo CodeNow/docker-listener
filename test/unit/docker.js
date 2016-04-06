@@ -54,7 +54,7 @@ describe('docker unit test', () => {
 
       afterEach((done) => {
         topMock.top.restore()
-        errorCat.prototype.report.restore()
+        errorCat.report.restore()
         done()
       })
 

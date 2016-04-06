@@ -281,7 +281,9 @@ describe('listener unit test', () => {
         listener.handleError(err)
 
         sinon.assert.calledOnce(errorCat.report)
-        sinon.assert.calledWith(errorCat.report, 500, 'Docker streaming error', err)
+        sinon.assert.calledWith(errorCat.report,
+          new Error('Docker streaming error'),
+          { err: err })
         done()
       })
     }) // end handleError
@@ -309,7 +311,7 @@ describe('listener unit test', () => {
         errorCat.report.returns()
         listener.handleClose(testErr)
         sinon.assert.calledOnce(errorCat.report)
-        sinon.assert.calledWith(errorCat.report, 500, testErr.message, testErr)
+        sinon.assert.calledWith(errorCat.report, testErr)
         done()
       })
 
@@ -338,14 +340,6 @@ describe('listener unit test', () => {
         errorCat.report.returns()
         listener.handleClose(testErr)
         sinon.assert.notCalled(rabbitmq.createStreamConnectJob)
-        done()
-      })
-
-      it('should report default message', (done) => {
-        errorCat.report.returns()
-        listener.handleClose()
-        sinon.assert.calledOnce(errorCat.report)
-        sinon.assert.calledWith(errorCat.report, 500, 'unknown error')
         done()
       })
 
