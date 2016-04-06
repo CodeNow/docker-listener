@@ -1,7 +1,7 @@
 'use strict'
 
 const Code = require('code')
-const ErrorCat = require('error-cat')
+const errorCat = require('error-cat')
 const Lab = require('lab')
 const sinon = require('sinon')
 
@@ -160,12 +160,12 @@ describe('rabbitmq.js unit test', () => {
 
   describe('_handleFatalError', () => {
     beforeEach((done) => {
-      sinon.stub(ErrorCat.prototype, 'createAndReport')
+      sinon.stub(errorCat, 'report')
       done()
     })
 
     afterEach((done) => {
-      ErrorCat.prototype.createAndReport.restore()
+      errorCat.report()
       done()
     })
 
@@ -173,8 +173,8 @@ describe('rabbitmq.js unit test', () => {
       expect(() => {
         rabbitmq._handleFatalError('err')
       }).to.throw()
-      sinon.assert.calledOnce(ErrorCat.prototype.createAndReport)
-      sinon.assert.calledWith(ErrorCat.prototype.createAndReport, 502, 'RabbitMQ error', 'err')
+      sinon.assert.calledOnce(errorCat.report)
+      sinon.assert.calledWith(errorCat.report)
       done()
     })
   }) // end _handleFatalError
