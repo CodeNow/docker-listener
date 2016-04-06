@@ -4,7 +4,7 @@ require('loadenv')()
 
 const Code = require('code')
 const Dockerode = require('dockerode')
-const ErrorCat = require('error-cat')
+const errorCat = require('error-cat')
 const Lab = require('lab')
 const noop = require('101/noop')
 const Promise = require('bluebird')
@@ -48,13 +48,13 @@ describe('docker unit test', () => {
         sinon.stub(docker.docker, 'listContainersAsync')
         sinon.stub(topMock, 'top')
         sinon.stub(docker.docker, 'getContainer').returns(topMock)
-        sinon.stub(ErrorCat.prototype, 'createAndReport')
+        sinon.stub(errorCat, 'report')
         done()
       })
 
       afterEach((done) => {
         topMock.top.restore()
-        ErrorCat.prototype.createAndReport.restore()
+        errorCat.prototype.report.restore()
         done()
       })
 
@@ -91,7 +91,7 @@ describe('docker unit test', () => {
           sinon.assert.calledOnce(docker.docker.getContainer)
           sinon.assert.calledWith(docker.docker.getContainer, testId)
           sinon.assert.calledOnce(topMock.top)
-          sinon.assert.notCalled(ErrorCat.prototype.createAndReport)
+          sinon.assert.notCalled(errorCat.report)
           done()
         })
       })

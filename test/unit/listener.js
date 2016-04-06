@@ -2,7 +2,7 @@
 require('loadenv')()
 
 const Code = require('code')
-const ErrorCat = require('error-cat')
+const errorCat = require('error-cat')
 const EventEmitter = require('events')
 const Lab = require('lab')
 const Promise = require('bluebird')
@@ -267,12 +267,12 @@ describe('listener unit test', () => {
 
     describe('handleError', () => {
       beforeEach((done) => {
-        sinon.stub(ErrorCat.prototype, 'createAndReport')
+        sinon.stub(errorCat, 'report')
         done()
       })
 
       afterEach((done) => {
-        ErrorCat.prototype.createAndReport.restore()
+        errorCat.report.restore()
         done()
       })
 
@@ -280,8 +280,8 @@ describe('listener unit test', () => {
         const err = 'booms'
         listener.handleError(err)
 
-        sinon.assert.calledOnce(ErrorCat.prototype.createAndReport)
-        sinon.assert.calledWith(ErrorCat.prototype.createAndReport, 500, 'Docker streaming error', err)
+        sinon.assert.calledOnce(errorCat.report)
+        sinon.assert.calledWith(errorCat.report, 500, 'Docker streaming error', err)
         done()
       })
     }) // end handleError
@@ -294,29 +294,29 @@ describe('listener unit test', () => {
           destroy: eventStreamStub = sinon.stub()
         }
         sinon.stub(rabbitmq, 'createStreamConnectJob')
-        sinon.stub(ErrorCat.prototype, 'createAndReport')
+        sinon.stub(errorCat, 'report')
         done()
       })
 
       afterEach((done) => {
         rabbitmq.createStreamConnectJob.restore()
-        ErrorCat.prototype.createAndReport.restore()
+        errorCat.report.restore()
         done()
       })
 
       it('should report', (done) => {
         const testErr = new Error('dissatisfactory')
-        ErrorCat.prototype.createAndReport.returns()
+        errorCat.report.returns()
         listener.handleClose(testErr)
-        sinon.assert.calledOnce(ErrorCat.prototype.createAndReport)
-        sinon.assert.calledWith(ErrorCat.prototype.createAndReport, 500, testErr.message, testErr)
+        sinon.assert.calledOnce(errorCat.report)
+        sinon.assert.calledWith(errorCat.report, 500, testErr.message, testErr)
         done()
       })
 
       it('should create job', (done) => {
         const testErr = new Error('dissatisfactory')
         listener.state = 'connected'
-        ErrorCat.prototype.createAndReport.returns()
+        errorCat.report.returns()
         listener.handleClose(testErr)
         sinon.assert.calledOnce(rabbitmq.createStreamConnectJob)
         sinon.assert.calledWith(rabbitmq.createStreamConnectJob, 'docker', testHost, testOrg)
@@ -326,7 +326,7 @@ describe('listener unit test', () => {
       it('should set disconnected state', (done) => {
         const testErr = new Error('dissatisfactory')
         listener.state = 'connected'
-        ErrorCat.prototype.createAndReport.returns()
+        errorCat.report.returns()
         listener.handleClose(testErr)
         expect(listener.state).to.equal('disconnected')
         done()
@@ -335,23 +335,23 @@ describe('listener unit test', () => {
       it('should not create job', (done) => {
         const testErr = new Error('dissatisfactory')
         listener.state = 'disconnected'
-        ErrorCat.prototype.createAndReport.returns()
+        errorCat.report.returns()
         listener.handleClose(testErr)
         sinon.assert.notCalled(rabbitmq.createStreamConnectJob)
         done()
       })
 
       it('should report default message', (done) => {
-        ErrorCat.prototype.createAndReport.returns()
+        errorCat.report.returns()
         listener.handleClose()
-        sinon.assert.calledOnce(ErrorCat.prototype.createAndReport)
-        sinon.assert.calledWith(ErrorCat.prototype.createAndReport, 500, 'unknown error')
+        sinon.assert.calledOnce(errorCat.report)
+        sinon.assert.calledWith(errorCat.report, 500, 'unknown error')
         done()
       })
 
       it('should destroy stream', (done) => {
         const testErr = new Error('dissatisfactory')
-        ErrorCat.prototype.createAndReport.returns()
+        errorCat.report.returns()
         listener.handleClose(testErr)
         sinon.assert.calledOnce(eventStreamStub)
         expect(listener.eventStream).to.be.undefined()
@@ -372,7 +372,7 @@ describe('listener unit test', () => {
       it('should do nothing is eventStream null', (done) => {
         delete listener.eventStream
         listener.handleClose()
-        sinon.assert.notCalled(ErrorCat.prototype.createAndReport)
+        sinon.assert.notCalled(errorCat.report)
         sinon.assert.notCalled(rabbitmq.createStreamConnectJob)
         sinon.assert.notCalled(eventStreamStub)
         done()
