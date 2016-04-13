@@ -87,7 +87,8 @@ describe('listener unit test', () => {
         listener.docker.getEvents.returns(Promise.reject(testErr))
 
         listener.start().asCallback((err) => {
-          expect(err).to.equal(testErr)
+          expect(err.message).to.equal('Failed to get events')
+          expect(err.data.err).to.equal(testErr)
           expect(listener.state).to.equal('disconnected')
           done()
         })
