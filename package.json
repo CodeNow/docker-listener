@@ -1,6 +1,6 @@
 {
   "name": "docker-listener",
-  "version": "7.2.1",
+  "version": "8.0.0",
   "description": "Pipe Docker events into external target",
   "main": "main.js",
   "private": true,
