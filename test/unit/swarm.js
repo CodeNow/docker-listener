@@ -11,7 +11,7 @@ const sinon = require('sinon')
 require('sinon-as-promised')(Promise)
 const DockerClient = require('loki')._BaseClient
 
-const Docker = require('../../lib/docker')
+const Swarm = require('../../lib/swarm')
 
 const lab = exports.lab = Lab.script()
 
@@ -26,7 +26,7 @@ describe('docker unit test', () => {
     it('should setup docker', (done) => {
       let docker
       expect(() => {
-        docker = new Docker('10.0.0.1:4242')
+        docker = new Swarm('10.0.0.1:4242')
       }).to.not.throw()
       expect(docker.client).to.be.an.instanceOf(Dockerode)
       done()
@@ -37,7 +37,7 @@ describe('docker unit test', () => {
     const testHost = '10.0.0.1:4242'
 
     beforeEach((done) => {
-      docker = new Docker(testHost)
+      docker = new Swarm(testHost)
       done()
     })
 
@@ -84,8 +84,8 @@ describe('docker unit test', () => {
               state: ['running']
             }
           })
-          sinon.assert.calledOnce(Docker.prototype.topContainer)
-          sinon.assert.calledWith(Docker.prototype.topContainer, testId)
+          sinon.assert.calledOnce(Swarm.prototype.topContainer)
+          sinon.assert.calledWith(Swarm.prototype.topContainer, testId)
           sinon.assert.notCalled(errorCat.report)
           done()
         })
@@ -109,5 +109,30 @@ describe('docker unit test', () => {
         })
       })
     }) // end getEvents
+
+    describe('getNodes', () => {
+      beforeEach((done) => {
+        sinon.stub(Swarm.prototype, 'swarmInfo')
+        done()
+      })
+
+      it('should get nodes event', (done) => {
+        Swarm.prototype.swarmInfo.resolves({
+          parsedSystemStatus: {
+            ParsedNodes: {
+              one: { id: 1 },
+              two: { id: 2 }
+            }
+          }
+        })
+        docker.getNodes().asCallback((err, nodes) => {
+          if (err) { return done(err) }
+          sinon.assert.calledOnce(Swarm.prototype.swarmInfo)
+
+          expect(nodes).to.deep.equal([{ id: 1 }, { id: 2 }])
+          done()
+        })
+      })
+    }) // end getNodes
   }) // end methods
 }) // end testEvent
