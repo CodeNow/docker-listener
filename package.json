@@ -52,7 +52,6 @@
     "runnable-hermes": "^6.6.0"
   },
   "devDependencies": {
-    "dockerode": "^2.2.9",
     "code": "^2.1.0",
     "lab": "^10.2.0",
     "rerun-script": "^0.6.0",
