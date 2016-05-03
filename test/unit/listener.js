@@ -67,7 +67,7 @@ describe('listener unit test', () => {
 
     describe('start', () => {
       beforeEach((done) => {
-        sinon.stub(listener.docker, 'getEvents')
+        sinon.stub(listener.docker, 'getEventsAsync')
         sinon.stub(listener, 'handleClose')
         sinon.stub(listener, 'handleError')
         sinon.stub(listener, 'publishEvent')
@@ -84,7 +84,7 @@ describe('listener unit test', () => {
       it('should throw set state disconnected on event error', (done) => {
         const testErr = new Error('uncanny')
         sinceMap.get.returns()
-        listener.docker.getEvents.returns(Promise.reject(testErr))
+        listener.docker.getEventsAsync.returns(Promise.reject(testErr))
 
         listener.start().asCallback((err) => {
           expect(err.message).to.equal('Failed to get events')
@@ -96,11 +96,11 @@ describe('listener unit test', () => {
 
       it('should pass correct opts', (done) => {
         sinceMap.get.returns(1234)
-        listener.docker.getEvents.returns(Promise.reject('error'))
+        listener.docker.getEventsAsync.returns(Promise.reject('error'))
 
         listener.start().asCallback(() => {
-          sinon.assert.calledOnce(listener.docker.getEvents)
-          sinon.assert.calledWith(listener.docker.getEvents, {
+          sinon.assert.calledOnce(listener.docker.getEventsAsync)
+          sinon.assert.calledWith(listener.docker.getEventsAsync, {
             filters: {
               event: listener.events
             },
@@ -112,11 +112,11 @@ describe('listener unit test', () => {
 
       it('should default since to 0', (done) => {
         sinceMap.get.returns()
-        listener.docker.getEvents.returns(Promise.reject('error'))
+        listener.docker.getEventsAsync.returns(Promise.reject('error'))
 
         listener.start().asCallback(() => {
-          sinon.assert.calledOnce(listener.docker.getEvents)
-          sinon.assert.calledWith(listener.docker.getEvents, {
+          sinon.assert.calledOnce(listener.docker.getEventsAsync)
+          sinon.assert.calledWith(listener.docker.getEventsAsync, {
             filters: {
               event: listener.events
             },
@@ -132,7 +132,7 @@ describe('listener unit test', () => {
           once: sinon.stub().returnsThis()
         }
         sinceMap.get.returns()
-        listener.docker.getEvents.returns(Promise.resolve(stubStream))
+        listener.docker.getEventsAsync.returns(Promise.resolve(stubStream))
 
         listener.start().asCallback((err) => {
           if (err) { return done(err) }
@@ -152,7 +152,7 @@ describe('listener unit test', () => {
       it('should handle error event', (done) => {
         const emitter = new EventEmitter()
         sinceMap.get.returns()
-        listener.docker.getEvents.returns(Promise.resolve(emitter))
+        listener.docker.getEventsAsync.returns(Promise.resolve(emitter))
 
         listener.start().asCallback((err) => {
           if (err) { return done(err) }
@@ -166,7 +166,7 @@ describe('listener unit test', () => {
         const EventEmitter = require('events')
         const emitter = new EventEmitter()
         sinceMap.get.returns()
-        listener.docker.getEvents.returns(Promise.resolve(emitter))
+        listener.docker.getEventsAsync.returns(Promise.resolve(emitter))
 
         listener.start().asCallback((err) => {
           if (err) { return done(err) }
@@ -181,7 +181,7 @@ describe('listener unit test', () => {
         const EventEmitter = require('events')
         const emitter = new EventEmitter()
         sinceMap.get.returns()
-        listener.docker.getEvents.returns(Promise.resolve(emitter))
+        listener.docker.getEventsAsync.returns(Promise.resolve(emitter))
 
         listener.start().asCallback((err) => {
           if (err) { return done(err) }
@@ -196,7 +196,7 @@ describe('listener unit test', () => {
         const EventEmitter = require('events')
         const emitter = new EventEmitter()
         sinceMap.get.returns()
-        listener.docker.getEvents.returns(Promise.resolve(emitter))
+        listener.docker.getEventsAsync.returns(Promise.resolve(emitter))
 
         listener.start().asCallback((err) => {
           if (err) { return done(err) }
@@ -211,7 +211,7 @@ describe('listener unit test', () => {
         const EventEmitter = require('events')
         const emitter = new EventEmitter()
         sinceMap.get.returns()
-        listener.docker.getEvents.returns(Promise.resolve(emitter))
+        listener.docker.getEventsAsync.returns(Promise.resolve(emitter))
 
         listener.start().asCallback((err) => {
           if (err) { return done(err) }

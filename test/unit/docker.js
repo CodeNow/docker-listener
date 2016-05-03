@@ -79,22 +79,4 @@ describe('docker unit test', () => {
       })
     })
   }) // end testEvent
-
-  describe('getEvents', () => {
-    beforeEach((done) => {
-      sinon.stub(DockerClient.prototype, 'getEventsAsync')
-      done()
-    })
-
-    it('should get docker event', (done) => {
-      const testOpts = { since: 1000 }
-      DockerClient.prototype.getEventsAsync.resolves([])
-      docker.getEvents(testOpts).asCallback((err) => {
-        if (err) { return done(err) }
-        sinon.assert.calledOnce(Docker.prototype.getEventsAsync)
-        sinon.assert.calledWith(Docker.prototype.getEventsAsync, testOpts)
-        done()
-      })
-    })
-  }) // end getEvents
 }) // end testEvent
