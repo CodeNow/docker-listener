@@ -8,7 +8,9 @@ const errorCat = require('error-cat')
 const Lab = require('lab')
 const sinon = require('sinon')
 require('sinon-as-promised')(Promise)
-const DockerClient = require('loki')._BaseClient
+const BaseDockerClient = require('loki')._BaseClient
+const SwarmClient = require('loki').Swarm
+
 
 const Swarm = require('../../lib/swarm')
 
@@ -31,81 +33,69 @@ describe('swarm unit test', () => {
 
   describe('testEvent', () => {
     beforeEach((done) => {
-      sinon.stub(docker.client, 'listContainersAsync')
-      sinon.stub(DockerClient.prototype, 'topContainer').resolves({})
+      sinon.stub(SwarmClient.prototype, 'listContainersAsync')
+      sinon.stub(BaseDockerClient.prototype, 'topContainerAsync').resolves({})
       sinon.stub(errorCat, 'report')
       done()
     })
 
     afterEach((done) => {
-      DockerClient.prototype.topContainer.restore()
+      SwarmClient.prototype.listContainersAsync.restore()
+      BaseDockerClient.prototype.topContainerAsync.restore()
       errorCat.report.restore()
       done()
     })
 
     it('should ignore error on list fail', (done) => {
       const testErr = new Error('calamitous')
-      docker.client.listContainersAsync.rejects(testErr)
+      SwarmClient.prototype.listContainersAsync.rejects(testErr)
       docker.testEvent().asCallback(done)
     })
 
     it('should ignore error on empty containers', (done) => {
-      docker.client.listContainersAsync.resolves([])
+      SwarmClient.prototype.listContainersAsync.resolves([])
       docker.testEvent().asCallback(done)
     })
 
     it('should ignore error top fail', (done) => {
       const testErr = new Error('grievous')
-      docker.client.listContainersAsync.resolves([{Id: 1}])
-      DockerClient.prototype.topContainer.rejects(testErr)
+      SwarmClient.prototype.listContainersAsync.resolves([{Id: 1}])
+      BaseDockerClient.prototype.topContainerAsync.rejects(testErr)
       docker.testEvent().asCallback(done)
     })
 
     it('should call docker with correct opts', (done) => {
       const testId = 'heinous'
-      docker.client.listContainersAsync.resolves([{Id: testId}])
+      SwarmClient.prototype.listContainersAsync.resolves([{Id: testId}])
       docker.testEvent().asCallback((err) => {
         if (err) { return done(err) }
-        sinon.assert.calledOnce(docker.client.listContainersAsync)
-        sinon.assert.calledWith(docker.client.listContainersAsync, {
+        sinon.assert.calledOnce(SwarmClient.prototype.listContainersAsync)
+        sinon.assert.calledWith(SwarmClient.prototype.listContainersAsync, {
           filters: {
             state: ['running']
           }
         })
-        sinon.assert.calledOnce(Swarm.prototype.topContainer)
-        sinon.assert.calledWith(Swarm.prototype.topContainer, testId)
+        sinon.assert.calledOnce(BaseDockerClient.prototype.topContainerAsync)
+        sinon.assert.calledWith(BaseDockerClient.prototype.topContainerAsync, testId)
         sinon.assert.notCalled(errorCat.report)
         done()
       })
     })
   }) // end testEvent
 
-  describe('getEvents', () => {
+  describe('getNodes', () => {
     beforeEach((done) => {
-      sinon.stub(docker.client, 'getEventsAsync')
+      sinon.stub(SwarmClient.prototype, 'swarmInfoAsync')
       done()
     })
 
-    it('should get docker event', (done) => {
-      const testOpts = { since: 1000 }
-      docker.client.getEventsAsync.resolves([])
-      docker.getEvents(testOpts).asCallback((err) => {
-        if (err) { return done(err) }
-        sinon.assert.calledOnce(docker.client.getEventsAsync)
-        sinon.assert.calledWith(docker.client.getEventsAsync, testOpts)
-        done()
-      })
-    })
-  }) // end getEvents
-
-  describe('getNodes', () => {
-    beforeEach((done) => {
-      sinon.stub(Swarm.prototype, 'swarmInfo')
+    afterEach((done) => {
+      SwarmClient.prototype.swarmInfoAsync.restore()
       done()
     })
 
     it('should get nodes event', (done) => {
-      Swarm.prototype.swarmInfo.resolves({
+      SwarmClient.prototype.swarmInfoAsync.resolves({
         parsedSystemStatus: {
           ParsedNodes: {
             one: { id: 1 },
@@ -115,7 +105,7 @@ describe('swarm unit test', () => {
       })
       docker.getNodes().asCallback((err, nodes) => {
         if (err) { return done(err) }
-        sinon.assert.calledOnce(Swarm.prototype.swarmInfo)
+        sinon.assert.calledOnce(SwarmClient.prototype.swarmInfoAsync)
 
         expect(nodes).to.deep.equal([{ id: 1 }, { id: 2 }])
         done()

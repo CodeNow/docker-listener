@@ -7,7 +7,8 @@ const errorCat = require('error-cat')
 const Lab = require('lab')
 const sinon = require('sinon')
 require('sinon-as-promised')(Promise)
-const DockerClient = require('loki')._BaseClient
+const BaseDockerClient = require('loki')._BaseClient
+const DockerClient = require('loki').Docker
 
 const Docker = require('../../lib/docker')
 
@@ -29,49 +30,50 @@ describe('docker unit test', () => {
 
   describe('testEvent', () => {
     beforeEach((done) => {
-      sinon.stub(docker.client, 'listContainersAsync')
-      sinon.stub(DockerClient.prototype, 'topContainer').resolves({})
+      sinon.stub(DockerClient.prototype, 'listContainersAsync')
+      sinon.stub(BaseDockerClient.prototype, 'topContainerAsync').resolves({})
       sinon.stub(errorCat, 'report')
       done()
     })
 
     afterEach((done) => {
-      DockerClient.prototype.topContainer.restore()
+      DockerClient.prototype.listContainersAsync.restore()
+      BaseDockerClient.prototype.topContainerAsync.restore()
       errorCat.report.restore()
       done()
     })
 
     it('should ignore error on list fail', (done) => {
       const testErr = new Error('calamitous')
-      docker.client.listContainersAsync.rejects(testErr)
+      DockerClient.prototype.listContainersAsync.rejects(testErr)
       docker.testEvent().asCallback(done)
     })
 
     it('should ignore error on empty containers', (done) => {
-      docker.client.listContainersAsync.resolves([])
+      DockerClient.prototype.listContainersAsync.resolves([])
       docker.testEvent().asCallback(done)
     })
 
     it('should ignore error top fail', (done) => {
       const testErr = new Error('grievous')
-      docker.client.listContainersAsync.resolves([{Id: 1}])
-      DockerClient.prototype.topContainer.rejects(testErr)
+      DockerClient.prototype.listContainersAsync.resolves([{Id: 1}])
+      BaseDockerClient.prototype.topContainerAsync.rejects(testErr)
       docker.testEvent().asCallback(done)
     })
 
     it('should call docker with correct opts', (done) => {
       const testId = 'heinous'
-      docker.client.listContainersAsync.resolves([{Id: testId}])
+      DockerClient.prototype.listContainersAsync.resolves([{Id: testId}])
       docker.testEvent().asCallback((err) => {
         if (err) { return done(err) }
-        sinon.assert.calledOnce(docker.client.listContainersAsync)
-        sinon.assert.calledWith(docker.client.listContainersAsync, {
+        sinon.assert.calledOnce(DockerClient.prototype.listContainersAsync)
+        sinon.assert.calledWith(DockerClient.prototype.listContainersAsync, {
           filters: {
             state: ['running']
           }
         })
-        sinon.assert.calledOnce(Docker.prototype.topContainer)
-        sinon.assert.calledWith(Docker.prototype.topContainer, testId)
+        sinon.assert.calledOnce(BaseDockerClient.prototype.topContainerAsync)
+        sinon.assert.calledWith(BaseDockerClient.prototype.topContainerAsync, testId)
         sinon.assert.notCalled(errorCat.report)
         done()
       })
@@ -80,17 +82,17 @@ describe('docker unit test', () => {
 
   describe('getEvents', () => {
     beforeEach((done) => {
-      sinon.stub(docker.client, 'getEventsAsync')
+      sinon.stub(DockerClient.prototype, 'getEventsAsync')
       done()
     })
 
     it('should get docker event', (done) => {
       const testOpts = { since: 1000 }
-      docker.client.getEventsAsync.resolves([])
+      DockerClient.prototype.getEventsAsync.resolves([])
       docker.getEvents(testOpts).asCallback((err) => {
         if (err) { return done(err) }
-        sinon.assert.calledOnce(docker.client.getEventsAsync)
-        sinon.assert.calledWith(docker.client.getEventsAsync, testOpts)
+        sinon.assert.calledOnce(Docker.prototype.getEventsAsync)
+        sinon.assert.calledWith(Docker.prototype.getEventsAsync, testOpts)
         done()
       })
     })
