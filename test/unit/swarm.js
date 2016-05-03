@@ -11,7 +11,6 @@ require('sinon-as-promised')(Promise)
 const BaseDockerClient = require('loki')._BaseClient
 const SwarmClient = require('loki').Swarm
 
-
 const Swarm = require('../../lib/swarm')
 
 const lab = exports.lab = Lab.script()
