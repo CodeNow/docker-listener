@@ -28,7 +28,7 @@ describe('docker.events-stream.connect unit test', () => {
   }
 
   beforeEach((done) => {
-    sinon.stub(Swarm.prototype, 'swarmHostExists')
+    sinon.stub(Swarm.prototype, 'swarmHostExistsAsync')
     sinon.stub(eventManager, 'removeDockListener')
     sinon.stub(eventManager, 'startDockListener')
     sinon.stub(sinceMap, 'delete')
@@ -37,7 +37,7 @@ describe('docker.events-stream.connect unit test', () => {
   })
 
   afterEach((done) => {
-    Swarm.prototype.swarmHostExists.restore()
+    Swarm.prototype.swarmHostExistsAsync.restore()
     eventManager.removeDockListener.restore()
     eventManager.startDockListener.restore()
     sinceMap.delete.restore()
@@ -46,7 +46,7 @@ describe('docker.events-stream.connect unit test', () => {
   })
 
   it('should startDockListener', (done) => {
-    Swarm.prototype.swarmHostExists.returns(Promise.resolve(true))
+    Swarm.prototype.swarmHostExistsAsync.returns(Promise.resolve(true))
     DockerEventsSteamConnect(testJob).asCallback((err) => {
       if (err) { return done(err) }
       sinon.assert.calledOnce(eventManager.startDockListener)
@@ -56,7 +56,7 @@ describe('docker.events-stream.connect unit test', () => {
   })
 
   it('should removeDockListener and delete map', (done) => {
-    Swarm.prototype.swarmHostExists.returns(Promise.resolve(false))
+    Swarm.prototype.swarmHostExistsAsync.returns(Promise.resolve(false))
     DockerEventsSteamConnect(testJob).asCallback((err) => {
       if (err) { return done(err) }
       sinon.assert.calledOnce(sinceMap.delete)
