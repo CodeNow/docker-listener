@@ -5,7 +5,7 @@ const Lab = require('lab')
 const Promise = require('bluebird')
 const sinon = require('sinon')
 
-const Docker = require('../../../lib/docker')
+const Swarm = require('../../../lib/swarm')
 const SwarmEventsSteamConnect = require('../../../lib/workers/swarm.events-stream.connected.js')
 const eventManager = require('../../../lib/event-manager')
 const rabbitmq = require('../../../lib/rabbitmq')
@@ -19,14 +19,14 @@ const it = lab.test
 
 describe('swarm.events-stream.connected unit test', () => {
   beforeEach((done) => {
-    sinon.stub(Docker.prototype, 'getNodes')
+    sinon.stub(Swarm.prototype, 'getNodes')
     sinon.stub(eventManager, 'hasListener')
     sinon.stub(rabbitmq, 'createStreamConnectJob')
     done()
   })
 
   afterEach((done) => {
-    Docker.prototype.getNodes.restore()
+    Swarm.prototype.getNodes.restore()
     eventManager.hasListener.restore()
     rabbitmq.createStreamConnectJob.restore()
     done()
@@ -37,13 +37,13 @@ describe('swarm.events-stream.connected unit test', () => {
     const node2 = {Host: '10.0.0.2:4242', Labels: {org: '1234'}}
     const node3 = {Host: '10.0.0.3:4242', Labels: {org: 'asdf'}}
 
-    Docker.prototype.getNodes.returns(Promise.resolve([node1, node2, node3]))
+    Swarm.prototype.getNodes.returns(Promise.resolve([node1, node2, node3]))
     eventManager.hasListener.returns(false)
     eventManager.hasListener.withArgs(node3.Host).returns(true)
 
     SwarmEventsSteamConnect().asCallback((err) => {
       if (err) { return done(err) }
-      sinon.assert.calledOnce(Docker.prototype.getNodes)
+      sinon.assert.calledOnce(Swarm.prototype.getNodes)
 
       sinon.assert.calledThrice(eventManager.hasListener)
       sinon.assert.calledWith(eventManager.hasListener, node1.Host)

@@ -165,7 +165,7 @@ describe('rabbitmq.js unit test', () => {
     })
 
     afterEach((done) => {
-      errorCat.report()
+      errorCat.report.restore()
       done()
     })
 

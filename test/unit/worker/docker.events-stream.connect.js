@@ -5,7 +5,7 @@ const Lab = require('lab')
 const sinon = require('sinon')
 const TaskFatalError = require('ponos').TaskFatalError
 
-const Docker = require('../../../lib/docker')
+const Swarm = require('@runnable/loki').Swarm
 const DockerEventsSteamConnect = require('../../../lib/workers/docker.events-stream.connect.js')
 const eventManager = require('../../../lib/event-manager')
 const rabbitmq = require('../../../lib/rabbitmq')
@@ -28,7 +28,7 @@ describe('docker.events-stream.connect unit test', () => {
   }
 
   beforeEach((done) => {
-    sinon.stub(Docker.prototype, 'swarmHostExists')
+    sinon.stub(Swarm.prototype, 'swarmHostExistsAsync')
     sinon.stub(eventManager, 'removeDockListener')
     sinon.stub(eventManager, 'startDockListener')
     sinon.stub(sinceMap, 'delete')
@@ -37,7 +37,7 @@ describe('docker.events-stream.connect unit test', () => {
   })
 
   afterEach((done) => {
-    Docker.prototype.swarmHostExists.restore()
+    Swarm.prototype.swarmHostExistsAsync.restore()
     eventManager.removeDockListener.restore()
     eventManager.startDockListener.restore()
     sinceMap.delete.restore()
@@ -46,7 +46,7 @@ describe('docker.events-stream.connect unit test', () => {
   })
 
   it('should startDockListener', (done) => {
-    Docker.prototype.swarmHostExists.returns(Promise.resolve(true))
+    Swarm.prototype.swarmHostExistsAsync.returns(Promise.resolve(true))
     DockerEventsSteamConnect(testJob).asCallback((err) => {
       if (err) { return done(err) }
       sinon.assert.calledOnce(eventManager.startDockListener)
@@ -56,7 +56,7 @@ describe('docker.events-stream.connect unit test', () => {
   })
 
   it('should removeDockListener and delete map', (done) => {
-    Docker.prototype.swarmHostExists.returns(Promise.resolve(false))
+    Swarm.prototype.swarmHostExistsAsync.returns(Promise.resolve(false))
     DockerEventsSteamConnect(testJob).asCallback((err) => {
       if (err) { return done(err) }
       sinon.assert.calledOnce(sinceMap.delete)
