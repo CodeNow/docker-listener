@@ -11,7 +11,7 @@ const BaseDockerClient = require('@runnable/loki')._BaseClient
 const SwarmClient = require('@runnable/loki').Swarm
 
 const Swarm = require('../../lib/swarm')
-const dockerUtils = require('../../lib/docker.utils')
+const dockerUtils = require('../../lib/docker-utils')
 
 const lab = exports.lab = Lab.script()
 

@@ -13,7 +13,7 @@ const eventMock = require('../fixtures/event-mock.js')
 const Listener = require('../../lib/listener')
 const rabbitmq = require('../../lib/rabbitmq')
 const sinceMap = require('../../lib/since-map')
-const dockerUtils = require('../../lib/docker.utils')
+const dockerUtils = require('../../lib/docker-utils')
 const swarmEventMock = require('../fixtures/swarm-event-mock.js')
 
 const lab = exports.lab = Lab.script()
