@@ -13,6 +13,7 @@ const eventMock = require('../fixtures/event-mock.js')
 const Listener = require('../../lib/listener')
 const rabbitmq = require('../../lib/rabbitmq')
 const sinceMap = require('../../lib/since-map')
+const dockerUtils = require('../../lib/docker.utils')
 const swarmEventMock = require('../fixtures/swarm-event-mock.js')
 
 const lab = exports.lab = Lab.script()
@@ -231,7 +232,7 @@ describe('listener unit test', () => {
         listener.eventStream = new EventEmitter()
         sinon.spy(listener.eventStream, 'once')
         sinon.stub(rabbitmq, 'createConnectedJob')
-        sinon.stub(listener.docker, 'testEvent')
+        sinon.stub(dockerUtils, 'testEvent')
         clock = sinon.useFakeTimers()
         done()
       })
@@ -240,6 +241,7 @@ describe('listener unit test', () => {
         delete process.env.EVENT_TIMEOUT_MS
         rabbitmq.createConnectedJob.restore()
         clock.restore()
+        dockerUtils.testEvent.restore()
         done()
       })
 
@@ -249,7 +251,8 @@ describe('listener unit test', () => {
           expect(listener.state).to.equal('connected')
           sinon.assert.calledOnce(listener.eventStream.once)
           sinon.assert.calledWith(listener.eventStream.once, 'data', sinon.match.func)
-          sinon.assert.calledOnce(listener.docker.testEvent)
+          sinon.assert.calledOnce(dockerUtils.testEvent)
+          sinon.assert.calledWith(dockerUtils.testEvent, listener.docker)
           done()
         })
         clock.tick(10)
@@ -389,11 +392,11 @@ describe('listener unit test', () => {
 
       it('should publish formatted event', (done) => {
         const testJob = { type: 'abhorrent' }
-        const testEvent = new Buffer(JSON.stringify(testJob))
+        const testEventData = new Buffer(JSON.stringify(testJob))
         const testFormat = { formatted: 'true' }
         listener.isBlacklisted.returns(false)
         listener.formatEvent.returns(testFormat)
-        listener.publishEvent(testEvent)
+        listener.publishEvent(testEventData)
 
         sinon.assert.calledOnce(rabbitmq.createPublishJob)
         sinon.assert.calledWith(rabbitmq.createPublishJob, testFormat)
@@ -419,9 +422,9 @@ describe('listener unit test', () => {
 
       it('should not publish if event is blacklisted', (done) => {
         const testJob = { type: 'abhorrent' }
-        const testEvent = new Buffer(JSON.stringify(testJob))
+        const testEventData = new Buffer(JSON.stringify(testJob))
         listener.isBlacklisted.returns(true)
-        listener.publishEvent(testEvent)
+        listener.publishEvent(testEventData)
         sinon.assert.notCalled(rabbitmq.createPublishJob)
 
         sinon.assert.calledOnce(listener.isBlacklisted)
