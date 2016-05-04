@@ -8,8 +8,8 @@ const errorCat = require('error-cat')
 const Lab = require('lab')
 const sinon = require('sinon')
 require('sinon-as-promised')(Promise)
-const BaseDockerClient = require('loki')._BaseClient
-const SwarmClient = require('loki').Swarm
+const BaseDockerClient = require('@runnable/loki')._BaseClient
+const SwarmClient = require('@runnable/loki').Swarm
 
 const Swarm = require('../../lib/swarm')
 

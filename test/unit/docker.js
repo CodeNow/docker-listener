@@ -7,8 +7,8 @@ const errorCat = require('error-cat')
 const Lab = require('lab')
 const sinon = require('sinon')
 require('sinon-as-promised')(Promise)
-const BaseDockerClient = require('loki')._BaseClient
-const DockerClient = require('loki').Docker
+const BaseDockerClient = require('@runnable/loki')._BaseClient
+const DockerClient = require('@runnable/loki').Docker
 
 const Docker = require('../../lib/docker')
 

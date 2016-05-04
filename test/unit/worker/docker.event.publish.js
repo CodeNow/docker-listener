@@ -8,8 +8,8 @@ const Promise = require('bluebird')
 const sinon = require('sinon')
 const TaskFatalError = require('ponos').TaskFatalError
 
-const DockerClient = require('loki')._BaseClient
-const Swarm = require('loki').Swarm
+const DockerClient = require('@runnable/loki')._BaseClient
+const Swarm = require('@runnable/loki').Swarm
 const DockerEventPublish = require('../../../lib/workers/docker.event.publish.js')
 const rabbitmq = require('../../../lib/rabbitmq')
 const sinceMap = require('../../../lib/since-map')

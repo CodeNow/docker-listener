@@ -5,7 +5,7 @@ const Lab = require('lab')
 const sinon = require('sinon')
 const TaskFatalError = require('ponos').TaskFatalError
 
-const Swarm = require('loki').Swarm
+const Swarm = require('@runnable/loki').Swarm
 const DockerEventsSteamConnect = require('../../../lib/workers/docker.events-stream.connect.js')
 const eventManager = require('../../../lib/event-manager')
 const rabbitmq = require('../../../lib/rabbitmq')
