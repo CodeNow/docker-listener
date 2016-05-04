@@ -45,7 +45,7 @@
     "joi": "^8.0.4",
     "keypather": "^1.10.2",
     "loadenv": "^2.1.0",
-    "loki": "git://github.com/Runnable/loki.git#initial-impl",
+    "@runnable/loki": "^1.0.0",
     "monitor-dog": "^1.5.0",
     "node-uuid": "^1.4.7",
     "ponos": "^2.0.0",
