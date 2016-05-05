@@ -359,12 +359,12 @@ describe('docker event publish', () => {
         error: sinon.spy()
       }
       beforeEach((done) => {
-        sinon.stub(Swarm.prototype, 'swarmHostExists')
+        sinon.stub(Swarm.prototype, 'swarmHostExistsAsync')
         done()
       })
 
       afterEach((done) => {
-        Swarm.prototype.swarmHostExists.restore()
+        Swarm.prototype.swarmHostExistsAsync.restore()
         done()
       })
 
@@ -380,7 +380,7 @@ describe('docker event publish', () => {
       it('should throw original error if check host failed', (done) => {
         const testErr = new Error('bully')
         testErr.statusCode = 500
-        Swarm.prototype.swarmHostExists.returns(Promise.reject('reject'))
+        Swarm.prototype.swarmHostExistsAsync.returns(Promise.reject('reject'))
         DockerEventPublish._handleInspectError('host', testErr, logStub).asCallback((err) => {
           expect(err).to.equal(testErr)
           done()
@@ -389,7 +389,7 @@ describe('docker event publish', () => {
 
       it('should throw original error if host exists', (done) => {
         const testErr = new Error('ruffian')
-        Swarm.prototype.swarmHostExists.returns(Promise.resolve(true))
+        Swarm.prototype.swarmHostExistsAsync.returns(Promise.resolve(true))
         DockerEventPublish._handleInspectError('host', testErr, logStub).asCallback((err) => {
           expect(err).to.equal(testErr)
           done()
@@ -398,7 +398,7 @@ describe('docker event publish', () => {
 
       it('should throw TaskFatalError error if host !exists', (done) => {
         const testErr = new Error('hooligan')
-        Swarm.prototype.swarmHostExists.returns(Promise.resolve(false))
+        Swarm.prototype.swarmHostExistsAsync.returns(Promise.resolve(false))
         DockerEventPublish._handleInspectError('host', testErr, logStub).asCallback((err) => {
           expect(err).to.be.an.instanceOf(TaskFatalError)
           done()

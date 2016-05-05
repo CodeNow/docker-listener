@@ -66,6 +66,31 @@ describe('listener unit test', () => {
       done()
     })
 
+    describe('eventOnList', function () {
+      it('should return false if event is not defined', function (done) {
+        const isOn = listener.eventOnList(null, '1,2,3')
+        expect(isOn).to.equal(false)
+        done()
+      })
+
+      it('should return false if event.from is not defined', function (done) {
+        const isOn = listener.eventOnList({}, '1,2,3')
+        expect(isOn).to.equal(false)
+        done()
+      })
+
+      it('should return false if event.from is not a string', function (done) {
+        const isOn = listener.eventOnList({ from: 1 }, '1,2,3')
+        expect(isOn).to.equal(false)
+        done()
+      })
+
+      it('should return true if event.from is on the list', function (done) {
+        const isOn = listener.eventOnList({ from: '1' }, '1,2,3')
+        expect(isOn).to.equal(true)
+        done()
+      })
+    })
     describe('start', () => {
       beforeEach((done) => {
         sinon.stub(listener.docker, 'getEventsAsync')
