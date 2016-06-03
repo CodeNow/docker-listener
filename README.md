@@ -12,7 +12,7 @@ System service that pipes Docker daemon events into RabbitMQ. Installed on each 
 
 Docker-listener get all events from the Docker daemon using [remote API over HTTP endpoint](https://docs.docker.com/engine/reference/api/docker_remote_api/).
 Most of the events are getting enhanced with container inspect information [`docker inspect`](https://docs.docker.com/engine/reference/commandline/inspect/) and published to RabbitMQ. Events from Docker-listener later processed by API, Mavis, Sauron and other systems.
-Docker-listener deployed as a service on each dock.
+Docker-listener deployed as container to the dock-services box.
 
 ## Published jobs
   * `docker.events-stream.disconnected` - docker daemon went down.
