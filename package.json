@@ -52,7 +52,7 @@
     "runnable-hermes": "^6.6.0"
   },
   "devDependencies": {
-    "code": "^2.1.0",
+    "code": "^3.0.1",
     "lab": "^10.2.0",
     "rerun-script": "^0.6.0",
     "sinon": "^1.17.3",
