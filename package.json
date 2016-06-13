@@ -41,7 +41,7 @@
     "bluebird": "^3.3.4",
     "bunyan": "^1.7.1",
     "callsite": "^1.0.0",
-    "error-cat": "^2.0.4",
+    "error-cat": "^3.0.0",
     "joi": "^8.0.4",
     "keypather": "^1.10.2",
     "loadenv": "^2.1.0",
