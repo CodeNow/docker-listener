@@ -194,7 +194,6 @@ describe('docker event publish', () => {
 
   describe('_handlePublish', function () {
     beforeEach((done) => {
-      sinon.stub(rabbitmq, 'publish')
       sinon.stub(rabbitmq, 'publishEvent')
       sinon.stub(rabbitmq, 'publishTask')
       sinon.stub(rabbitmq, 'createStreamConnectJob')
@@ -205,7 +204,6 @@ describe('docker event publish', () => {
     })
 
     afterEach((done) => {
-      rabbitmq.publish.restore()
       rabbitmq.publishEvent.restore()
       rabbitmq.publishTask.restore()
       rabbitmq.createStreamConnectJob.restore()
@@ -253,7 +251,7 @@ describe('docker event publish', () => {
 
       DockerEventPublish._handlePublish(payload)
 
-      sinon.assert.notCalled(rabbitmq.publish)
+      sinon.assert.notCalled(rabbitmq.publishEvent)
       sinon.assert.notCalled(rabbitmq.publishTask)
       sinon.assert.notCalled(rabbitmq.createStreamConnectJob)
       done()
@@ -341,7 +339,8 @@ describe('docker event publish', () => {
       DockerEventPublish._handlePublish(payload)
 
       sinon.assert.notCalled(rabbitmq.createStreamConnectJob)
-      sinon.assert.notCalled(rabbitmq.publish)
+      sinon.assert.notCalled(rabbitmq.publishTask)
+      sinon.assert.notCalled(rabbitmq.publishEvent)
       done()
     })
 
@@ -355,7 +354,8 @@ describe('docker event publish', () => {
       DockerEventPublish._handlePublish(payload, logStub)
 
       sinon.assert.notCalled(rabbitmq.createStreamConnectJob)
-      sinon.assert.notCalled(rabbitmq.publish)
+      sinon.assert.notCalled(rabbitmq.publishTask)
+      sinon.assert.notCalled(rabbitmq.publishEvent)
       sinon.assert.calledOnce(logStub.error)
       done()
     })

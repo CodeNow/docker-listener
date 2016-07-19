@@ -11,26 +11,6 @@ const describe = lab.describe
 const it = lab.it
 
 describe('rabbitmq.js unit test', () => {
-  describe('publish', () => {
-    beforeEach((done) => {
-      sinon.stub(rabbitmq, 'publishEvent')
-      done()
-    })
-
-    afterEach((done) => {
-      rabbitmq.publishEvent.restore()
-      done()
-    })
-
-    it('should publish job', (done) => {
-      const testData = { some: 'data' }
-      rabbitmq.publish('thename', testData)
-      sinon.assert.calledOnce(rabbitmq.publishEvent)
-      sinon.assert.calledWith(rabbitmq.publishEvent, 'thename', testData)
-      done()
-    })
-  }) // end publish
-
   describe('createPublishJob', () => {
     beforeEach((done) => {
       sinon.stub(rabbitmq, 'publishTask')
