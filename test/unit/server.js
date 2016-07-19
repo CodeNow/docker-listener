@@ -37,7 +37,7 @@ describe('server.js unit test', () => {
       rabbitmq.connect.yieldsAsync()
       rabbitmq.createStreamConnectJob.returns()
 
-      Server.start(3000, (err) => {
+      Server.start(3000).asCallback((err) => {
         if (err) { return done(err) }
 
         sinon.assert.calledOnce(monitor.startSocketsMonitor)
@@ -51,7 +51,7 @@ describe('server.js unit test', () => {
       const testErr = new Error('rabbitmq error')
       rabbitmq.connect.yieldsAsync(testErr)
 
-      Server.start(3000, (err) => {
+      Server.start(3000).asCallback((err) => {
         expect(err).to.equal(testErr)
 
         sinon.assert.calledOnce(monitor.startSocketsMonitor)
