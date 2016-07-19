@@ -98,19 +98,19 @@ describe('rabbitmq.js unit test', () => {
 
   describe('createStreamConnectJob', () => {
     beforeEach((done) => {
-      sinon.stub(rabbitmq, 'publishEvent')
+      sinon.stub(rabbitmq, 'publishTask')
       done()
     })
 
     afterEach((done) => {
-      rabbitmq.publishEvent.restore()
+      rabbitmq.publishTask.restore()
       done()
     })
 
     it('should publish job', (done) => {
       rabbitmq.createStreamConnectJob('type', 'host', 'org')
-      sinon.assert.calledOnce(rabbitmq.publishEvent)
-      sinon.assert.calledWith(rabbitmq.publishEvent, 'type.events-stream.connect', {
+      sinon.assert.calledOnce(rabbitmq.publishTask)
+      sinon.assert.calledWith(rabbitmq.publishTask, 'type.events-stream.connect', {
         host: 'host',
         org: 'org'
       })
