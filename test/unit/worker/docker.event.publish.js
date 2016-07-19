@@ -195,6 +195,8 @@ describe('docker event publish', () => {
   describe('_handlePublish', function () {
     beforeEach((done) => {
       sinon.stub(rabbitmq, 'publish')
+      sinon.stub(rabbitmq, 'publishEvent')
+      sinon.stub(rabbitmq, 'publishTask')
       sinon.stub(rabbitmq, 'createStreamConnectJob')
       sinon.stub(DockerEventPublish, '_isUserContainer')
       sinon.stub(DockerEventPublish, '_isBuildContainer')
@@ -204,6 +206,8 @@ describe('docker event publish', () => {
 
     afterEach((done) => {
       rabbitmq.publish.restore()
+      rabbitmq.publishEvent.restore()
+      rabbitmq.publishTask.restore()
       rabbitmq.createStreamConnectJob.restore()
       DockerEventPublish._isUserContainer.restore()
       DockerEventPublish._isBuildContainer.restore()
@@ -220,8 +224,8 @@ describe('docker event publish', () => {
 
       DockerEventPublish._handlePublish(payload)
 
-      sinon.assert.calledOnce(rabbitmq.publish)
-      sinon.assert.calledWith(rabbitmq.publish, 'on-instance-container-create', payload)
+      sinon.assert.calledOnce(rabbitmq.publishTask)
+      sinon.assert.calledWith(rabbitmq.publishTask, 'on-instance-container-create', payload)
       done()
     })
 
@@ -235,8 +239,8 @@ describe('docker event publish', () => {
 
       DockerEventPublish._handlePublish(payload)
 
-      sinon.assert.calledOnce(rabbitmq.publish)
-      sinon.assert.calledWith(rabbitmq.publish, 'on-image-builder-container-create', payload)
+      sinon.assert.calledOnce(rabbitmq.publishTask)
+      sinon.assert.calledWith(rabbitmq.publishTask, 'on-image-builder-container-create', payload)
       done()
     })
 
@@ -250,6 +254,7 @@ describe('docker event publish', () => {
       DockerEventPublish._handlePublish(payload)
 
       sinon.assert.notCalled(rabbitmq.publish)
+      sinon.assert.notCalled(rabbitmq.publishTask)
       sinon.assert.notCalled(rabbitmq.createStreamConnectJob)
       done()
     })
@@ -261,8 +266,8 @@ describe('docker event publish', () => {
       }
       DockerEventPublish._handlePublish(payload)
 
-      sinon.assert.calledOnce(rabbitmq.publish)
-      sinon.assert.calledWith(rabbitmq.publish, 'container.life-cycle.started', payload)
+      sinon.assert.calledOnce(rabbitmq.publishEvent)
+      sinon.assert.calledWith(rabbitmq.publishEvent, 'container.life-cycle.started', payload)
       done()
     })
 
@@ -275,9 +280,10 @@ describe('docker event publish', () => {
 
       DockerEventPublish._handlePublish(payload)
 
-      sinon.assert.calledTwice(rabbitmq.publish)
-      sinon.assert.calledWith(rabbitmq.publish, 'on-instance-container-die', payload)
-      sinon.assert.calledWith(rabbitmq.publish, 'container.life-cycle.died', payload)
+      sinon.assert.calledOnce(rabbitmq.publishTask)
+      sinon.assert.calledWith(rabbitmq.publishTask, 'on-instance-container-die', payload)
+      sinon.assert.calledOnce(rabbitmq.publishEvent)
+      sinon.assert.calledWith(rabbitmq.publishEvent, 'container.life-cycle.died', payload)
       done()
     })
 
@@ -291,9 +297,10 @@ describe('docker event publish', () => {
 
       DockerEventPublish._handlePublish(payload)
 
-      sinon.assert.calledTwice(rabbitmq.publish)
-      sinon.assert.calledWith(rabbitmq.publish, 'on-image-builder-container-die', payload)
-      sinon.assert.calledWith(rabbitmq.publish, 'container.life-cycle.died', payload)
+      sinon.assert.calledOnce(rabbitmq.publishTask)
+      sinon.assert.calledWith(rabbitmq.publishTask, 'on-image-builder-container-die', payload)
+      sinon.assert.calledOnce(rabbitmq.publishEvent)
+      sinon.assert.calledWith(rabbitmq.publishEvent, 'container.life-cycle.died', payload)
       done()
     })
 
@@ -307,8 +314,8 @@ describe('docker event publish', () => {
 
       DockerEventPublish._handlePublish(payload)
 
-      sinon.assert.calledOnce(rabbitmq.publish)
-      sinon.assert.calledWith(rabbitmq.publish, 'container.life-cycle.died', payload)
+      sinon.assert.calledOnce(rabbitmq.publishEvent)
+      sinon.assert.calledWith(rabbitmq.publishEvent, 'container.life-cycle.died', payload)
       done()
     })
 
