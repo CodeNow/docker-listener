@@ -2,6 +2,7 @@
 
 require('loadenv')()
 
+const CriticalError = require('error-cat/errors/critical-error')
 const ErrorCat = require('error-cat')
 const log = require('./lib/logger')()
 const Server = require('./server')
@@ -16,4 +17,4 @@ Server.start(process.env.PORT)
       ))
       process.exit(1)
     }
-  }
+  })
