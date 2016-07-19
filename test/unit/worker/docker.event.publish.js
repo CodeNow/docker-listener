@@ -6,7 +6,7 @@ const defaults = require('101/defaults')
 const Lab = require('lab')
 const Promise = require('bluebird')
 const sinon = require('sinon')
-const TaskFatalError = require('ponos').TaskFatalError
+const WorkerStopError = require('error-cat/errors/worker-stop-error')
 
 const DockerClient = require('@runnable/loki')._BaseClient
 const Swarm = require('@runnable/loki').Swarm
@@ -118,9 +118,9 @@ describe('docker event publish', () => {
       done()
     })
 
-    it('should be TaskFatalError if invalid data', (done) => {
+    it('should be WorkerStopError if invalid data', (done) => {
       DockerEventPublish({}).asCallback((err) => {
-        expect(err).to.be.an.instanceOf(TaskFatalError)
+        expect(err).to.be.an.instanceOf(WorkerStopError)
         done()
       })
     })
@@ -373,7 +373,7 @@ describe('docker event publish', () => {
         error.statusCode = 404
         expect(() => {
           DockerEventPublish._handleInspectError('test', error, logStub)
-        }).to.throw(TaskFatalError, 'docker.event.publish: Docker error')
+        }).to.throw(WorkerStopError, 'docker.event.publish: Docker error')
         done()
       })
 
@@ -396,11 +396,11 @@ describe('docker event publish', () => {
         })
       })
 
-      it('should throw TaskFatalError error if host !exists', (done) => {
+      it('should throw WorkerStopError error if host !exists', (done) => {
         const testErr = new Error('hooligan')
         Swarm.prototype.swarmHostExistsAsync.returns(Promise.resolve(false))
         DockerEventPublish._handleInspectError('host', testErr, logStub).asCallback((err) => {
-          expect(err).to.be.an.instanceOf(TaskFatalError)
+          expect(err).to.be.an.instanceOf(WorkerStopError)
           done()
         })
       })

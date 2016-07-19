@@ -9,25 +9,25 @@ const monitor = require('monitor-dog')
 
 const log = require('./lib/logger')()
 const rabbitmq = require('./lib/rabbitmq')
+const workerServer = require('./lib/worker-server')
 
 module.exports = class Server {
   /**
    * Listen for events from Docker and publish to rabbitmq
    * @param {String} port
-   * @param {Function} cb
+   * @return {Promise}
    */
-  static start (port, cb) {
+  static start (port) {
     log.info({ port: port }, 'Server.prototype.start')
     monitor.startSocketsMonitor()
-    rabbitmq.connect((err) => {
-      if (err) {
-        log.error({ err: err }, 'start: error connecting to rabbit')
-        return cb(err)
-      }
-      log.trace('start: rabbitmq connected')
-
-      rabbitmq.createStreamConnectJob('swarm', process.env.SWARM_HOST, null)
-      cb()
-    })
+    rabbitmq.connect()
+      .then(() => {
+        log.info('rabbimq publisher started')
+        return workerServer.start()
+          .then(() => {
+            log.info('all components started')
+            rabbitmq.createStreamConnectJob('swarm', process.env.SWARM_HOST, null)
+          })
+      })
   }
 }

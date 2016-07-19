@@ -3,7 +3,7 @@
 const Code = require('code')
 const Lab = require('lab')
 const sinon = require('sinon')
-const TaskFatalError = require('ponos').TaskFatalError
+const WorkerStopError = require('error-cat/errors/worker-stop-error')
 
 const Swarm = require('@runnable/loki').Swarm
 const DockerEventsSteamConnect = require('../../../lib/workers/docker.events-stream.connect.js')
@@ -69,9 +69,9 @@ describe('docker.events-stream.connect unit test', () => {
     })
   })
 
-  it('should TaskFatalError if invalid job', (done) => {
+  it('should WorkerStopError if invalid job', (done) => {
     DockerEventsSteamConnect({}).asCallback((err) => {
-      expect(err).to.be.an.instanceOf(TaskFatalError)
+      expect(err).to.be.an.instanceOf(WorkerStopError)
       done()
     })
   })

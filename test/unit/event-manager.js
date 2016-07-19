@@ -4,7 +4,7 @@ require('loadenv')()
 const Code = require('code')
 const Lab = require('lab')
 const sinon = require('sinon')
-const TaskFatalError = require('ponos').TaskFatalError
+const WorkerStopError = require('error-cat/errors/worker-stop-error')
 
 const eventManager = require('../../lib/event-manager')
 const Listener = require('../../lib/listener')
@@ -94,7 +94,7 @@ describe('event-manager.js unit test', () => {
           eventManager._throwIfConnected({
             isDisconnected: sinon.stub().returns(false)
           })
-        }).to.throw(TaskFatalError)
+        }).to.throw(WorkerStopError)
         done()
       })
 
