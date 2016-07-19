@@ -373,7 +373,7 @@ describe('docker event publish', () => {
         error.statusCode = 404
         expect(() => {
           DockerEventPublish._handleInspectError('test', error, logStub)
-        }).to.throw(WorkerStopError, 'docker.event.publish: Docker error')
+        }).to.throw(WorkerStopError, 'Docker error')
         done()
       })
 

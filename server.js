@@ -20,7 +20,7 @@ module.exports = class Server {
   static start (port) {
     log.info({ port: port }, 'Server.prototype.start')
     monitor.startSocketsMonitor()
-    rabbitmq.connect()
+    return rabbitmq.connect()
       .then(() => {
         log.info('rabbimq publisher started')
         return workerServer.start()

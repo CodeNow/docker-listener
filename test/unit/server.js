@@ -4,7 +4,8 @@ const Code = require('code')
 const Lab = require('lab')
 const monitor = require('monitor-dog')
 const sinon = require('sinon')
-
+const Promise = require('bluebird')
+require('sinon-as-promised')(Promise)
 const rabbitmq = require('../../lib/rabbitmq.js')
 const Server = require('../../server.js')
 
@@ -34,7 +35,7 @@ describe('server.js unit test', () => {
 
     it('should startup all services', (done) => {
       monitor.startSocketsMonitor.returns()
-      rabbitmq.connect.yieldsAsync()
+      rabbitmq.connect.resolves()
       rabbitmq.createStreamConnectJob.returns()
 
       Server.start(3000).asCallback((err) => {
@@ -49,7 +50,7 @@ describe('server.js unit test', () => {
 
     it('should fail if rabbit failed to connect', (done) => {
       const testErr = new Error('rabbitmq error')
-      rabbitmq.connect.yieldsAsync(testErr)
+      rabbitmq.connect.rejects(testErr)
 
       Server.start(3000).asCallback((err) => {
         expect(err).to.equal(testErr)
