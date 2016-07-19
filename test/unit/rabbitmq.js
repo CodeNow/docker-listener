@@ -13,59 +13,59 @@ const it = lab.it
 describe('rabbitmq.js unit test', () => {
   describe('publish', () => {
     beforeEach((done) => {
-      sinon.stub(rabbitmq, 'publishToQueue')
+      sinon.stub(rabbitmq, 'publishTask')
       done()
     })
 
     afterEach((done) => {
-      rabbitmq.publishToQueue.restore()
+      rabbitmq.publishTask.restore()
       done()
     })
 
     it('should publish job', (done) => {
       const testData = { some: 'data' }
       rabbitmq.publish('thename', testData)
-      sinon.assert.calledOnce(rabbitmq.publishToQueue)
-      sinon.assert.calledWith(rabbitmq.publishToQueue, 'thename', testData)
+      sinon.assert.calledOnce(rabbitmq.publishTask)
+      sinon.assert.calledWith(rabbitmq.publishTask, 'thename', testData)
       done()
     })
   }) // end publish
 
   describe('createPublishJob', () => {
     beforeEach((done) => {
-      sinon.stub(rabbitmq, 'publishToQueue')
+      sinon.stub(rabbitmq, 'publishTask')
       done()
     })
 
     afterEach((done) => {
-      rabbitmq.publishToQueue.restore()
+      rabbitmq.publishTask.restore()
       done()
     })
 
     it('should publish job', (done) => {
       const testData = { some: 'data' }
       rabbitmq.createPublishJob(testData)
-      sinon.assert.calledOnce(rabbitmq.publishToQueue)
-      sinon.assert.calledWith(rabbitmq.publishToQueue, 'docker.event.publish', testData)
+      sinon.assert.calledOnce(rabbitmq.publishTask)
+      sinon.assert.calledWith(rabbitmq.publishTask, 'docker.event.publish', testData)
       done()
     })
   }) // end createPublishJob
 
   describe('createConnectedJob', () => {
     beforeEach((done) => {
-      sinon.stub(rabbitmq, 'publishToQueue')
+      sinon.stub(rabbitmq, 'publishTask')
       done()
     })
 
     afterEach((done) => {
-      rabbitmq.publishToQueue.restore()
+      rabbitmq.publishTask.restore()
       done()
     })
 
     it('should publish job', (done) => {
       rabbitmq.createConnectedJob('type', 'host', 'org')
-      sinon.assert.calledOnce(rabbitmq.publishToQueue)
-      sinon.assert.calledWith(rabbitmq.publishToQueue, 'type.events-stream.connected', {
+      sinon.assert.calledOnce(rabbitmq.publishTask)
+      sinon.assert.calledWith(rabbitmq.publishTask, 'type.events-stream.connected', {
         host: 'http://host',
         org: 'org',
         tags: 'org'
@@ -76,19 +76,19 @@ describe('rabbitmq.js unit test', () => {
 
   describe('createDisconnectedJob', () => {
     beforeEach((done) => {
-      sinon.stub(rabbitmq, 'publishToQueue')
+      sinon.stub(rabbitmq, 'publishTask')
       done()
     })
 
     afterEach((done) => {
-      rabbitmq.publishToQueue.restore()
+      rabbitmq.publishTask.restore()
       done()
     })
 
     it('should publish job', (done) => {
       rabbitmq.createDisconnectedJob('host', 'org')
-      sinon.assert.calledOnce(rabbitmq.publishToQueue)
-      sinon.assert.calledWith(rabbitmq.publishToQueue, 'docker.events-stream.disconnected', {
+      sinon.assert.calledOnce(rabbitmq.publishTask)
+      sinon.assert.calledWith(rabbitmq.publishTask, 'docker.events-stream.disconnected', {
         host: 'http://host',
         org: 'org'
       })
@@ -98,19 +98,19 @@ describe('rabbitmq.js unit test', () => {
 
   describe('createStreamConnectJob', () => {
     beforeEach((done) => {
-      sinon.stub(rabbitmq, 'publishToQueue')
+      sinon.stub(rabbitmq, 'publishTask')
       done()
     })
 
     afterEach((done) => {
-      rabbitmq.publishToQueue.restore()
+      rabbitmq.publishTask.restore()
       done()
     })
 
     it('should publish job', (done) => {
       rabbitmq.createStreamConnectJob('type', 'host', 'org')
-      sinon.assert.calledOnce(rabbitmq.publishToQueue)
-      sinon.assert.calledWith(rabbitmq.publishToQueue, 'type.events-stream.connect', {
+      sinon.assert.calledOnce(rabbitmq.publishTask)
+      sinon.assert.calledWith(rabbitmq.publishTask, 'type.events-stream.connect', {
         host: 'host',
         org: 'org'
       })
