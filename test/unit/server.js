@@ -4,8 +4,10 @@ const Code = require('code')
 const Lab = require('lab')
 const monitor = require('monitor-dog')
 const sinon = require('sinon')
-
+const Promise = require('bluebird')
+require('sinon-as-promised')(Promise)
 const rabbitmq = require('../../lib/rabbitmq.js')
+const workerServer = require('../../lib/worker-server.js')
 const Server = require('../../server.js')
 
 const lab = exports.lab = Lab.script()
@@ -19,9 +21,10 @@ const it = lab.it
 describe('server.js unit test', () => {
   describe('start', () => {
     beforeEach((done) => {
-      sinon.stub(monitor, 'startSocketsMonitor')
-      sinon.stub(rabbitmq, 'connect')
-      sinon.stub(rabbitmq, 'createStreamConnectJob')
+      sinon.stub(monitor, 'startSocketsMonitor').returns()
+      sinon.stub(rabbitmq, 'connect').resolves()
+      sinon.stub(rabbitmq, 'createStreamConnectJob').returns()
+      sinon.stub(workerServer, 'start').resolves()
       done()
     })
 
@@ -29,19 +32,17 @@ describe('server.js unit test', () => {
       monitor.startSocketsMonitor.restore()
       rabbitmq.connect.restore()
       rabbitmq.createStreamConnectJob.restore()
+      workerServer.start.restore()
       done()
     })
 
     it('should startup all services', (done) => {
-      monitor.startSocketsMonitor.returns()
-      rabbitmq.connect.yieldsAsync()
-      rabbitmq.createStreamConnectJob.returns()
-
-      Server.start(3000, (err) => {
+      Server.start(3000).asCallback((err) => {
         if (err) { return done(err) }
 
         sinon.assert.calledOnce(monitor.startSocketsMonitor)
         sinon.assert.calledOnce(rabbitmq.connect)
+        sinon.assert.calledOnce(workerServer.start)
         sinon.assert.calledOnce(rabbitmq.createStreamConnectJob)
         done()
       })
@@ -49,13 +50,29 @@ describe('server.js unit test', () => {
 
     it('should fail if rabbit failed to connect', (done) => {
       const testErr = new Error('rabbitmq error')
-      rabbitmq.connect.yieldsAsync(testErr)
+      rabbitmq.connect.rejects(testErr)
 
-      Server.start(3000, (err) => {
+      Server.start(3000).asCallback((err) => {
         expect(err).to.equal(testErr)
 
         sinon.assert.calledOnce(monitor.startSocketsMonitor)
         sinon.assert.calledOnce(rabbitmq.connect)
+        sinon.assert.notCalled(workerServer.start)
+        sinon.assert.notCalled(rabbitmq.createStreamConnectJob)
+        done()
+      })
+    })
+
+    it('should fail if workerServer failed to start', (done) => {
+      const testErr = new Error('rabbitmq error')
+      workerServer.start.rejects(testErr)
+
+      Server.start(3000).asCallback((err) => {
+        expect(err).to.equal(testErr)
+
+        sinon.assert.calledOnce(monitor.startSocketsMonitor)
+        sinon.assert.calledOnce(rabbitmq.connect)
+        sinon.assert.calledOnce(workerServer.start)
         sinon.assert.notCalled(rabbitmq.createStreamConnectJob)
         done()
       })

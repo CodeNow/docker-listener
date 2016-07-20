@@ -41,15 +41,15 @@
     "bluebird": "^3.3.4",
     "bunyan": "^1.7.1",
     "callsite": "^1.0.0",
-    "error-cat": "^2.0.4",
+    "continuation-local-storage": "^3.1.7",
+    "error-cat": "^3.0.0",
     "joi": "^8.0.4",
     "keypather": "^1.10.2",
     "loadenv": "^2.1.0",
     "@runnable/loki": "^1.1.8",
     "monitor-dog": "^1.5.0",
     "node-uuid": "^1.4.7",
-    "ponos": "^2.0.0",
-    "runnable-hermes": "^6.6.0"
+    "ponos": "^4.2.1"
   },
   "devDependencies": {
     "code": "^2.1.0",

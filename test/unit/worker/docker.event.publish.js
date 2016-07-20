@@ -6,7 +6,7 @@ const defaults = require('101/defaults')
 const Lab = require('lab')
 const Promise = require('bluebird')
 const sinon = require('sinon')
-const TaskFatalError = require('ponos').TaskFatalError
+const WorkerStopError = require('error-cat/errors/worker-stop-error')
 
 const DockerClient = require('@runnable/loki')._BaseClient
 const Swarm = require('@runnable/loki').Swarm
@@ -118,9 +118,9 @@ describe('docker event publish', () => {
       done()
     })
 
-    it('should be TaskFatalError if invalid data', (done) => {
+    it('should be WorkerStopError if invalid data', (done) => {
       DockerEventPublish({}).asCallback((err) => {
-        expect(err).to.be.an.instanceOf(TaskFatalError)
+        expect(err).to.be.an.instanceOf(WorkerStopError)
         done()
       })
     })
@@ -194,7 +194,8 @@ describe('docker event publish', () => {
 
   describe('_handlePublish', function () {
     beforeEach((done) => {
-      sinon.stub(rabbitmq, 'publish')
+      sinon.stub(rabbitmq, 'publishEvent')
+      sinon.stub(rabbitmq, 'publishTask')
       sinon.stub(rabbitmq, 'createStreamConnectJob')
       sinon.stub(DockerEventPublish, '_isUserContainer')
       sinon.stub(DockerEventPublish, '_isBuildContainer')
@@ -203,7 +204,8 @@ describe('docker event publish', () => {
     })
 
     afterEach((done) => {
-      rabbitmq.publish.restore()
+      rabbitmq.publishEvent.restore()
+      rabbitmq.publishTask.restore()
       rabbitmq.createStreamConnectJob.restore()
       DockerEventPublish._isUserContainer.restore()
       DockerEventPublish._isBuildContainer.restore()
@@ -220,8 +222,8 @@ describe('docker event publish', () => {
 
       DockerEventPublish._handlePublish(payload)
 
-      sinon.assert.calledOnce(rabbitmq.publish)
-      sinon.assert.calledWith(rabbitmq.publish, 'on-instance-container-create', payload)
+      sinon.assert.calledOnce(rabbitmq.publishTask)
+      sinon.assert.calledWith(rabbitmq.publishTask, 'on-instance-container-create', payload)
       done()
     })
 
@@ -235,8 +237,8 @@ describe('docker event publish', () => {
 
       DockerEventPublish._handlePublish(payload)
 
-      sinon.assert.calledOnce(rabbitmq.publish)
-      sinon.assert.calledWith(rabbitmq.publish, 'on-image-builder-container-create', payload)
+      sinon.assert.calledOnce(rabbitmq.publishTask)
+      sinon.assert.calledWith(rabbitmq.publishTask, 'on-image-builder-container-create', payload)
       done()
     })
 
@@ -249,7 +251,8 @@ describe('docker event publish', () => {
 
       DockerEventPublish._handlePublish(payload)
 
-      sinon.assert.notCalled(rabbitmq.publish)
+      sinon.assert.notCalled(rabbitmq.publishEvent)
+      sinon.assert.notCalled(rabbitmq.publishTask)
       sinon.assert.notCalled(rabbitmq.createStreamConnectJob)
       done()
     })
@@ -261,8 +264,8 @@ describe('docker event publish', () => {
       }
       DockerEventPublish._handlePublish(payload)
 
-      sinon.assert.calledOnce(rabbitmq.publish)
-      sinon.assert.calledWith(rabbitmq.publish, 'container.life-cycle.started', payload)
+      sinon.assert.calledOnce(rabbitmq.publishEvent)
+      sinon.assert.calledWith(rabbitmq.publishEvent, 'container.life-cycle.started', payload)
       done()
     })
 
@@ -275,9 +278,10 @@ describe('docker event publish', () => {
 
       DockerEventPublish._handlePublish(payload)
 
-      sinon.assert.calledTwice(rabbitmq.publish)
-      sinon.assert.calledWith(rabbitmq.publish, 'on-instance-container-die', payload)
-      sinon.assert.calledWith(rabbitmq.publish, 'container.life-cycle.died', payload)
+      sinon.assert.calledOnce(rabbitmq.publishTask)
+      sinon.assert.calledWith(rabbitmq.publishTask, 'on-instance-container-die', payload)
+      sinon.assert.calledOnce(rabbitmq.publishEvent)
+      sinon.assert.calledWith(rabbitmq.publishEvent, 'container.life-cycle.died', payload)
       done()
     })
 
@@ -291,9 +295,10 @@ describe('docker event publish', () => {
 
       DockerEventPublish._handlePublish(payload)
 
-      sinon.assert.calledTwice(rabbitmq.publish)
-      sinon.assert.calledWith(rabbitmq.publish, 'on-image-builder-container-die', payload)
-      sinon.assert.calledWith(rabbitmq.publish, 'container.life-cycle.died', payload)
+      sinon.assert.calledOnce(rabbitmq.publishTask)
+      sinon.assert.calledWith(rabbitmq.publishTask, 'on-image-builder-container-die', payload)
+      sinon.assert.calledOnce(rabbitmq.publishEvent)
+      sinon.assert.calledWith(rabbitmq.publishEvent, 'container.life-cycle.died', payload)
       done()
     })
 
@@ -307,8 +312,8 @@ describe('docker event publish', () => {
 
       DockerEventPublish._handlePublish(payload)
 
-      sinon.assert.calledOnce(rabbitmq.publish)
-      sinon.assert.calledWith(rabbitmq.publish, 'container.life-cycle.died', payload)
+      sinon.assert.calledOnce(rabbitmq.publishEvent)
+      sinon.assert.calledWith(rabbitmq.publishEvent, 'container.life-cycle.died', payload)
       done()
     })
 
@@ -334,7 +339,8 @@ describe('docker event publish', () => {
       DockerEventPublish._handlePublish(payload)
 
       sinon.assert.notCalled(rabbitmq.createStreamConnectJob)
-      sinon.assert.notCalled(rabbitmq.publish)
+      sinon.assert.notCalled(rabbitmq.publishTask)
+      sinon.assert.notCalled(rabbitmq.publishEvent)
       done()
     })
 
@@ -348,7 +354,8 @@ describe('docker event publish', () => {
       DockerEventPublish._handlePublish(payload, logStub)
 
       sinon.assert.notCalled(rabbitmq.createStreamConnectJob)
-      sinon.assert.notCalled(rabbitmq.publish)
+      sinon.assert.notCalled(rabbitmq.publishTask)
+      sinon.assert.notCalled(rabbitmq.publishEvent)
       sinon.assert.calledOnce(logStub.error)
       done()
     })
@@ -373,7 +380,7 @@ describe('docker event publish', () => {
         error.statusCode = 404
         expect(() => {
           DockerEventPublish._handleInspectError('test', error, logStub)
-        }).to.throw(TaskFatalError, 'docker.event.publish: Docker error')
+        }).to.throw(WorkerStopError, 'Docker error')
         done()
       })
 
@@ -396,11 +403,11 @@ describe('docker event publish', () => {
         })
       })
 
-      it('should throw TaskFatalError error if host !exists', (done) => {
+      it('should throw WorkerStopError error if host !exists', (done) => {
         const testErr = new Error('hooligan')
         Swarm.prototype.swarmHostExistsAsync.returns(Promise.resolve(false))
         DockerEventPublish._handleInspectError('host', testErr, logStub).asCallback((err) => {
-          expect(err).to.be.an.instanceOf(TaskFatalError)
+          expect(err).to.be.an.instanceOf(WorkerStopError)
           done()
         })
       })
