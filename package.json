@@ -46,7 +46,7 @@
     "joi": "^8.0.4",
     "keypather": "^1.10.2",
     "loadenv": "^2.1.0",
-    "@runnable/loki": "^1.1.8",
+    "@runnable/loki": "^3.0.0",
     "monitor-dog": "^1.5.0",
     "node-uuid": "^1.4.7",
     "ponos": "^4.2.1"
