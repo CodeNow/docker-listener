@@ -5,7 +5,6 @@
 'use strict';
 require('loadenv')();
 
-var execSync = require('exec-sync');
 var monitor = require('monitor-dog');
 var noop = require('101/noop');
 
@@ -19,8 +18,6 @@ module.exports = {
   stop: stop
 };
 
-process.env.VERSION_GIT_COMMIT = execSync('git rev-parse HEAD');
-process.env.VERSION_GIT_BRANCH = execSync('git rev-parse --abbrev-ref HEAD');
 var server;
 var listener;
 
