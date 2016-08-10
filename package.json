@@ -49,7 +49,7 @@
     "@runnable/loki": "^3.0.0",
     "monitor-dog": "^1.5.0",
     "node-uuid": "^1.4.7",
-    "ponos": "^4.2.1"
+    "ponos": "^4.5.0"
   },
   "devDependencies": {
     "code": "^2.1.0",

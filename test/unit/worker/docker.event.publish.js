@@ -10,7 +10,7 @@ const WorkerStopError = require('error-cat/errors/worker-stop-error')
 
 const DockerClient = require('@runnable/loki')._BaseClient
 const Swarm = require('@runnable/loki').Swarm
-const DockerEventPublish = require('../../../lib/workers/docker.event.publish.js')
+const DockerEventPublish = require('../../../lib/workers/docker.event.publish.js').task
 const rabbitmq = require('../../../lib/rabbitmq')
 const sinceMap = require('../../../lib/since-map')
 
@@ -118,12 +118,6 @@ describe('docker event publish', () => {
       done()
     })
 
-    it('should be WorkerStopError if invalid data', (done) => {
-      DockerEventPublish({}).asCallback((err) => {
-        expect(err).to.be.an.instanceOf(WorkerStopError)
-        done()
-      })
-    })
 
     it('should set sinceMap', (done) => {
       const testJob = eventMock()
