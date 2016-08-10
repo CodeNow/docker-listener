@@ -118,7 +118,6 @@ describe('docker event publish', () => {
       done()
     })
 
-
     it('should set sinceMap', (done) => {
       const testJob = eventMock()
       DockerClient.prototype.inspectContainerAsync.returns(Promise.resolve())

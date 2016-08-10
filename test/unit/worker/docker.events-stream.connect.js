@@ -3,10 +3,9 @@
 const Code = require('code')
 const Lab = require('lab')
 const sinon = require('sinon')
-const WorkerStopError = require('error-cat/errors/worker-stop-error')
 
 const Swarm = require('@runnable/loki').Swarm
-const DockerEventsSteamConnect = require('../../../lib/workers/docker.events-stream.connect.js')
+const DockerEventsSteamConnect = require('../../../lib/workers/docker.events-stream.connect.js').task
 const eventManager = require('../../../lib/event-manager')
 const rabbitmq = require('../../../lib/rabbitmq')
 const sinceMap = require('../../../lib/since-map')
@@ -16,7 +15,6 @@ const lab = exports.lab = Lab.script()
 const afterEach = lab.afterEach
 const beforeEach = lab.beforeEach
 const describe = lab.experiment
-const expect = Code.expect
 const it = lab.test
 
 describe('docker.events-stream.connect unit test', () => {
@@ -65,13 +63,6 @@ describe('docker.events-stream.connect unit test', () => {
       sinon.assert.calledWith(eventManager.removeDockListener, testHost)
       sinon.assert.calledOnce(rabbitmq.createDisconnectedJob)
       sinon.assert.calledWith(rabbitmq.createDisconnectedJob, testHost, testOrg)
-      done()
-    })
-  })
-
-  it('should WorkerStopError if invalid job', (done) => {
-    DockerEventsSteamConnect({}).asCallback((err) => {
-      expect(err).to.be.an.instanceOf(WorkerStopError)
       done()
     })
   })
