@@ -324,19 +324,6 @@ describe('docker event publish', () => {
       done()
     })
 
-    it('should do nothing for top', (done) => {
-      const payload = {
-        status: 'top'
-      }
-
-      DockerEventPublish._handlePublish(payload)
-
-      sinon.assert.notCalled(rabbitmq.createStreamConnectJob)
-      sinon.assert.notCalled(rabbitmq.publishTask)
-      sinon.assert.notCalled(rabbitmq.publishEvent)
-      done()
-    })
-
     it('should log error for unknown', (done) => {
       const payload = {
         status: 'fake'
