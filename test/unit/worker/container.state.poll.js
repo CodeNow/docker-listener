@@ -9,7 +9,7 @@ require('sinon-as-promised')(Promise)
 
 const clone = require('101/clone')
 const DockerClient = require('@runnable/loki')._BaseClient
-const DockerContainerPoll = require('../../../lib/workers/docker.container.poll.js').task
+const ContainerStatePoll = require('../../../lib/workers/container.state.poll.js').task
 const rabbitmq = require('../../../lib/rabbitmq')
 const dockerUtils = require('../../../lib/docker-utils')
 
@@ -50,7 +50,7 @@ describe('docker container poll', () => {
 
     it('should call inspect', (done) => {
       DockerClient.prototype.inspectContainerAsync.resolves(testInspectData)
-      DockerContainerPoll(testJob).asCallback((err) => {
+      ContainerStatePoll(testJob).asCallback((err) => {
         if (err) { return done(err) }
         expect(testJob.inspectData).to.equal(testInspectData)
         sinon.assert.calledOnce(DockerClient.prototype.inspectContainerAsync)
@@ -62,7 +62,7 @@ describe('docker container poll', () => {
     it('should handle inspect error', function (done) {
       const testError = new Error('baaam')
       DockerClient.prototype.inspectContainerAsync.rejects(testError)
-      DockerContainerPoll(testJob).asCallback((err) => {
+      ContainerStatePoll(testJob).asCallback((err) => {
         if (err) { return done(err) }
         sinon.assert.calledOnce(dockerUtils._handleInspectError)
         sinon.assert.calledWith(dockerUtils._handleInspectError, testJob.Host, testError, sinon.match.object)
@@ -74,10 +74,10 @@ describe('docker container poll', () => {
       const newJob = clone(testJob)
       newJob.inspectData = testInspectData
       DockerClient.prototype.inspectContainerAsync.resolves(testInspectData)
-      DockerContainerPoll(testJob).asCallback((err) => {
+      ContainerStatePoll(testJob).asCallback((err) => {
         if (err) { return done(err) }
         sinon.assert.calledOnce(rabbitmq.publishEvent)
-        sinon.assert.calledWithMatch(rabbitmq.publishEvent, 'instance.container.polled', newJob)
+        sinon.assert.calledWithMatch(rabbitmq.publishEvent, 'container.state.polled', newJob)
         done()
       })
     })
