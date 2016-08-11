@@ -6,10 +6,8 @@ const defaults = require('101/defaults')
 const Lab = require('lab')
 const Promise = require('bluebird')
 const sinon = require('sinon')
-const WorkerStopError = require('error-cat/errors/worker-stop-error')
 
 const DockerClient = require('@runnable/loki')._BaseClient
-const Swarm = require('@runnable/loki').Swarm
 const DockerEventPublish = require('../../../lib/workers/docker.event.publish.js').task
 const rabbitmq = require('../../../lib/rabbitmq')
 const sinceMap = require('../../../lib/since-map')
