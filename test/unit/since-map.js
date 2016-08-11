@@ -15,35 +15,35 @@ const it = lab.it
 
 describe('since-map.js unit test', () => {
   beforeEach((done) => {
-    sinceMap.map = {}
+    sinceMap.clear()
     done()
   })
 
   describe('set', () => {
     it('should set time on new key', (done) => {
       sinceMap.set('a', 10)
-      expect(sinceMap.map.a).to.equal(10)
+      expect(sinceMap.get('a')).to.equal(10)
       done()
     })
 
     it('should update existing key', (done) => {
-      sinceMap.map.a = 5
+      sinceMap.set('a', 5)
       sinceMap.set('a', 10)
-      expect(sinceMap.map.a).to.equal(10)
+      expect(sinceMap.get('a')).to.equal(10)
       done()
     })
 
     it('should update existing key only if greater', (done) => {
-      sinceMap.map.a = 15
+      sinceMap.set('a', 15)
       sinceMap.set('a', 10)
-      expect(sinceMap.map.a).to.equal(15)
+      expect(sinceMap.get('a')).to.equal(15)
       done()
     })
   }) // end set
 
   describe('get', () => {
     it('should get mapping', (done) => {
-      sinceMap.map.a = 10
+      sinceMap.set('a', 10)
       expect(sinceMap.get('a')).to.equal(10)
       done()
     })
@@ -56,9 +56,9 @@ describe('since-map.js unit test', () => {
 
   describe('delete', () => {
     it('should delete key', (done) => {
-      sinceMap.map.a = 10
+      sinceMap.set('a', 10)
       sinceMap.delete('a')
-      expect(sinceMap.a).to.be.undefined()
+      expect(sinceMap.get('a')).to.be.undefined()
       done()
     })
   }) // end delete

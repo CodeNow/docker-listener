@@ -10,7 +10,7 @@ const WorkerStopError = require('error-cat/errors/worker-stop-error')
 
 const DockerClient = require('@runnable/loki')._BaseClient
 const Swarm = require('@runnable/loki').Swarm
-const DockerEventPublish = require('../../../lib/workers/docker.event.publish.js')
+const DockerEventPublish = require('../../../lib/workers/docker.event.publish.js').task
 const rabbitmq = require('../../../lib/rabbitmq')
 const sinceMap = require('../../../lib/since-map')
 
@@ -116,13 +116,6 @@ describe('docker event publish', () => {
       DockerEventPublish._handlePublish.restore()
       sinceMap.set.restore()
       done()
-    })
-
-    it('should be WorkerStopError if invalid data', (done) => {
-      DockerEventPublish({}).asCallback((err) => {
-        expect(err).to.be.an.instanceOf(WorkerStopError)
-        done()
-      })
     })
 
     it('should set sinceMap', (done) => {
@@ -328,19 +321,6 @@ describe('docker event publish', () => {
 
       sinon.assert.calledOnce(rabbitmq.createStreamConnectJob)
       sinon.assert.calledWith(rabbitmq.createStreamConnectJob, 'docker', payload.Host, payload.org)
-      done()
-    })
-
-    it('should do nothing for top', (done) => {
-      const payload = {
-        status: 'top'
-      }
-
-      DockerEventPublish._handlePublish(payload)
-
-      sinon.assert.notCalled(rabbitmq.createStreamConnectJob)
-      sinon.assert.notCalled(rabbitmq.publishTask)
-      sinon.assert.notCalled(rabbitmq.publishEvent)
       done()
     })
 
