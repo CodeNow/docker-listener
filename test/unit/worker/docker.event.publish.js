@@ -13,6 +13,7 @@ const Swarm = require('@runnable/loki').Swarm
 const DockerEventPublish = require('../../../lib/workers/docker.event.publish.js').task
 const rabbitmq = require('../../../lib/rabbitmq')
 const sinceMap = require('../../../lib/since-map')
+const dockerUtils = require('../../../lib/docker-utils')
 
 const lab = exports.lab = Lab.script()
 
@@ -104,7 +105,7 @@ describe('docker event publish', () => {
   describe('worker', () => {
     beforeEach((done) => {
       sinon.stub(DockerClient.prototype, 'inspectContainerAsync')
-      sinon.stub(DockerEventPublish, '_handleInspectError')
+      sinon.stub(dockerUtils, '_handleInspectError')
       sinon.stub(DockerEventPublish, '_handlePublish')
       sinon.stub(sinceMap, 'set')
       done()
@@ -112,7 +113,7 @@ describe('docker event publish', () => {
 
     afterEach((done) => {
       DockerClient.prototype.inspectContainerAsync.restore()
-      DockerEventPublish._handleInspectError.restore()
+      dockerUtils._handleInspectError.restore()
       DockerEventPublish._handlePublish.restore()
       sinceMap.set.restore()
       done()
@@ -166,8 +167,8 @@ describe('docker event publish', () => {
       DockerEventPublish(testJob).asCallback((err) => {
         if (err) { return done(err) }
 
-        sinon.assert.calledOnce(DockerEventPublish._handleInspectError)
-        sinon.assert.calledWith(DockerEventPublish._handleInspectError, testJob.Host, testError, sinon.match.object)
+        sinon.assert.calledOnce(dockerUtils._handleInspectError)
+        sinon.assert.calledWith(dockerUtils._handleInspectError, testJob.Host, testError, sinon.match.object)
         done()
       })
     })
@@ -339,58 +340,5 @@ describe('docker event publish', () => {
       sinon.assert.calledOnce(logStub.error)
       done()
     })
-
-    describe('_handleInspectError', function () {
-      const logStub = {
-        trace: sinon.spy(),
-        error: sinon.spy()
-      }
-      beforeEach((done) => {
-        sinon.stub(Swarm.prototype, 'swarmHostExistsAsync')
-        done()
-      })
-
-      afterEach((done) => {
-        Swarm.prototype.swarmHostExistsAsync.restore()
-        done()
-      })
-
-      it('should fail fatally if 404 error', (done) => {
-        const error = new Error('Docker error')
-        error.statusCode = 404
-        expect(() => {
-          DockerEventPublish._handleInspectError('test', error, logStub)
-        }).to.throw(WorkerStopError, 'Docker error')
-        done()
-      })
-
-      it('should throw original error if check host failed', (done) => {
-        const testErr = new Error('bully')
-        testErr.statusCode = 500
-        Swarm.prototype.swarmHostExistsAsync.returns(Promise.reject('reject'))
-        DockerEventPublish._handleInspectError('host', testErr, logStub).asCallback((err) => {
-          expect(err).to.equal(testErr)
-          done()
-        })
-      })
-
-      it('should throw original error if host exists', (done) => {
-        const testErr = new Error('ruffian')
-        Swarm.prototype.swarmHostExistsAsync.returns(Promise.resolve(true))
-        DockerEventPublish._handleInspectError('host', testErr, logStub).asCallback((err) => {
-          expect(err).to.equal(testErr)
-          done()
-        })
-      })
-
-      it('should throw WorkerStopError error if host !exists', (done) => {
-        const testErr = new Error('hooligan')
-        Swarm.prototype.swarmHostExistsAsync.returns(Promise.resolve(false))
-        DockerEventPublish._handleInspectError('host', testErr, logStub).asCallback((err) => {
-          expect(err).to.be.an.instanceOf(WorkerStopError)
-          done()
-        })
-      })
-    }) // end _handleInspectError
   })
 })

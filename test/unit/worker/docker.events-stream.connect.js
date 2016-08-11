@@ -2,7 +2,8 @@
 
 const Lab = require('lab')
 const sinon = require('sinon')
-
+const Promise = require('bluebird')
+require('sinon-as-promised')(Promise)
 const Swarm = require('@runnable/loki').Swarm
 const DockerEventsSteamConnect = require('../../../lib/workers/docker.events-stream.connect.js').task
 const eventManager = require('../../../lib/event-manager')
@@ -43,7 +44,7 @@ describe('docker.events-stream.connect unit test', () => {
   })
 
   it('should startDockListener', (done) => {
-    Swarm.prototype.swarmHostExistsAsync.returns(Promise.resolve(true))
+    Swarm.prototype.swarmHostExistsAsync.resolves(true)
     DockerEventsSteamConnect(testJob).asCallback((err) => {
       if (err) { return done(err) }
       sinon.assert.calledOnce(eventManager.startDockListener)
@@ -53,7 +54,7 @@ describe('docker.events-stream.connect unit test', () => {
   })
 
   it('should removeDockListener and delete map', (done) => {
-    Swarm.prototype.swarmHostExistsAsync.returns(Promise.resolve(false))
+    Swarm.prototype.swarmHostExistsAsync.resolves(false)
     DockerEventsSteamConnect(testJob).asCallback((err) => {
       if (err) { return done(err) }
       sinon.assert.calledOnce(sinceMap.delete)
