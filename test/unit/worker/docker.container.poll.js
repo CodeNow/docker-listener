@@ -2,7 +2,6 @@
 require('loadenv')()
 
 const Code = require('code')
-const defaults = require('101/defaults')
 const Lab = require('lab')
 const Promise = require('bluebird')
 const sinon = require('sinon')
@@ -12,7 +11,6 @@ const clone = require('101/clone')
 const DockerClient = require('@runnable/loki')._BaseClient
 const DockerContainerPoll = require('../../../lib/workers/docker.container.poll.js').task
 const rabbitmq = require('../../../lib/rabbitmq')
-const sinceMap = require('../../../lib/since-map')
 const dockerUtils = require('../../../lib/docker-utils')
 
 const lab = exports.lab = Lab.script()
