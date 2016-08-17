@@ -585,14 +585,14 @@ describe('listener unit test', () => {
     describe('isDisconnected', function () {
       it('should return true', function (done) {
         listener.state = 'disconnected'
-        var out = listener.isDisconnected()
+        const out = listener.isDisconnected()
         expect(out).to.be.true()
         done()
       })
 
       it('should return false', function (done) {
         listener.state = 'connected'
-        var out = listener.isDisconnected()
+        const out = listener.isDisconnected()
         expect(out).to.be.false()
         done()
       })

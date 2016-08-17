@@ -4,11 +4,13 @@ require('loadenv')()
 
 const Promise = require('bluebird')
 const errorCat = require('error-cat')
+const Code = require('code')
 const Lab = require('lab')
 const sinon = require('sinon')
 require('sinon-as-promised')(Promise)
 const BaseDockerClient = require('@runnable/loki')._BaseClient
 const SwarmClient = require('@runnable/loki').Swarm
+const WorkerStopError = require('error-cat/errors/worker-stop-error')
 
 const Swarm = require('../../lib/swarm')
 const dockerUtils = require('../../lib/docker-utils')
@@ -19,6 +21,7 @@ const afterEach = lab.afterEach
 const beforeEach = lab.beforeEach
 const describe = lab.experiment
 const it = lab.test
+const expect = Code.expect
 
 describe('swarm unit test', () => {
   let docker
@@ -80,4 +83,57 @@ describe('swarm unit test', () => {
       })
     })
   }) // end testEvent
+
+  describe('_handleInspectError', function () {
+    const logStub = {
+      trace: sinon.spy(),
+      error: sinon.spy()
+    }
+    beforeEach((done) => {
+      sinon.stub(Swarm.prototype, 'swarmHostExistsAsync')
+      done()
+    })
+
+    afterEach((done) => {
+      Swarm.prototype.swarmHostExistsAsync.restore()
+      done()
+    })
+
+    it('should fail fatally if 404 error', (done) => {
+      const error = new Error('Docker error')
+      error.statusCode = 404
+      expect(() => {
+        dockerUtils._handleInspectError('test', error, logStub)
+      }).to.throw(WorkerStopError, 'Docker error')
+      done()
+    })
+
+    it('should throw original error if check host failed', (done) => {
+      const testErr = new Error('bully')
+      testErr.statusCode = 500
+      Swarm.prototype.swarmHostExistsAsync.returns(Promise.reject('reject'))
+      dockerUtils._handleInspectError('host', testErr, logStub).asCallback((err) => {
+        expect(err).to.equal(testErr)
+        done()
+      })
+    })
+
+    it('should throw original error if host exists', (done) => {
+      const testErr = new Error('ruffian')
+      Swarm.prototype.swarmHostExistsAsync.returns(Promise.resolve(true))
+      dockerUtils._handleInspectError('host', testErr, logStub).asCallback((err) => {
+        expect(err).to.equal(testErr)
+        done()
+      })
+    })
+
+    it('should throw WorkerStopError error if host !exists', (done) => {
+      const testErr = new Error('hooligan')
+      Swarm.prototype.swarmHostExistsAsync.returns(Promise.resolve(false))
+      dockerUtils._handleInspectError('host', testErr, logStub).asCallback((err) => {
+        expect(err).to.be.an.instanceOf(WorkerStopError)
+        done()
+      })
+    })
+  }) // end _handleInspectError
 })
