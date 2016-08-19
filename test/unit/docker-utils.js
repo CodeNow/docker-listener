@@ -93,13 +93,13 @@ describe('docker utils unit test', () => {
     }
     beforeEach((done) => {
       sinon.stub(Swarm.prototype, 'swarmHostExistsAsync')
-      sinon.stub(rabbitmq, 'publishEvent')
+      sinon.stub(rabbitmq, 'publishEvent').returns()
       done()
     })
 
     afterEach((done) => {
       Swarm.prototype.swarmHostExistsAsync.restore()
-      rabbitmq.publishEvent.restor()
+      rabbitmq.publishEvent.restore()
       done()
     })
 
@@ -138,7 +138,7 @@ describe('docker utils unit test', () => {
       dockerUtils._handleInspectError('host', testErr, logStub).asCallback((err) => {
         expect(err).to.be.an.instanceOf(WorkerStopError)
         sinon.assert.calledOnce(rabbitmq.publishEvent)
-        sinon.assert.calledWith(rabbitmq.publishEvent, {
+        sinon.assert.calledWith(rabbitmq.publishEvent, 'on-dock-unhealthy', {
           host: 'host'
         })
         done()
