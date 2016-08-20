@@ -12,8 +12,10 @@ const BaseDockerClient = require('@runnable/loki')._BaseClient
 const SwarmClient = require('@runnable/loki').Swarm
 const WorkerStopError = require('error-cat/errors/worker-stop-error')
 
-const Swarm = require('../../lib/swarm')
 const dockerUtils = require('../../lib/docker-utils')
+const rabbitmq = require('../../lib/rabbitmq')
+const Swarm = require('../../lib/swarm')
+
 
 const lab = exports.lab = Lab.script()
 
@@ -23,7 +25,7 @@ const describe = lab.experiment
 const it = lab.test
 const expect = Code.expect
 
-describe('swarm unit test', () => {
+describe('docker utils unit test', () => {
   let docker
   const testHost = '10.0.0.1:4242'
 
@@ -91,11 +93,13 @@ describe('swarm unit test', () => {
     }
     beforeEach((done) => {
       sinon.stub(Swarm.prototype, 'swarmHostExistsAsync')
+      sinon.stub(rabbitmq, 'publishEvent').returns()
       done()
     })
 
     afterEach((done) => {
       Swarm.prototype.swarmHostExistsAsync.restore()
+      rabbitmq.publishEvent.restore()
       done()
     })
 
@@ -123,6 +127,7 @@ describe('swarm unit test', () => {
       Swarm.prototype.swarmHostExistsAsync.returns(Promise.resolve(true))
       dockerUtils._handleInspectError('host', testErr, logStub).asCallback((err) => {
         expect(err).to.equal(testErr)
+        sinon.assert.notCalled(rabbitmq.publishEvent)
         done()
       })
     })
@@ -132,6 +137,10 @@ describe('swarm unit test', () => {
       Swarm.prototype.swarmHostExistsAsync.returns(Promise.resolve(false))
       dockerUtils._handleInspectError('host', testErr, logStub).asCallback((err) => {
         expect(err).to.be.an.instanceOf(WorkerStopError)
+        sinon.assert.calledOnce(rabbitmq.publishEvent)
+        sinon.assert.calledWith(rabbitmq.publishEvent, 'on-dock-unhealthy', {
+          host: 'host'
+        })
         done()
       })
     })
