@@ -138,7 +138,7 @@ describe('docker utils unit test', () => {
       dockerUtils._handleInspectError('host', testErr, logStub).asCallback((err) => {
         expect(err).to.be.an.instanceOf(WorkerStopError)
         sinon.assert.calledOnce(rabbitmq.publishEvent)
-        sinon.assert.calledWith(rabbitmq.publishEvent, 'on-dock-unhealthy', {
+        sinon.assert.calledWith(rabbitmq.publishEvent, 'dock.lost', {
           host: 'host'
         })
         done()
