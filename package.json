@@ -56,6 +56,6 @@
     "rerun-script": "^0.6.0",
     "sinon": "^1.17.3",
     "sinon-as-promised": "^4.0.0",
-    "standard": "^7.1.0"
+    "standard": "^8.0.0"
   }
 }
