@@ -308,8 +308,7 @@ describe('docker event publish', () => {
 
       DockerEventPublish._handlePublish(payload)
 
-      sinon.assert.calledOnce(rabbitmq.publishEvent)
-      sinon.assert.calledWith(rabbitmq.publishEvent, 'container.life-cycle.created', payload)
+      sinon.assert.notCalled(rabbitmq.publishEvent)
       sinon.assert.notCalled(rabbitmq.publishTask)
       sinon.assert.notCalled(rabbitmq.createStreamConnectJob)
       done()
