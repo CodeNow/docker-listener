@@ -211,10 +211,10 @@ describe('docker event publish', () => {
       const testJob = eventMock({
         needsInspect: true
       })
-      const testInspect = { Id: 123 }
+      const testInspect = { State: 123 }
       DockerClient.prototype.inspectContainerAsync.returns(Promise.resolve(testInspect))
       DockerEventPublish(testJob).asCallback((err) => {
-        expect(err.message).to.contain('child "Id" fails because ["Id" must be a string]')
+        expect(err.message).to.contain('child "State" fails because ["State" must be an object]')
         sinon.assert.calledOnce(DockerClient.prototype.inspectContainerAsync)
         sinon.assert.calledWith(DockerClient.prototype.inspectContainerAsync, testJob.id)
         done()
