@@ -234,7 +234,7 @@ describe('docker event publish', () => {
       done()
     })
 
-    it('should publish nothing', (done) => {
+    it('should publish container.life-cycle.created', (done) => {
       const payload = {
         status: 'create'
       }
@@ -243,7 +243,9 @@ describe('docker event publish', () => {
 
       DockerEventPublish._handlePublish(payload)
 
-      sinon.assert.notCalled(rabbitmq.publishEvent)
+      sinon.assert.calledOnce(rabbitmq.publishEvent)
+      sinon.assert.calledWith(rabbitmq.publishEvent, 'container.life-cycle.created', payload)
+
       sinon.assert.notCalled(rabbitmq.publishTask)
       sinon.assert.notCalled(rabbitmq.createStreamConnectJob)
       done()
