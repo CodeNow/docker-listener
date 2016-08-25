@@ -36,26 +36,26 @@
   },
   "homepage": "https://github.com/CodeNow/docker-listener",
   "dependencies": {
-    "101": "^1.5.0",
-    "bluebird": "^3.3.4",
-    "bunyan": "^1.7.1",
+    "101": "^1.6.2",
+    "@runnable/loki": "^3.1.0",
+    "bluebird": "^3.4.3",
+    "bunyan": "^1.8.1",
     "callsite": "^1.0.0",
     "continuation-local-storage": "^3.1.7",
     "error-cat": "^3.0.0",
     "joi": "^9.0.4",
-    "keypather": "^1.10.2",
-    "loadenv": "^2.1.0",
-    "@runnable/loki": "^3.1.0",
+    "keypather": "^2.0.1",
+    "loadenv": "^2.2.0",
     "monitor-dog": "^1.5.0",
     "node-uuid": "^1.4.7",
-    "ponos": "^4.6.0"
+    "ponos": "^5.1.0"
   },
   "devDependencies": {
-    "code": "^2.1.0",
+    "code": "^3.0.2",
     "lab": "^11.0.0",
     "rerun-script": "^0.6.0",
-    "sinon": "^1.17.3",
+    "sinon": "^1.17.5",
     "sinon-as-promised": "^4.0.0",
-    "standard": "^7.1.0"
+    "standard": "^8.0.0"
   }
 }

@@ -52,7 +52,7 @@ describe('swarm unit test', () => {
         if (err) { return done(err) }
         sinon.assert.calledOnce(SwarmClient.prototype.swarmInfoAsync)
 
-        expect(nodes).to.deep.equal([{ id: 1 }, { id: 2 }])
+        expect(nodes).to.equal([{ id: 1 }, { id: 2 }])
         done()
       })
     })
