@@ -299,7 +299,7 @@ describe('docker event publish', () => {
       done()
     })
 
-    it('should publish container.life-cycle.created', (done) => {
+    it('should publish nothing', (done) => {
       const payload = {
         status: 'create'
       }
