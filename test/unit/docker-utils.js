@@ -16,7 +16,6 @@ const dockerUtils = require('../../lib/docker-utils')
 const rabbitmq = require('../../lib/rabbitmq')
 const Swarm = require('../../lib/swarm')
 
-
 const lab = exports.lab = Lab.script()
 
 const afterEach = lab.afterEach
