@@ -139,7 +139,7 @@ describe('docker utils unit test', () => {
         expect(err).to.be.an.instanceOf(WorkerStopError)
         sinon.assert.calledOnce(rabbitmq.publishEvent)
         sinon.assert.calledWith(rabbitmq.publishEvent, 'dock.lost', {
-          host: 'host'
+          host: 'http://host'
         })
         done()
       })
