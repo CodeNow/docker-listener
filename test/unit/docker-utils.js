@@ -16,7 +16,6 @@ const dockerUtils = require('../../lib/docker-utils')
 const rabbitmq = require('../../lib/rabbitmq')
 const Swarm = require('../../lib/swarm')
 
-
 const lab = exports.lab = Lab.script()
 
 const afterEach = lab.afterEach
@@ -144,5 +143,29 @@ describe('docker utils unit test', () => {
         done()
       })
     })
-  }) // end _handleInspectError
+  })
+
+  describe('toDockerHost', () => {
+    it('should convert url to host', (done) => {
+      expect(dockerUtils.toDockerHost('http://10.0.0.1:4242')).to.equal('10.0.0.1:4242')
+      done()
+    })
+
+    it('should return same valid host', (done) => {
+      expect(dockerUtils.toDockerHost('10.0.0.1:4242')).to.equal('10.0.0.1:4242')
+      done()
+    })
+  })
+
+  describe('toDockerUrl', () => {
+    it('should convert host to url', (done) => {
+      expect(dockerUtils.toDockerUrl('10.0.0.1:4242')).to.equal('http://10.0.0.1:4242')
+      done()
+    })
+
+    it('should return same valid url', (done) => {
+      expect(dockerUtils.toDockerUrl('http://10.0.0.1:4242')).to.equal('http://10.0.0.1:4242')
+      done()
+    })
+  })
 })
