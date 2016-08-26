@@ -145,11 +145,76 @@ describe('docker event publish', () => {
       const testJob = eventMock({
         needsInspect: true
       })
-      const testInspect = { cool: 'gear' }
+      const testInspect = { Id: 'gear' }
       DockerClient.prototype.inspectContainerAsync.returns(Promise.resolve(testInspect))
       DockerEventPublish(testJob).asCallback((err) => {
         if (err) { return done(err) }
-        expect(testJob.inspectData).to.equal(testInspect)
+        expect(testJob.inspectData).to.deep.equal(testInspect)
+        sinon.assert.calledOnce(DockerClient.prototype.inspectContainerAsync)
+        sinon.assert.calledWith(DockerClient.prototype.inspectContainerAsync, testJob.id)
+        done()
+      })
+    })
+
+    it('should strip inspect data', (done) => {
+      const testJob = eventMock({
+        needsInspect: true
+      })
+      const testInspect = require('../../fixtures/inspect-data.js')
+      DockerClient.prototype.inspectContainerAsync.returns(Promise.resolve(testInspect))
+      DockerEventPublish(testJob).asCallback((err) => {
+        if (err) { return done(err) }
+        expect(testJob.inspectData).to.deep.equal({
+          Id: 'fa94842f2ee10c18271a0a8037681b54eaf234906e1733191b09dd3cf3513802',
+          Created: '2016-08-23T21:43:41.921631763Z',
+          State: {
+            Status: 'running',
+            Running: true,
+            Paused: false,
+            Restarting: false,
+            OOMKilled: false,
+            Dead: false,
+            ExitCode: 0,
+            Error: '',
+            StartedAt: '2016-08-24T19:55:45.755508303Z',
+            FinishedAt: '2016-08-24T19:55:42.537960861Z'
+          },
+          Image: 'sha256:6f359d21b6893c6a2bba29a33b73ae5892c47962ee47374438a28c2615e3cc04',
+          Name: '/fervent_sammet9',
+          HostConfig: { Memory: 2048000000, MemoryReservation: 128000000 },
+          Config: {
+            Hostname: 'fa94842f2ee1',
+            Env: [
+              'RUNNABLE_CONTAINER_ID=18wjg4',
+              'REDIS_VERSION=3.2.1'
+            ],
+            Image: 'localhost/2335750/57bcc389f970c7140062ab24:57bcc389a124de130050a02c',
+            Labels: {
+              'com-docker-swarm-constraints': '[\'org==2335750\',\'node==~ip-10-4-132-87.2335750\']',
+              type: 'user-container'
+            }
+          },
+          NetworkSettings: {
+            Ports: {
+              '6379/tcp': [{ 'HostIp': '0.0.0.0', 'HostPort': '64821' }]
+            },
+            IPAddress: '172.17.0.3'
+          }
+        })
+        sinon.assert.calledOnce(DockerClient.prototype.inspectContainerAsync)
+        sinon.assert.calledWith(DockerClient.prototype.inspectContainerAsync, testJob.id)
+        done()
+      })
+    })
+
+    it('should error if incorrect inspect', (done) => {
+      const testJob = eventMock({
+        needsInspect: true
+      })
+      const testInspect = { State: 123 }
+      DockerClient.prototype.inspectContainerAsync.returns(Promise.resolve(testInspect))
+      DockerEventPublish(testJob).asCallback((err) => {
+        expect(err.message).to.contain('child "State" fails because ["State" must be an object]')
         sinon.assert.calledOnce(DockerClient.prototype.inspectContainerAsync)
         sinon.assert.calledWith(DockerClient.prototype.inspectContainerAsync, testJob.id)
         done()
