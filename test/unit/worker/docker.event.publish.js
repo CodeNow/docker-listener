@@ -103,7 +103,7 @@ describe('docker event publish', () => {
   describe('worker', () => {
     beforeEach((done) => {
       sinon.stub(DockerClient.prototype, 'inspectContainerAsync')
-      sinon.stub(dockerUtils, '_handleInspectError')
+      sinon.stub(dockerUtils, 'handleInspectError')
       sinon.stub(DockerEventPublish, '_handlePublish')
       sinon.stub(sinceMap, 'set')
       done()
@@ -111,7 +111,7 @@ describe('docker event publish', () => {
 
     afterEach((done) => {
       DockerClient.prototype.inspectContainerAsync.restore()
-      dockerUtils._handleInspectError.restore()
+      dockerUtils.handleInspectError.restore()
       DockerEventPublish._handlePublish.restore()
       sinceMap.set.restore()
       done()
@@ -230,8 +230,8 @@ describe('docker event publish', () => {
       DockerEventPublish(testJob).asCallback((err) => {
         if (err) { return done(err) }
 
-        sinon.assert.calledOnce(dockerUtils._handleInspectError)
-        sinon.assert.calledWith(dockerUtils._handleInspectError, testJob.host, testError, sinon.match.object)
+        sinon.assert.calledOnce(dockerUtils.handleInspectError)
+        sinon.assert.calledWith(dockerUtils.handleInspectError, testJob.host, testError, sinon.match.object)
         done()
       })
     })
