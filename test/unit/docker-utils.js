@@ -85,7 +85,7 @@ describe('docker utils unit test', () => {
     })
   }) // end testEvent
 
-  describe('_handleInspectError', function () {
+  describe('handleInspectError', function () {
     const logStub = {
       trace: sinon.spy(),
       error: sinon.spy()
@@ -106,7 +106,7 @@ describe('docker utils unit test', () => {
       const error = new Error('Docker error')
       error.statusCode = 404
       expect(() => {
-        dockerUtils._handleInspectError('test', error, logStub)
+        dockerUtils.handleInspectError('test', error, logStub)
       }).to.throw(WorkerStopError, 'Docker error')
       done()
     })
@@ -115,7 +115,7 @@ describe('docker utils unit test', () => {
       const testErr = new Error('bully')
       testErr.statusCode = 500
       Swarm.prototype.swarmHostExistsAsync.returns(Promise.reject('reject'))
-      dockerUtils._handleInspectError('host', testErr, logStub).asCallback((err) => {
+      dockerUtils.handleInspectError('host', testErr, logStub).asCallback((err) => {
         expect(err).to.equal(testErr)
         done()
       })
@@ -124,7 +124,7 @@ describe('docker utils unit test', () => {
     it('should throw original error if host exists', (done) => {
       const testErr = new Error('ruffian')
       Swarm.prototype.swarmHostExistsAsync.returns(Promise.resolve(true))
-      dockerUtils._handleInspectError('host', testErr, logStub).asCallback((err) => {
+      dockerUtils.handleInspectError('host', testErr, logStub).asCallback((err) => {
         expect(err).to.equal(testErr)
         sinon.assert.notCalled(rabbitmq.publishEvent)
         done()
@@ -134,7 +134,7 @@ describe('docker utils unit test', () => {
     it('should throw WorkerStopError error if host !exists', (done) => {
       const testErr = new Error('hooligan')
       Swarm.prototype.swarmHostExistsAsync.returns(Promise.resolve(false))
-      dockerUtils._handleInspectError('host', testErr, logStub).asCallback((err) => {
+      dockerUtils.handleInspectError('host', testErr, logStub).asCallback((err) => {
         expect(err).to.be.an.instanceOf(WorkerStopError)
         sinon.assert.calledOnce(rabbitmq.publishEvent)
         sinon.assert.calledWith(rabbitmq.publishEvent, 'dock.lost', {
@@ -142,30 +142,6 @@ describe('docker utils unit test', () => {
         })
         done()
       })
-    })
-  })
-
-  describe('toDockerHost', () => {
-    it('should convert url to host', (done) => {
-      expect(dockerUtils.toDockerHost('http://10.0.0.1:4242')).to.equal('10.0.0.1:4242')
-      done()
-    })
-
-    it('should return same valid host', (done) => {
-      expect(dockerUtils.toDockerHost('10.0.0.1:4242')).to.equal('10.0.0.1:4242')
-      done()
-    })
-  })
-
-  describe('toDockerUrl', () => {
-    it('should convert host to url', (done) => {
-      expect(dockerUtils.toDockerUrl('10.0.0.1:4242')).to.equal('http://10.0.0.1:4242')
-      done()
-    })
-
-    it('should return same valid url', (done) => {
-      expect(dockerUtils.toDockerUrl('http://10.0.0.1:4242')).to.equal('http://10.0.0.1:4242')
-      done()
     })
   })
 })
