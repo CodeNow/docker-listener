@@ -5,7 +5,7 @@ const Lab = require('lab')
 const Promise = require('bluebird')
 const sinon = require('sinon')
 
-const SwarmEventsSteamConnect = require('../../../lib/workers/swarm.events-stream.connect.js')
+const SwarmEventsSteamConnect = require('../../../lib/workers/swarm.events-stream.connect.js').task
 const eventManager = require('../../../lib/event-manager')
 
 const lab = exports.lab = Lab.script()
