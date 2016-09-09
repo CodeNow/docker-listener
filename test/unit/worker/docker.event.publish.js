@@ -40,66 +40,6 @@ const expect = Code.expect
 const it = lab.test
 
 describe('docker event publish', () => {
-  describe('_isUserContainer', () => {
-    it('should return true if user container', (done) => {
-      const data = {
-        inspectData: {
-          Config: {
-            Labels: {
-              type: 'user-container'
-            }
-          }
-        }
-      }
-      expect(DockerEventPublish._isUserContainer(data)).to.be.true()
-      done()
-    })
-
-    it('should return false if not user container', (done) => {
-      const data = {
-        inspectData: {
-          Config: {
-            Labels: {
-              type: 'image-builder-container'
-            }
-          }
-        }
-      }
-      expect(DockerEventPublish._isUserContainer(data)).to.be.false()
-      done()
-    })
-  })
-
-  describe('_isBuildContainer', () => {
-    it('should return true if user container', (done) => {
-      const data = {
-        inspectData: {
-          Config: {
-            Labels: {
-              type: 'image-builder-container'
-            }
-          }
-        }
-      }
-      expect(DockerEventPublish._isBuildContainer(data)).to.be.true()
-      done()
-    })
-
-    it('should return false if not user container', (done) => {
-      const data = {
-        inspectData: {
-          Config: {
-            Labels: {
-              type: 'user-container'
-            }
-          }
-        }
-      }
-      expect(DockerEventPublish._isBuildContainer(data)).to.be.false()
-      done()
-    })
-  })
-
   describe('worker', () => {
     beforeEach((done) => {
       sinon.stub(DockerClient.prototype, 'inspectContainerAsync')
