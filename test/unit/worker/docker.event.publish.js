@@ -127,50 +127,15 @@ describe('docker event publish', () => {
   describe('_handlePublish', function () {
     beforeEach((done) => {
       sinon.stub(rabbitmq, 'publishEvent')
-      sinon.stub(rabbitmq, 'publishTask')
       sinon.stub(rabbitmq, 'createStreamConnectJob')
-      sinon.stub(DockerEventPublish, '_isUserContainer')
-      sinon.stub(DockerEventPublish, '_isBuildContainer')
       sinon.stub(sinceMap, 'set')
       done()
     })
 
     afterEach((done) => {
       rabbitmq.publishEvent.restore()
-      rabbitmq.publishTask.restore()
       rabbitmq.createStreamConnectJob.restore()
-      DockerEventPublish._isUserContainer.restore()
-      DockerEventPublish._isBuildContainer.restore()
       sinceMap.set.restore()
-      done()
-    })
-
-    it('should publish on-instance-container-create', (done) => {
-      const payload = {
-        status: 'create',
-        data: 'big'
-      }
-      DockerEventPublish._isUserContainer.returns(true)
-
-      DockerEventPublish._handlePublish(payload)
-
-      sinon.assert.calledOnce(rabbitmq.publishTask)
-      sinon.assert.calledWith(rabbitmq.publishTask, 'on-instance-container-create', payload)
-      done()
-    })
-
-    it('should publish on-image-builder-container-create', (done) => {
-      const payload = {
-        status: 'create',
-        data: 'big'
-      }
-      DockerEventPublish._isUserContainer.returns(false)
-      DockerEventPublish._isBuildContainer.returns(true)
-
-      DockerEventPublish._handlePublish(payload)
-
-      sinon.assert.calledOnce(rabbitmq.publishTask)
-      sinon.assert.calledWith(rabbitmq.publishTask, 'on-image-builder-container-create', payload)
       done()
     })
 
@@ -178,15 +143,11 @@ describe('docker event publish', () => {
       const payload = {
         status: 'create'
       }
-      DockerEventPublish._isUserContainer.returns(false)
-      DockerEventPublish._isBuildContainer.returns(false)
 
       DockerEventPublish._handlePublish(payload)
 
       sinon.assert.calledOnce(rabbitmq.publishEvent)
       sinon.assert.calledWith(rabbitmq.publishEvent, 'container.life-cycle.created', payload)
-
-      sinon.assert.notCalled(rabbitmq.publishTask)
       sinon.assert.notCalled(rabbitmq.createStreamConnectJob)
       done()
     })
@@ -203,34 +164,13 @@ describe('docker event publish', () => {
       done()
     })
 
-    it('should publish on-instance-container-die and container.life-cycle.died', (done) => {
+    it('should publish container.life-cycle.died', (done) => {
       const payload = {
         status: 'die',
         data: 'big'
       }
-      DockerEventPublish._isUserContainer.returns(true)
 
       DockerEventPublish._handlePublish(payload)
-
-      sinon.assert.calledOnce(rabbitmq.publishTask)
-      sinon.assert.calledWith(rabbitmq.publishTask, 'on-instance-container-die', payload)
-      sinon.assert.calledOnce(rabbitmq.publishEvent)
-      sinon.assert.calledWith(rabbitmq.publishEvent, 'container.life-cycle.died', payload)
-      done()
-    })
-
-    it('should publish on-image-builder-container-die and container.life-cycle.died', (done) => {
-      const payload = {
-        status: 'die',
-        data: 'big'
-      }
-      DockerEventPublish._isUserContainer.returns(false)
-      DockerEventPublish._isBuildContainer.returns(true)
-
-      DockerEventPublish._handlePublish(payload)
-
-      sinon.assert.calledOnce(rabbitmq.publishTask)
-      sinon.assert.calledWith(rabbitmq.publishTask, 'on-image-builder-container-die', payload)
       sinon.assert.calledOnce(rabbitmq.publishEvent)
       sinon.assert.calledWith(rabbitmq.publishEvent, 'container.life-cycle.died', payload)
       done()
@@ -241,9 +181,6 @@ describe('docker event publish', () => {
         status: 'die',
         data: 'big'
       }
-      DockerEventPublish._isUserContainer.returns(false)
-      DockerEventPublish._isBuildContainer.returns(false)
-
       DockerEventPublish._handlePublish(payload)
 
       sinon.assert.calledOnce(rabbitmq.publishEvent)
@@ -275,7 +212,6 @@ describe('docker event publish', () => {
       DockerEventPublish._handlePublish(payload, logStub)
 
       sinon.assert.notCalled(rabbitmq.createStreamConnectJob)
-      sinon.assert.notCalled(rabbitmq.publishTask)
       sinon.assert.notCalled(rabbitmq.publishEvent)
       sinon.assert.calledOnce(logStub.error)
       done()
