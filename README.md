@@ -17,10 +17,7 @@ Docker-listener deployed as container to the dock-services box.
 ## Published jobs
   * `docker.events-stream.disconnected` - docker daemon went down.
   * `docker.events-stream.connected` - docker-listener was able to connect to the docker daemon.
-  * `on-instance-container-create` - instance container was created
-  * `on-image-builder-container-create` - image builder container was created
-  * `on-instance-container-die` - instance container died
-  * `on-image-builder-container-die` - image builder container died
+  * `container.life-cycle.created` - any container created
   * `container.life-cycle.started` - any container started
   * `container.life-cycle.died` - any container died
 
