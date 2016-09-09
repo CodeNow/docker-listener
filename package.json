@@ -1,7 +1,7 @@
 {
   "name": "docker-listener",
   "version": "9.6.2",
-  "description": "Pipe Docker events into external target",
+  "description": "Pipe Docker events into RabbitMQ",
   "main": "main.js",
   "private": true,
   "scripts": {
