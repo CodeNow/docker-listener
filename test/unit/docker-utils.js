@@ -74,7 +74,7 @@ describe('docker utils unit test', () => {
         sinon.assert.calledOnce(SwarmClient.prototype.listContainersAsync)
         sinon.assert.calledWith(SwarmClient.prototype.listContainersAsync, {
           filters: {
-            state: ['running']
+            status: ['running']
           }
         })
         sinon.assert.calledOnce(BaseDockerClient.prototype.topContainerAsync)
