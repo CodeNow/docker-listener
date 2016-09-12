@@ -89,7 +89,7 @@ describe('docker event publish', () => {
       DockerClient.prototype.inspectContainerAsync.returns(Promise.resolve(testInspect))
       DockerEventPublish(testJob).asCallback((err) => {
         if (err) { return done(err) }
-        expect(testJob.inspectData).to.deep.equal(testInspect)
+        expect(testJob.inspectData).to.equal(testInspect)
         sinon.assert.calledOnce(DockerClient.prototype.inspectContainerAsync)
         sinon.assert.calledWith(DockerClient.prototype.inspectContainerAsync, testJob.id)
         done()
@@ -104,7 +104,7 @@ describe('docker event publish', () => {
       DockerClient.prototype.inspectContainerAsync.returns(Promise.resolve(testInspect))
       DockerEventPublish(testJob).asCallback((err) => {
         if (err) { return done(err) }
-        expect(testJob.inspectData).to.deep.equal({
+        expect(testJob.inspectData).to.equal({
           Id: 'fa94842f2ee10c18271a0a8037681b54eaf234906e1733191b09dd3cf3513802',
           Created: '2016-08-23T21:43:41.921631763Z',
           State: {
