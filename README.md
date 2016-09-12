@@ -1,7 +1,7 @@
 docker-listener
 ===============
 
-System service that pipes Docker daemon events into RabbitMQ. Installed on each dock and communicates with docker over HTTP.
+System service that pipes Docker daemon events into RabbitMQ. Installed on dock-services and communicates with docker and swarm over HTTP.
 
 ![docker events]
 (https://docs.docker.com/reference/api/images/event_state.png)
@@ -11,16 +11,13 @@ System service that pipes Docker daemon events into RabbitMQ. Installed on each 
 ![Docker-listener Architecture] (https://docs.google.com/drawings/d/16sCOUl6jzLPofknkl_x-krzHL6BKGe8oQslPLPR0Ef4/pub?w=1440&h=1080)
 
 Docker-listener get all events from the Docker daemon using [remote API over HTTP endpoint](https://docs.docker.com/engine/reference/api/docker_remote_api/).
-Most of the events are getting enhanced with container inspect information [`docker inspect`](https://docs.docker.com/engine/reference/commandline/inspect/) and published to RabbitMQ. Events from Docker-listener later processed by API, Mavis, Sauron and other systems.
+Most of the events are getting enhanced with container inspect information [`docker inspect`](https://docs.docker.com/engine/reference/commandline/inspect/) and published to RabbitMQ. Events from Docker-listener later processed by API, Sauron and other systems.
 Docker-listener deployed as container to the dock-services box.
 
 ## Published jobs
   * `docker.events-stream.disconnected` - docker daemon went down.
   * `docker.events-stream.connected` - docker-listener was able to connect to the docker daemon.
-  * `on-instance-container-create` - instance container was created
-  * `on-image-builder-container-create` - image builder container was created
-  * `on-instance-container-die` - instance container died
-  * `on-image-builder-container-die` - image builder container died
+  * `container.life-cycle.created` - any container created
   * `container.life-cycle.started` - any container started
   * `container.life-cycle.died` - any container died
 

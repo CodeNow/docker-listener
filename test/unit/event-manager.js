@@ -21,7 +21,7 @@ describe('event-manager.js unit test', () => {
   describe('singleton', () => {
     it('should be a singleton', (done) => {
       expect(eventManager).to.be.an.instanceOf(eventManager.constructor)
-      expect(eventManager.dockListeners).to.deep.equal({})
+      expect(eventManager.dockListeners).to.equal({})
       expect(eventManager.swarmConnected).to.be.null()
       done()
     })

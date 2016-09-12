@@ -43,12 +43,20 @@ describe('rabbitmq.js unit test', () => {
     })
 
     it('should publish job', (done) => {
-      rabbitmq.createConnectedJob('type', 'host', 'org')
+      rabbitmq.createConnectedJob('swarm', 'host', 'org')
       sinon.assert.calledOnce(rabbitmq.publishEvent)
-      sinon.assert.calledWith(rabbitmq.publishEvent, 'type.events-stream.connected', {
+      sinon.assert.calledWith(rabbitmq.publishEvent, 'swarm.events-stream.connected', {
         host: 'http://host',
-        org: 'org',
-        tags: 'org'
+        org: 'org'
+      })
+      done()
+    })
+
+    it('should publish job without org', (done) => {
+      rabbitmq.createConnectedJob('swarm', 'host')
+      sinon.assert.calledOnce(rabbitmq.publishEvent)
+      sinon.assert.calledWith(rabbitmq.publishEvent, 'swarm.events-stream.connected', {
+        host: 'http://host'
       })
       done()
     })

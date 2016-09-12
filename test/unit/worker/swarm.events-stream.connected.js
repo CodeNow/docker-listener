@@ -6,7 +6,7 @@ const Promise = require('bluebird')
 const sinon = require('sinon')
 
 const Swarm = require('../../../lib/swarm')
-const SwarmEventsSteamConnect = require('../../../lib/workers/swarm.events-stream.connected.js')
+const SwarmEventsSteamConnect = require('../../../lib/workers/swarm.events-stream.connected.js').task
 const eventManager = require('../../../lib/event-manager')
 const rabbitmq = require('../../../lib/rabbitmq')
 

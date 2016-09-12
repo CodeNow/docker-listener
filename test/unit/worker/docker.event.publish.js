@@ -40,66 +40,6 @@ const expect = Code.expect
 const it = lab.test
 
 describe('docker event publish', () => {
-  describe('_isUserContainer', () => {
-    it('should return true if user container', (done) => {
-      const data = {
-        inspectData: {
-          Config: {
-            Labels: {
-              type: 'user-container'
-            }
-          }
-        }
-      }
-      expect(DockerEventPublish._isUserContainer(data)).to.be.true()
-      done()
-    })
-
-    it('should return false if not user container', (done) => {
-      const data = {
-        inspectData: {
-          Config: {
-            Labels: {
-              type: 'image-builder-container'
-            }
-          }
-        }
-      }
-      expect(DockerEventPublish._isUserContainer(data)).to.be.false()
-      done()
-    })
-  })
-
-  describe('_isBuildContainer', () => {
-    it('should return true if user container', (done) => {
-      const data = {
-        inspectData: {
-          Config: {
-            Labels: {
-              type: 'image-builder-container'
-            }
-          }
-        }
-      }
-      expect(DockerEventPublish._isBuildContainer(data)).to.be.true()
-      done()
-    })
-
-    it('should return false if not user container', (done) => {
-      const data = {
-        inspectData: {
-          Config: {
-            Labels: {
-              type: 'user-container'
-            }
-          }
-        }
-      }
-      expect(DockerEventPublish._isBuildContainer(data)).to.be.false()
-      done()
-    })
-  })
-
   describe('worker', () => {
     beforeEach((done) => {
       sinon.stub(DockerClient.prototype, 'inspectContainerAsync')
@@ -149,7 +89,7 @@ describe('docker event publish', () => {
       DockerClient.prototype.inspectContainerAsync.returns(Promise.resolve(testInspect))
       DockerEventPublish(testJob).asCallback((err) => {
         if (err) { return done(err) }
-        expect(testJob.inspectData).to.deep.equal(testInspect)
+        expect(testJob.inspectData).to.equal(testInspect)
         sinon.assert.calledOnce(DockerClient.prototype.inspectContainerAsync)
         sinon.assert.calledWith(DockerClient.prototype.inspectContainerAsync, testJob.id)
         done()
@@ -164,7 +104,7 @@ describe('docker event publish', () => {
       DockerClient.prototype.inspectContainerAsync.returns(Promise.resolve(testInspect))
       DockerEventPublish(testJob).asCallback((err) => {
         if (err) { return done(err) }
-        expect(testJob.inspectData).to.deep.equal({
+        expect(testJob.inspectData).to.equal({
           Id: 'fa94842f2ee10c18271a0a8037681b54eaf234906e1733191b09dd3cf3513802',
           Created: '2016-08-23T21:43:41.921631763Z',
           State: {
@@ -252,64 +192,27 @@ describe('docker event publish', () => {
   describe('_handlePublish', function () {
     beforeEach((done) => {
       sinon.stub(rabbitmq, 'publishEvent')
-      sinon.stub(rabbitmq, 'publishTask')
       sinon.stub(rabbitmq, 'createStreamConnectJob')
-      sinon.stub(DockerEventPublish, '_isUserContainer')
-      sinon.stub(DockerEventPublish, '_isBuildContainer')
       sinon.stub(sinceMap, 'set')
       done()
     })
 
     afterEach((done) => {
       rabbitmq.publishEvent.restore()
-      rabbitmq.publishTask.restore()
       rabbitmq.createStreamConnectJob.restore()
-      DockerEventPublish._isUserContainer.restore()
-      DockerEventPublish._isBuildContainer.restore()
       sinceMap.set.restore()
       done()
     })
 
-    it('should publish on-instance-container-create', (done) => {
-      const payload = {
-        status: 'create',
-        data: 'big'
-      }
-      DockerEventPublish._isUserContainer.returns(true)
-
-      DockerEventPublish._handlePublish(payload)
-
-      sinon.assert.calledOnce(rabbitmq.publishTask)
-      sinon.assert.calledWith(rabbitmq.publishTask, 'on-instance-container-create', payload)
-      done()
-    })
-
-    it('should publish on-image-builder-container-create', (done) => {
-      const payload = {
-        status: 'create',
-        data: 'big'
-      }
-      DockerEventPublish._isUserContainer.returns(false)
-      DockerEventPublish._isBuildContainer.returns(true)
-
-      DockerEventPublish._handlePublish(payload)
-
-      sinon.assert.calledOnce(rabbitmq.publishTask)
-      sinon.assert.calledWith(rabbitmq.publishTask, 'on-image-builder-container-create', payload)
-      done()
-    })
-
-    it('should publish nothing', (done) => {
+    it('should publish container.life-cycle.created', (done) => {
       const payload = {
         status: 'create'
       }
-      DockerEventPublish._isUserContainer.returns(false)
-      DockerEventPublish._isBuildContainer.returns(false)
 
       DockerEventPublish._handlePublish(payload)
 
-      sinon.assert.notCalled(rabbitmq.publishEvent)
-      sinon.assert.notCalled(rabbitmq.publishTask)
+      sinon.assert.calledOnce(rabbitmq.publishEvent)
+      sinon.assert.calledWith(rabbitmq.publishEvent, 'container.life-cycle.created', payload)
       sinon.assert.notCalled(rabbitmq.createStreamConnectJob)
       done()
     })
@@ -326,34 +229,13 @@ describe('docker event publish', () => {
       done()
     })
 
-    it('should publish on-instance-container-die and container.life-cycle.died', (done) => {
+    it('should publish container.life-cycle.died', (done) => {
       const payload = {
         status: 'die',
         data: 'big'
       }
-      DockerEventPublish._isUserContainer.returns(true)
 
       DockerEventPublish._handlePublish(payload)
-
-      sinon.assert.calledOnce(rabbitmq.publishTask)
-      sinon.assert.calledWith(rabbitmq.publishTask, 'on-instance-container-die', payload)
-      sinon.assert.calledOnce(rabbitmq.publishEvent)
-      sinon.assert.calledWith(rabbitmq.publishEvent, 'container.life-cycle.died', payload)
-      done()
-    })
-
-    it('should publish on-image-builder-container-die and container.life-cycle.died', (done) => {
-      const payload = {
-        status: 'die',
-        data: 'big'
-      }
-      DockerEventPublish._isUserContainer.returns(false)
-      DockerEventPublish._isBuildContainer.returns(true)
-
-      DockerEventPublish._handlePublish(payload)
-
-      sinon.assert.calledOnce(rabbitmq.publishTask)
-      sinon.assert.calledWith(rabbitmq.publishTask, 'on-image-builder-container-die', payload)
       sinon.assert.calledOnce(rabbitmq.publishEvent)
       sinon.assert.calledWith(rabbitmq.publishEvent, 'container.life-cycle.died', payload)
       done()
@@ -364,9 +246,6 @@ describe('docker event publish', () => {
         status: 'die',
         data: 'big'
       }
-      DockerEventPublish._isUserContainer.returns(false)
-      DockerEventPublish._isBuildContainer.returns(false)
-
       DockerEventPublish._handlePublish(payload)
 
       sinon.assert.calledOnce(rabbitmq.publishEvent)
@@ -398,7 +277,6 @@ describe('docker event publish', () => {
       DockerEventPublish._handlePublish(payload, logStub)
 
       sinon.assert.notCalled(rabbitmq.createStreamConnectJob)
-      sinon.assert.notCalled(rabbitmq.publishTask)
       sinon.assert.notCalled(rabbitmq.publishEvent)
       sinon.assert.calledOnce(logStub.error)
       done()
