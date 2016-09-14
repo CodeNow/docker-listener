@@ -318,89 +318,93 @@ describe('listener unit test', () => {
     }) // end handleError
 
     describe('handleClose', () => {
-      let eventStreamStub
+      const testErr = new Error('dissatisfactory')
 
       beforeEach((done) => {
-        listener.eventStream = {
-          destroy: eventStreamStub = sinon.stub()
-        }
+        sinon.stub(listener, '_destoryEventStream')
         sinon.stub(rabbitmq, 'createStreamConnectJob')
-        sinon.stub(errorCat, 'report')
         done()
       })
 
       afterEach((done) => {
+        listener._destoryEventStream.restore()
         rabbitmq.createStreamConnectJob.restore()
-        errorCat.report.restore()
-        done()
-      })
-
-      it('should report', (done) => {
-        const testErr = new Error('dissatisfactory')
-        errorCat.report.returns()
-        listener.handleClose(testErr)
-        sinon.assert.calledOnce(errorCat.report)
-        sinon.assert.calledWith(errorCat.report, testErr)
         done()
       })
 
       it('should create job', (done) => {
-        const testErr = new Error('dissatisfactory')
         listener.state = 'connected'
-        errorCat.report.returns()
         listener.handleClose(testErr)
         sinon.assert.calledOnce(rabbitmq.createStreamConnectJob)
         sinon.assert.calledWith(rabbitmq.createStreamConnectJob, 'docker', testHost, testOrg)
         done()
       })
 
-      it('should set disconnected state', (done) => {
-        const testErr = new Error('dissatisfactory')
-        listener.state = 'connected'
-        errorCat.report.returns()
-        listener.handleClose(testErr)
-        expect(listener.state).to.equal('disconnected')
-        done()
-      })
-
       it('should not create job', (done) => {
-        const testErr = new Error('dissatisfactory')
         listener.state = 'disconnected'
-        errorCat.report.returns()
         listener.handleClose(testErr)
         sinon.assert.notCalled(rabbitmq.createStreamConnectJob)
         done()
       })
 
-      it('should destroy stream', (done) => {
-        const testErr = new Error('dissatisfactory')
-        errorCat.report.returns()
-        listener.handleClose(testErr)
-        sinon.assert.calledOnce(eventStreamStub)
-        expect(listener.eventStream).to.be.undefined()
+      it('should call _destoryEventStream', (done) => {
+        listener.handleClose()
+        sinon.assert.calledOnce(listener._destoryEventStream)
+        done()
+      })
+    }) // end handleClose
+
+    describe('_destoryEventStream', () => {
+      let eventStreamStub
+      const testErr = new Error('dissatisfactory')
+
+      beforeEach((done) => {
+        listener.eventStream = {
+          destroy: eventStreamStub = sinon.stub()
+        }
+        sinon.stub(errorCat, 'report').returns()
         done()
       })
 
-      it('should not throw if no destroy', (done) => {
-        const testErr = new Error('dissatisfactory')
+      afterEach((done) => {
+        errorCat.report.restore()
+        done()
+      })
+
+      it('should report', (done) => {
+        listener._destoryEventStream(testErr)
+        sinon.assert.calledOnce(errorCat.report)
+        sinon.assert.calledWith(errorCat.report, testErr)
+        done()
+      })
+
+      it('should set disconnected state', (done) => {
+        listener.state = 'connected'
+        listener._destoryEventStream(testErr)
+        expect(listener.state).to.equal('disconnected')
+        done()
+      })
+
+      it('should not destroy if no destroy', (done) => {
         delete listener.eventStream.destroy
         expect(() => {
-          listener.handleClose(testErr)
+          listener._destoryEventStream(testErr)
         }).to.not.throw()
         sinon.assert.notCalled(eventStreamStub)
         expect(listener.eventStream).to.be.undefined()
         done()
       })
 
-      it('should do nothing is eventStream null', (done) => {
+      it('should not destroy if no eventStream', (done) => {
         delete listener.eventStream
-        listener.handleClose()
-        sinon.assert.notCalled(errorCat.report)
-        sinon.assert.notCalled(rabbitmq.createStreamConnectJob)
+        expect(() => {
+          listener._destoryEventStream(testErr)
+        }).to.not.throw()
         sinon.assert.notCalled(eventStreamStub)
+        expect(listener.eventStream).to.be.undefined()
         done()
       })
-    }) // end handleClose
+    }) // end _destoryEventStream
 
     describe('publishEvent', () => {
       beforeEach((done) => {
