@@ -321,13 +321,13 @@ describe('listener unit test', () => {
       const testErr = new Error('dissatisfactory')
 
       beforeEach((done) => {
-        sinon.stub(listener, '_destoryEventStream')
+        sinon.stub(listener, '_destroyEventStream')
         sinon.stub(rabbitmq, 'createStreamConnectJob')
         done()
       })
 
       afterEach((done) => {
-        listener._destoryEventStream.restore()
+        listener._destroyEventStream.restore()
         rabbitmq.createStreamConnectJob.restore()
         done()
       })
@@ -347,14 +347,14 @@ describe('listener unit test', () => {
         done()
       })
 
-      it('should call _destoryEventStream', (done) => {
+      it('should call _destroyEventStream', (done) => {
         listener.handleClose()
-        sinon.assert.calledOnce(listener._destoryEventStream)
+        sinon.assert.calledOnce(listener._destroyEventStream)
         done()
       })
     }) // end handleClose
 
-    describe('_destoryEventStream', () => {
+    describe('_destroyEventStream', () => {
       let eventStreamStub
       const testErr = new Error('dissatisfactory')
 
@@ -372,7 +372,7 @@ describe('listener unit test', () => {
       })
 
       it('should report', (done) => {
-        listener._destoryEventStream(testErr)
+        listener._destroyEventStream(testErr)
         sinon.assert.calledOnce(errorCat.report)
         sinon.assert.calledWith(errorCat.report, testErr)
         done()
@@ -380,7 +380,7 @@ describe('listener unit test', () => {
 
       it('should set disconnected state', (done) => {
         listener.state = 'connected'
-        listener._destoryEventStream(testErr)
+        listener._destroyEventStream(testErr)
         expect(listener.state).to.equal('disconnected')
         done()
       })
@@ -388,7 +388,7 @@ describe('listener unit test', () => {
       it('should not destroy if no destroy', (done) => {
         delete listener.eventStream.destroy
         expect(() => {
-          listener._destoryEventStream(testErr)
+          listener._destroyEventStream(testErr)
         }).to.not.throw()
         sinon.assert.notCalled(eventStreamStub)
         expect(listener.eventStream).to.be.undefined()
@@ -398,13 +398,13 @@ describe('listener unit test', () => {
       it('should not destroy if no eventStream', (done) => {
         delete listener.eventStream
         expect(() => {
-          listener._destoryEventStream(testErr)
+          listener._destroyEventStream(testErr)
         }).to.not.throw()
         sinon.assert.notCalled(eventStreamStub)
         expect(listener.eventStream).to.be.undefined()
         done()
       })
-    }) // end _destoryEventStream
+    }) // end _destroyEventStream
 
     describe('publishEvent', () => {
       beforeEach((done) => {
