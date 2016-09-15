@@ -5,7 +5,7 @@ const sinon = require('sinon')
 const Promise = require('bluebird')
 require('sinon-as-promised')(Promise)
 const Swarm = require('@runnable/loki').Swarm
-const DockerEventsSteamConnect = require('../../../lib/workers/docker.events-stream.connect.js').task
+const DockerEventsSteamConnect = require('../../../lib/workers/docker.events-stream.connect.js')
 const eventManager = require('../../../lib/event-manager')
 const rabbitmq = require('../../../lib/rabbitmq')
 const sinceMap = require('../../../lib/since-map')
@@ -45,7 +45,7 @@ describe('docker.events-stream.connect unit test', () => {
 
   it('should startDockListener', (done) => {
     Swarm.prototype.swarmHostExistsAsync.resolves(true)
-    DockerEventsSteamConnect(testJob).asCallback((err) => {
+    DockerEventsSteamConnect.task(testJob).asCallback((err) => {
       if (err) { return done(err) }
       sinon.assert.calledOnce(eventManager.startDockListener)
       sinon.assert.calledWith(eventManager.startDockListener, testHost, testOrg)
@@ -55,12 +55,21 @@ describe('docker.events-stream.connect unit test', () => {
 
   it('should removeDockListener and delete map', (done) => {
     Swarm.prototype.swarmHostExistsAsync.resolves(false)
-    DockerEventsSteamConnect(testJob).asCallback((err) => {
+    DockerEventsSteamConnect.task(testJob).asCallback((err) => {
       if (err) { return done(err) }
       sinon.assert.calledOnce(sinceMap.delete)
       sinon.assert.calledWith(sinceMap.delete, testHost)
       sinon.assert.calledOnce(eventManager.removeDockListener)
       sinon.assert.calledWith(eventManager.removeDockListener, testHost)
+      sinon.assert.calledOnce(rabbitmq.createDisconnectedJob)
+      sinon.assert.calledWith(rabbitmq.createDisconnectedJob, testHost, testOrg)
+      done()
+    })
+  })
+
+  it('should createDisconnectedJob on final retry', (done) => {
+    DockerEventsSteamConnect.finalRetryFn(testJob).asCallback((err) => {
+      if (err) { return done(err) }
       sinon.assert.calledOnce(rabbitmq.createDisconnectedJob)
       sinon.assert.calledWith(rabbitmq.createDisconnectedJob, testHost, testOrg)
       done()
