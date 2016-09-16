@@ -1,8 +1,8 @@
 {
   "name": "docker-listener",
   "version": "10.3.3",
-  "description": "Pipe Docker events into external target",
-  "main": "main.js",
+  "description": "Pipe Docker events into RabbitMQ",
+  "main": "index.js",
   "private": true,
   "scripts": {
     "test-watch": "rerun-script test",
@@ -48,15 +48,14 @@
     "loadenv": "^2.2.0",
     "monitor-dog": "^1.5.0",
     "node-uuid": "^1.4.7",
-    "ponos": "^5.3.0",
-    "sinon-as-promised": "^4.0.2"
+    "ponos": "^5.3.0"
   },
   "devDependencies": {
     "code": "^3.0.2",
     "lab": "^11.0.0",
     "rerun-script": "^0.6.0",
     "sinon": "^1.17.5",
-    "sinon-as-promised": "^4.0.0",
+    "sinon-as-promised": "^4.0.2",
     "standard": "^8.0.0"
   }
 }
