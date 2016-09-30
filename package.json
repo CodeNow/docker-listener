@@ -6,7 +6,7 @@
   "private": true,
   "scripts": {
     "test-watch": "rerun-script test",
-    "test": "npm run lint; npm run unit",
+    "test": "npm run lint && npm run unit",
     "unit": "NODE_PATH=./lib lab -c -v -m 3000 -t 100 -a code ./test/unit",
     "start": "NODE_PATH=./lib node index.js",
     "format": "standard --format --verbose",
