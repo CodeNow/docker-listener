@@ -106,7 +106,7 @@ describe('docker utils unit test', () => {
       const error = new Error('Docker error')
       error.statusCode = 404
       expect(() => {
-        dockerUtils.handleInspectError('test', error, logStub)
+        dockerUtils.handleInspectError('test', null, error, logStub)
       }).to.throw(WorkerStopError, 'Docker error')
       done()
     })
@@ -115,7 +115,7 @@ describe('docker utils unit test', () => {
       const testErr = new Error('bully')
       testErr.statusCode = 500
       Swarm.prototype.swarmHostExistsAsync.returns(Promise.reject('reject'))
-      dockerUtils.handleInspectError('host', testErr, logStub).asCallback((err) => {
+      dockerUtils.handleInspectError('host', null, testErr, logStub).asCallback((err) => {
         expect(err).to.equal(testErr)
         done()
       })
@@ -124,7 +124,7 @@ describe('docker utils unit test', () => {
     it('should throw original error if host exists', (done) => {
       const testErr = new Error('ruffian')
       Swarm.prototype.swarmHostExistsAsync.returns(Promise.resolve(true))
-      dockerUtils.handleInspectError('host', testErr, logStub).asCallback((err) => {
+      dockerUtils.handleInspectError('host', null, testErr, logStub).asCallback((err) => {
         expect(err).to.equal(testErr)
         sinon.assert.notCalled(rabbitmq.publishEvent)
         done()
@@ -134,7 +134,7 @@ describe('docker utils unit test', () => {
     it('should throw WorkerStopError error if host !exists', (done) => {
       const testErr = new Error('hooligan')
       Swarm.prototype.swarmHostExistsAsync.returns(Promise.resolve(false))
-      dockerUtils.handleInspectError('host', testErr, logStub).asCallback((err) => {
+      dockerUtils.handleInspectError('host', null, testErr, logStub).asCallback((err) => {
         expect(err).to.be.an.instanceOf(WorkerStopError)
         sinon.assert.calledOnce(rabbitmq.publishEvent)
         sinon.assert.calledWith(rabbitmq.publishEvent, 'dock.lost', {
