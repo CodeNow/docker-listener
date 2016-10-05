@@ -65,7 +65,7 @@ describe('docker container poll', () => {
       ContainerStatePoll(testJob).asCallback((err) => {
         if (err) { return done(err) }
         sinon.assert.calledOnce(dockerUtils.handleInspectError)
-        sinon.assert.calledWith(dockerUtils.handleInspectError, testJob.host, testError, sinon.match.object)
+        sinon.assert.calledWith(dockerUtils.handleInspectError, testJob.host, null, testError, sinon.match.object)
         done()
       })
     })

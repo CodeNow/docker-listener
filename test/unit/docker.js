@@ -28,7 +28,7 @@ describe('docker unit test', () => {
 
     it('should set timeout if provided', (done) => {
       const timeout = 3500
-      const docker = new Docker('10.0.0.1:4242', timeout)
+      const docker = new Docker('10.0.0.1:4242', null, timeout)
       expect(docker.client.modem.timeout).to.equal(timeout)
       done()
     })

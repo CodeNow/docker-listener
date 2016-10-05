@@ -171,7 +171,7 @@ describe('docker event publish', () => {
         if (err) { return done(err) }
 
         sinon.assert.calledOnce(dockerUtils.handleInspectError)
-        sinon.assert.calledWith(dockerUtils.handleInspectError, testJob.host, testError, sinon.match.object)
+        sinon.assert.calledWith(dockerUtils.handleInspectError, testJob.host, testJob.org, testError, sinon.match.object)
         done()
       })
     })
