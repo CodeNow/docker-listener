@@ -134,11 +134,12 @@ describe('docker utils unit test', () => {
     it('should throw WorkerStopError error if host !exists', (done) => {
       const testErr = new Error('hooligan')
       Swarm.prototype.swarmHostExistsAsync.returns(Promise.resolve(false))
-      dockerUtils.handleInspectError('host', null, testErr, logStub).asCallback((err) => {
+      dockerUtils.handleInspectError('host', 123, testErr, logStub).asCallback((err) => {
         expect(err).to.be.an.instanceOf(WorkerStopError)
         sinon.assert.calledOnce(rabbitmq.publishEvent)
         sinon.assert.calledWith(rabbitmq.publishEvent, 'dock.lost', {
-          host: 'http://host'
+          host: 'http://host',
+          githubOrgId: 123
         })
         done()
       })
