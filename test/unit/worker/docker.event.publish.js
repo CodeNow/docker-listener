@@ -96,6 +96,51 @@ describe('docker event publish', () => {
       })
     })
 
+    it('should use tid from Labels if exists', (done) => {
+      const testJob = eventMock({
+        needsInspect: true
+      })
+      const testTid = 'mediocre-tid'
+      const testInspect = {
+        Id: 'gear',
+        Config: {
+          Labels: {
+            tid: testTid
+          }
+        }
+      }
+      DockerClient.prototype.inspectContainerAsync.returns(Promise.resolve(testInspect))
+      DockerEventPublish(testJob).asCallback((err) => {
+        if (err) { return done(err) }
+        expect(testJob.inspectData).to.equal(testInspect)
+        sinon.assert.calledOnce(DockerEventPublish._handlePublish)
+        const finalJob = DockerEventPublish._handlePublish.getCall(0).args[0]
+        expect(finalJob.tid).to.equal(testTid)
+        done()
+      })
+    })
+
+    it('should not use tid from Labels if does not exist', (done) => {
+      const testJob = eventMock({
+        needsInspect: true
+      })
+      const testInspect = {
+        Id: 'gear',
+        Config: {
+          Labels: {}
+        }
+      }
+      DockerClient.prototype.inspectContainerAsync.returns(Promise.resolve(testInspect))
+      DockerEventPublish(testJob).asCallback((err) => {
+        if (err) { return done(err) }
+        expect(testJob.inspectData).to.equal(testInspect)
+        sinon.assert.calledOnce(DockerEventPublish._handlePublish)
+        const finalJob = DockerEventPublish._handlePublish.getCall(0).args[0]
+        expect(finalJob.tid).to.not.exist()
+        done()
+      })
+    })
+
     it('should strip inspect data', (done) => {
       const testJob = eventMock({
         needsInspect: true
