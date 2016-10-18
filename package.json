@@ -37,7 +37,7 @@
   "homepage": "https://github.com/CodeNow/docker-listener",
   "dependencies": {
     "101": "^1.6.2",
-    "@runnable/loki": "^3.1.0",
+    "@runnable/loki": "^3.3.0",
     "bluebird": "3.4.6",
     "bunyan": "^1.8.1",
     "callsite": "^1.0.0",
