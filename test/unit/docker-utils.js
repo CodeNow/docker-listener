@@ -87,8 +87,9 @@ describe('docker utils unit test', () => {
 
   describe('handleInspectError', function () {
     const logStub = {
-      trace: sinon.spy(),
-      error: sinon.spy()
+      error: sinon.spy(),
+      info: sinon.spy(),
+      trace: sinon.spy()
     }
     beforeEach((done) => {
       sinon.stub(Swarm.prototype, 'swarmHostExistsAsync')
