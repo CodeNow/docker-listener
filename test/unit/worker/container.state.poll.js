@@ -31,7 +31,8 @@ describe('docker container poll', () => {
   }
   const testJob = {
     id: 'some-container-id',
-    host: 'http://10.0.0.1:4242'
+    host: 'http://10.0.0.1:4242',
+    githubOrgId: 1111
   }
   describe('worker', () => {
     beforeEach((done) => {
@@ -65,7 +66,7 @@ describe('docker container poll', () => {
       ContainerStatePoll(testJob).asCallback((err) => {
         if (err) { return done(err) }
         sinon.assert.calledOnce(dockerUtils.handleInspectError)
-        sinon.assert.calledWith(dockerUtils.handleInspectError, testJob.host, null, testError, sinon.match.object)
+        sinon.assert.calledWith(dockerUtils.handleInspectError, testJob.host, testJob.githubOrgId, testError, sinon.match.object)
         done()
       })
     })
