@@ -255,7 +255,7 @@ describe('docker event publish', () => {
         }
       }
 
-      DockerEventPublish._publishEvent(payload)
+      DockerEventPublish._publishEvent('container.life-cycle.created', payload)
 
       sinon.assert.calledOnce(rabbitmq.publishEvent)
       sinon.assert.calledWith(rabbitmq.publishEvent, 'container.life-cycle.created', payload)
@@ -273,7 +273,7 @@ describe('docker event publish', () => {
         }
       }
 
-      DockerEventPublish._publishEvent(payload)
+      DockerEventPublish._publishEvent('container.life-cycle.created', payload)
 
       sinon.assert.calledTwice(rabbitmq.publishEvent)
       sinon.assert.calledWith(rabbitmq.publishEvent, 'container.life-cycle.created', payload)
@@ -292,7 +292,7 @@ describe('docker event publish', () => {
         }
       }
 
-      DockerEventPublish._publishEvent(payload)
+      DockerEventPublish._publishEvent('container.life-cycle.created', payload)
 
       sinon.assert.calledTwice(rabbitmq.publishEvent)
       sinon.assert.calledWith(rabbitmq.publishEvent, 'container.life-cycle.created', payload)
@@ -311,7 +311,7 @@ describe('docker event publish', () => {
         }
       }
 
-      DockerEventPublish._publishEvent(payload)
+      DockerEventPublish._publishEvent('container.life-cycle.created', payload)
 
       sinon.assert.calledOnce(rabbitmq.publishEvent)
       sinon.assert.calledWith(rabbitmq.publishEvent, 'container.life-cycle.created', payload)
