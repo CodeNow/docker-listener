@@ -304,7 +304,7 @@ describe('docker event publish', () => {
       }
 
       DockerEventPublish._handlePublish(payload)
-      sinon.assert.calleTwice(rabbitmq.publishEvent)
+      sinon.assert.calledTwice(rabbitmq.publishEvent)
       sinon.assert.calledWith(rabbitmq.publishEvent, 'container.life-cycle.died', payload)
       sinon.assert.calledWith(rabbitmq.publishEvent, 'user-container.container.life-cycle.died', payload)
       done()
