@@ -249,7 +249,7 @@ describe('docker event publish', () => {
       done()
     })
 
-    it('should publish container.life-cycle.created', (done) => {
+    it('should publish container.life-cycle.created and type specific one', (done) => {
       const payload = {
         status: 'create',
         inspectData: {
@@ -270,7 +270,25 @@ describe('docker event publish', () => {
       done()
     })
 
-    it('should publish container.life-cycle.started', (done) => {
+    it('should publish just container.life-cycle.created', (done) => {
+      const payload = {
+        status: 'create',
+        inspectData: {
+          Config: {
+            Labels: {}
+          }
+        }
+      }
+
+      DockerEventPublish._handlePublish(payload)
+
+      sinon.assert.calledOnce(rabbitmq.publishEvent)
+      sinon.assert.calledWith(rabbitmq.publishEvent, 'container.life-cycle.created', payload)
+      sinon.assert.notCalled(rabbitmq.createStreamConnectJob)
+      done()
+    })
+
+    it('should publish container.life-cycle.started and type specific one', (done) => {
       const payload = {
         status: 'start',
         data: 'big',
@@ -290,7 +308,24 @@ describe('docker event publish', () => {
       done()
     })
 
-    it('should publish container.life-cycle.died', (done) => {
+    it('should publish just container.life-cycle.started', (done) => {
+      const payload = {
+        status: 'start',
+        data: 'big',
+        inspectData: {
+          Config: {
+            Labels: {}
+          }
+        }
+      }
+      DockerEventPublish._handlePublish(payload)
+
+      sinon.assert.calledOnce(rabbitmq.publishEvent)
+      sinon.assert.calledWith(rabbitmq.publishEvent, 'container.life-cycle.started', payload)
+      done()
+    })
+
+    it('should publish container.life-cycle.died and type specific one', (done) => {
       const payload = {
         status: 'die',
         data: 'big',
@@ -310,23 +345,20 @@ describe('docker event publish', () => {
       done()
     })
 
-    it('should publish container.life-cycle.died', (done) => {
+    it('should publish just container.life-cycle.died', (done) => {
       const payload = {
         status: 'die',
         data: 'big',
         inspectData: {
           Config: {
-            Labels: {
-              type: 'image-builder'
-            }
+            Labels: {}
           }
         }
       }
       DockerEventPublish._handlePublish(payload)
 
-      sinon.assert.calledTwice(rabbitmq.publishEvent)
+      sinon.assert.calledOnce(rabbitmq.publishEvent)
       sinon.assert.calledWith(rabbitmq.publishEvent, 'container.life-cycle.died', payload)
-      sinon.assert.calledWith(rabbitmq.publishEvent, 'image-builder.container.life-cycle.died', payload)
       done()
     })
 
