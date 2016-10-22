@@ -254,11 +254,10 @@ describe('docker event publish', () => {
           }
         }
       }
-
       DockerEventPublish._publishEvent('container.life-cycle.created', payload)
-
       sinon.assert.calledOnce(rabbitmq.publishEvent)
       sinon.assert.calledWith(rabbitmq.publishEvent, 'container.life-cycle.created', payload)
+      done()
     })
 
     it('should call publishEvent twice if type is user-container', (done) => {
@@ -272,12 +271,11 @@ describe('docker event publish', () => {
           }
         }
       }
-
       DockerEventPublish._publishEvent('container.life-cycle.created', payload)
-
       sinon.assert.calledTwice(rabbitmq.publishEvent)
       sinon.assert.calledWith(rabbitmq.publishEvent, 'container.life-cycle.created', payload)
       sinon.assert.calledWith(rabbitmq.publishEvent, 'user-container.container.life-cycle.created', payload)
+      done()
     })
 
     it('should call publishEvent twice if type is image-builder', (done) => {
@@ -291,12 +289,11 @@ describe('docker event publish', () => {
           }
         }
       }
-
       DockerEventPublish._publishEvent('container.life-cycle.created', payload)
-
       sinon.assert.calledTwice(rabbitmq.publishEvent)
       sinon.assert.calledWith(rabbitmq.publishEvent, 'container.life-cycle.created', payload)
       sinon.assert.calledWith(rabbitmq.publishEvent, 'image-builder.container.life-cycle.created', payload)
+      done()
     })
 
     it('should call publishEvent once if type is layerCopy', (done) => {
@@ -315,6 +312,7 @@ describe('docker event publish', () => {
 
       sinon.assert.calledOnce(rabbitmq.publishEvent)
       sinon.assert.calledWith(rabbitmq.publishEvent, 'container.life-cycle.created', payload)
+      done()
     })
   })
 
