@@ -84,27 +84,6 @@ describe('rabbitmq.js unit test', () => {
     })
   }) // end createDisconnectedJob
 
-  describe('createPingJob', () => {
-    beforeEach((done) => {
-      sinon.stub(rabbitmq, 'publishTask')
-      done()
-    })
-
-    afterEach((done) => {
-      rabbitmq.publishTask.restore()
-      done()
-    })
-
-    it('should publish job', (done) => {
-      const testJob = 'Steve'
-
-      rabbitmq.createPingJob(testJob)
-      sinon.assert.calledOnce(rabbitmq.publishTask)
-      sinon.assert.calledWith(rabbitmq.publishTask, 'docker.events-stream.ping', testJob)
-      done()
-    })
-  }) // end createPingJob
-
   describe('createStreamConnectJob', () => {
     beforeEach((done) => {
       sinon.stub(rabbitmq, 'publishTask')
