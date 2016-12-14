@@ -136,13 +136,5 @@ describe('event-manager.js unit test', () => {
         done()
       })
     }) // end hasListener
-
-    describe('getListeners', () => {
-      it('should return listens', (done) => {
-        const out = eventManager.getListeners()
-        expect(out).to.equal(eventManager.dockListeners)
-        done()
-      })
-    }) // end getListeners
   }) // end methods
 }) // end event-manager.js unit test
