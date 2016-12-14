@@ -8,6 +8,7 @@ const Lab = require('lab')
 const Promise = require('bluebird')
 const sinon = require('sinon')
 
+require('sinon-as-promised')(Promise)
 const Docker = require('../../lib/docker')
 const eventMock = require('../fixtures/event-mock.js')
 const Listener = require('../../lib/listener')
@@ -93,17 +94,19 @@ describe('listener unit test', () => {
     })
     describe('start', () => {
       beforeEach((done) => {
+        sinon.stub(rabbitmq, 'createConnectedJob')
         sinon.stub(listener.docker, 'getEventsAsync')
         sinon.stub(listener, 'handleClose')
         sinon.stub(listener, 'handleError')
         sinon.stub(listener, 'publishEvent')
-        sinon.stub(listener, 'setTimeout')
+        sinon.stub(listener, 'testStream')
         sinon.stub(sinceMap, 'get')
         done()
       })
 
       afterEach((done) => {
         sinceMap.get.restore()
+        rabbitmq.createConnectedJob.restore()
         done()
       })
 
@@ -159,6 +162,7 @@ describe('listener unit test', () => {
         }
         sinceMap.get.returns()
         listener.docker.getEventsAsync.returns(Promise.resolve(stubStream))
+        listener.testStream.resolves()
 
         listener.start().asCallback((err) => {
           if (err) { return done(err) }
@@ -170,7 +174,7 @@ describe('listener unit test', () => {
           sinon.assert.calledWith(stubStream.on, 'data', sinon.match.func)
 
           sinon.assert.notCalled(listener.handleClose)
-          sinon.assert.calledOnce(listener.setTimeout)
+          sinon.assert.calledOnce(listener.testStream)
           done()
         })
       })
@@ -179,6 +183,7 @@ describe('listener unit test', () => {
         const emitter = new EventEmitter()
         sinceMap.get.returns()
         listener.docker.getEventsAsync.returns(Promise.resolve(emitter))
+        listener.testStream.resolves()
 
         listener.start().asCallback((err) => {
           if (err) { return done(err) }
@@ -193,6 +198,7 @@ describe('listener unit test', () => {
         const emitter = new EventEmitter()
         sinceMap.get.returns()
         listener.docker.getEventsAsync.returns(Promise.resolve(emitter))
+        listener.testStream.resolves()
 
         listener.start().asCallback((err) => {
           if (err) { return done(err) }
@@ -208,6 +214,7 @@ describe('listener unit test', () => {
         const emitter = new EventEmitter()
         sinceMap.get.returns()
         listener.docker.getEventsAsync.returns(Promise.resolve(emitter))
+        listener.testStream.resolves()
 
         listener.start().asCallback((err) => {
           if (err) { return done(err) }
@@ -223,6 +230,7 @@ describe('listener unit test', () => {
         const emitter = new EventEmitter()
         sinceMap.get.returns()
         listener.docker.getEventsAsync.returns(Promise.resolve(emitter))
+        listener.testStream.resolves()
 
         listener.start().asCallback((err) => {
           if (err) { return done(err) }
@@ -238,6 +246,7 @@ describe('listener unit test', () => {
         const emitter = new EventEmitter()
         sinceMap.get.returns()
         listener.docker.getEventsAsync.returns(Promise.resolve(emitter))
+        listener.testStream.resolves()
 
         listener.start().asCallback((err) => {
           if (err) { return done(err) }
@@ -248,9 +257,32 @@ describe('listener unit test', () => {
           done()
         })
       })
+
+      it('should call createConnectedJob on success', (done) => {
+        const stubStream = {
+          on: sinon.stub().returnsThis(),
+          once: sinon.stub().returnsThis()
+        }
+        listener.type = 'type'
+        listener.org = 'org'
+        listener.host = 'host'
+        sinceMap.get.returns()
+        listener.docker.getEventsAsync.resolves(stubStream)
+        listener.testStream.resolves()
+
+        listener.start().asCallback((err) => {
+          if (err) { return done(err) }
+
+          sinon.assert.notCalled(listener.handleClose)
+          sinon.assert.calledOnce(listener.testStream)
+          sinon.assert.calledOnce(rabbitmq.createConnectedJob)
+          sinon.assert.calledWith(rabbitmq.createConnectedJob, listener.type, listener.host, listener.org)
+          done()
+        })
+      })
     }) // end start
 
-    describe('setTimeout', function () {
+    describe('testStream', function () {
       let clock
       beforeEach((done) => {
         process.env.EVENT_TIMEOUT_MS = 15
@@ -270,8 +302,8 @@ describe('listener unit test', () => {
         done()
       })
 
-      it('should resolve and emit connected event', (done) => {
-        listener.setTimeout().asCallback((err) => {
+      it('should resolve after connected', (done) => {
+        listener.testStream().asCallback((err) => {
           if (err) { return done(err) }
           expect(listener.state).to.equal('connected')
           sinon.assert.calledOnce(listener.eventStream.once)
@@ -285,14 +317,14 @@ describe('listener unit test', () => {
       })
 
       it('should reject on timeout and set state', (done) => {
-        listener.setTimeout().asCallback((err) => {
+        listener.testStream().asCallback((err) => {
           expect(err.message).to.equal('timeout getting events')
           expect(listener.state).to.equal('disconnected')
           done()
         })
         clock.tick(20)
       })
-    }) // end setTimeout
+    }) // end testStream
 
     describe('handleError', () => {
       beforeEach((done) => {
