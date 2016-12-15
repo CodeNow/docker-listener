@@ -12,6 +12,7 @@ const BaseDockerClient = require('@runnable/loki')._BaseClient
 const SwarmClient = require('@runnable/loki').Swarm
 const WorkerStopError = require('error-cat/errors/worker-stop-error')
 
+const Docker = require('../../lib/docker')
 const dockerUtils = require('../../lib/docker-utils')
 const rabbitmq = require('../../lib/rabbitmq')
 const Swarm = require('../../lib/swarm')
@@ -84,6 +85,16 @@ describe('docker utils unit test', () => {
       })
     })
   }) // end testEvent
+
+  describe('_findTestContainer', () => {
+    it('should return swarm', (done) => {
+      dockerUtils._findTestContainer(new Docker(testHost))
+      .then((out) => {
+        expect(out).to.equal('swarm')
+      })
+      .asCallback(done)
+    })
+  }) // end _findTestContainer
 
   describe('handleInspectError', function () {
     const logStub = {
