@@ -257,30 +257,30 @@ describe('listener unit test', () => {
           done()
         })
       })
-    }) // end start
 
-    it('should call createConnectedJob on success', (done) => {
-      const stubStream = {
-        on: sinon.stub().returnsThis(),
-        once: sinon.stub().returnsThis()
-      }
-      listener.type = 'type'
-      listener.org = 'org'
-      listener.host = 'host'
-      sinceMap.get.returns()
-      listener.docker.getEventsAsync.resolves(stubStream)
-      listener.testStream.resolves()
+      it('should call createConnectedJob on success', (done) => {
+        const stubStream = {
+          on: sinon.stub().returnsThis(),
+          once: sinon.stub().returnsThis()
+        }
+        listener.type = 'type'
+        listener.org = 'org'
+        listener.host = 'host'
+        sinceMap.get.returns()
+        listener.docker.getEventsAsync.resolves(stubStream)
+        listener.testStream.resolves()
 
-      listener.start().asCallback((err) => {
-        if (err) { return done(err) }
+        listener.start().asCallback((err) => {
+          if (err) { return done(err) }
 
-        sinon.assert.notCalled(listener.handleClose)
-        sinon.assert.calledOnce(listener.testStream)
-        sinon.assert.calledOnce(rabbitmq.createConnectedJob)
-        sinon.assert.calledWith(rabbitmq.createConnectedJob, listener.type, listener.host, listener.org)
-        done()
+          sinon.assert.notCalled(listener.handleClose)
+          sinon.assert.calledOnce(listener.testStream)
+          sinon.assert.calledOnce(rabbitmq.createConnectedJob)
+          sinon.assert.calledWith(rabbitmq.createConnectedJob, listener.type, listener.host, listener.org)
+          done()
+        })
       })
-    })
+    }) // end start
 
     describe('testStream', function () {
       let clock
