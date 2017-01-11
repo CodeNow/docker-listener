@@ -12,7 +12,9 @@
     "format": "standard --format --verbose",
     "format-snazzy": "standard --format --verbose | snazzy",
     "lint": "standard --verbose",
-    "lint-snazzy": "standard --verbose | snazzy"
+    "lint-snazzy": "standard --verbose | snazzy",
+    "compose-test-up": "docker-compose -f docker-compose-test.yml up --build",
+    "compose-test-down": "docker-compose -f docker-compose-test.yml down"
   },
   "watches": {
     "test": [
