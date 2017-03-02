@@ -1,6 +1,6 @@
 {
   "name": "docker-listener",
-  "version": "10.7.2",
+  "version": "10.7.3",
   "description": "Pipe Docker events into RabbitMQ",
   "main": "index.js",
   "private": true,
