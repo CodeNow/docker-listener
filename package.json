@@ -40,7 +40,7 @@
   "dependencies": {
     "101": "^1.6.2",
     "@runnable/loki": "^3.3.0",
-    "bluebird": "3.4.6",
+    "bluebird": "3.5.0",
     "bunyan": "^1.8.1",
     "callsite": "^1.0.0",
     "continuation-local-storage": "^3.1.7",
