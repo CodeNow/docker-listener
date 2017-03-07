@@ -89,9 +89,10 @@ describe('docker event publish', () => {
       DockerClient.prototype.inspectContainerAsync.returns(Promise.resolve(testInspect))
       DockerEventPublish(testJob).asCallback((err) => {
         if (err) { return done(err) }
-        expect(testJob.inspectData).to.equal(testInspect)
         sinon.assert.calledOnce(DockerClient.prototype.inspectContainerAsync)
         sinon.assert.calledWith(DockerClient.prototype.inspectContainerAsync, testJob.id)
+        sinon.assert.calledOnce(DockerEventPublish._handlePublish)
+        sinon.assert.calledWith(DockerEventPublish._handlePublish, sinon.match.has('inspectData'))
         done()
       })
     })
@@ -112,10 +113,8 @@ describe('docker event publish', () => {
       DockerClient.prototype.inspectContainerAsync.returns(Promise.resolve(testInspect))
       DockerEventPublish(testJob).asCallback((err) => {
         if (err) { return done(err) }
-        expect(testJob.inspectData).to.equal(testInspect)
         sinon.assert.calledOnce(DockerEventPublish._handlePublish)
-        const finalJob = DockerEventPublish._handlePublish.getCall(0).args[0]
-        expect(finalJob.tid).to.equal(testTid)
+        sinon.assert.calledWith(DockerEventPublish._handlePublish, sinon.match.has('tid', testTid))
         done()
       })
     })
@@ -133,10 +132,10 @@ describe('docker event publish', () => {
       DockerClient.prototype.inspectContainerAsync.returns(Promise.resolve(testInspect))
       DockerEventPublish(testJob).asCallback((err) => {
         if (err) { return done(err) }
-        expect(testJob.inspectData).to.equal(testInspect)
         sinon.assert.calledOnce(DockerEventPublish._handlePublish)
-        const finalJob = DockerEventPublish._handlePublish.getCall(0).args[0]
-        expect(finalJob.tid).to.not.exist()
+        sinon.assert.calledWith(DockerEventPublish._handlePublish, sinon.match((value) => {
+          return !value.tid
+        }, 'tid exists'))
         done()
       })
     })
@@ -149,43 +148,59 @@ describe('docker event publish', () => {
       DockerClient.prototype.inspectContainerAsync.returns(Promise.resolve(testInspect))
       DockerEventPublish(testJob).asCallback((err) => {
         if (err) { return done(err) }
-        expect(testJob.inspectData).to.equal({
-          Id: 'fa94842f2ee10c18271a0a8037681b54eaf234906e1733191b09dd3cf3513802',
-          Created: '2016-08-23T21:43:41.921631763Z',
-          State: {
-            Status: 'running',
-            Running: true,
-            Paused: false,
-            Restarting: false,
-            OOMKilled: false,
-            Dead: false,
-            ExitCode: 0,
-            Error: '',
-            StartedAt: '2016-08-24T19:55:45.755508303Z',
-            FinishedAt: '2016-08-24T19:55:42.537960861Z'
-          },
-          Image: 'sha256:6f359d21b6893c6a2bba29a33b73ae5892c47962ee47374438a28c2615e3cc04',
-          Name: '/fervent_sammet9',
-          HostConfig: { Memory: 2048000000, MemoryReservation: 128000000 },
-          Config: {
-            Hostname: 'fa94842f2ee1',
-            Env: [
-              'RUNNABLE_CONTAINER_ID=18wjg4',
-              'REDIS_VERSION=3.2.1'
-            ],
-            Image: 'localhost/2335750/57bcc389f970c7140062ab24:57bcc389a124de130050a02c',
-            Labels: {
-              'com-docker-swarm-constraints': '[\'org==2335750\',\'node==~ip-10-4-132-87.2335750\']',
-              type: 'user-container'
-            }
-          },
-          NetworkSettings: {
-            Ports: {
-              '6379/tcp': [{ 'HostIp': '0.0.0.0', 'HostPort': '64821' }]
+        sinon.assert.calledOnce(DockerEventPublish._handlePublish)
+        sinon.assert.calledWith(DockerEventPublish._handlePublish, {
+          Host: '10.0.0.1:4242',
+          dockerPort: '4242',
+          dockerUrl: 'http://10.0.0.1:4242',
+          from: 'ubuntu',
+          host: 'http://10.0.0.1:4242',
+          id: 'id',
+          ip: '10.0.0.1',
+          needsInspect: true,
+          org: '123456789',
+          status: 'start',
+          tags: '123456789',
+          time: 123456789,
+          uuid: '1234-1234-1234',
+          inspectData: {
+            Id: 'fa94842f2ee10c18271a0a8037681b54eaf234906e1733191b09dd3cf3513802',
+            Created: '2016-08-23T21:43:41.921631763Z',
+            State: {
+              Status: 'running',
+              Running: true,
+              Paused: false,
+              Restarting: false,
+              OOMKilled: false,
+              Dead: false,
+              ExitCode: 0,
+              Error: '',
+              StartedAt: '2016-08-24T19:55:45.755508303Z',
+              FinishedAt: '2016-08-24T19:55:42.537960861Z'
             },
-            IPAddress: '172.17.0.3'
-          },
-          Mounts: []
+            Image: 'sha256:6f359d21b6893c6a2bba29a33b73ae5892c47962ee47374438a28c2615e3cc04',
+            Name: '/fervent_sammet9',
+            HostConfig: { Memory: 2048000000, MemoryReservation: 128000000 },
+            Config: {
+              Hostname: 'fa94842f2ee1',
+              Env: [
+                'RUNNABLE_CONTAINER_ID=18wjg4',
+                'REDIS_VERSION=3.2.1'
+              ],
+              Image: 'localhost/2335750/57bcc389f970c7140062ab24:57bcc389a124de130050a02c',
+              Labels: {
+                'com-docker-swarm-constraints': '[\'org==2335750\',\'node==~ip-10-4-132-87.2335750\']',
+                type: 'user-container'
+              }
+            },
+            NetworkSettings: {
+              Ports: {
+                '6379/tcp': [{ 'HostIp': '0.0.0.0', 'HostPort': '64821' }]
+              },
+              IPAddress: '172.17.0.3'
+            },
+            Mounts: []
+          }
         })
         sinon.assert.calledOnce(DockerClient.prototype.inspectContainerAsync)
         sinon.assert.calledWith(DockerClient.prototype.inspectContainerAsync, testJob.id)
