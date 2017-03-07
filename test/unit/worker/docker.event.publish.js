@@ -184,7 +184,8 @@ describe('docker event publish', () => {
               '6379/tcp': [{ 'HostIp': '0.0.0.0', 'HostPort': '64821' }]
             },
             IPAddress: '172.17.0.3'
-          }
+          },
+          Mounts: []
         })
         sinon.assert.calledOnce(DockerClient.prototype.inspectContainerAsync)
         sinon.assert.calledWith(DockerClient.prototype.inspectContainerAsync, testJob.id)
