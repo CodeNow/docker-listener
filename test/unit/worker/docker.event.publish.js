@@ -145,6 +145,7 @@ describe('docker event publish', () => {
         needsInspect: true
       })
       const testInspect = require('../../fixtures/inspect-data.js')
+      testInspect.Config.Env.push('runnable.test=hello')
       DockerClient.prototype.inspectContainerAsync.returns(Promise.resolve(testInspect))
       DockerEventPublish(testJob).asCallback((err) => {
         if (err) { return done(err) }
@@ -185,10 +186,12 @@ describe('docker event publish', () => {
               Hostname: 'fa94842f2ee1',
               Env: [
                 'RUNNABLE_CONTAINER_ID=18wjg4',
-                'REDIS_VERSION=3.2.1'
+                'REDIS_VERSION=3.2.1',
+                'runnable.test=hello'
               ],
               Image: 'localhost/2335750/57bcc389f970c7140062ab24:57bcc389a124de130050a02c',
               Labels: {
+                'test': 'hello',
                 'com-docker-swarm-constraints': '[\'org==2335750\',\'node==~ip-10-4-132-87.2335750\']',
                 type: 'user-container'
               }
