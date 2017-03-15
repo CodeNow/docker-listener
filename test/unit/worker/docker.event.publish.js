@@ -1,13 +1,14 @@
 'use strict'
 require('loadenv')()
-
 const Code = require('code')
 const defaults = require('101/defaults')
+const keypather = require('keypather')()
 const Lab = require('lab')
 const Promise = require('bluebird')
 const sinon = require('sinon')
 
 const DockerClient = require('@runnable/loki')._BaseClient
+const RootDockerClient = require('@runnable/loki').Docker
 const DockerEventPublish = require('../../../lib/workers/docker.event.publish.js').task
 const rabbitmq = require('../../../lib/rabbitmq')
 const sinceMap = require('../../../lib/since-map')
@@ -41,8 +42,12 @@ const it = lab.test
 
 describe('docker event publish', () => {
   describe('worker', () => {
+    let inspectMock = sinon.stub()
     beforeEach((done) => {
       sinon.stub(DockerClient.prototype, 'inspectContainerAsync')
+      sinon.stub(RootDockerClient.prototype, 'getImage').returns({
+        inspect: inspectMock
+      })
       sinon.stub(dockerUtils, 'handleInspectError')
       sinon.stub(DockerEventPublish, '_handlePublish')
       sinon.stub(sinceMap, 'set')
@@ -51,6 +56,7 @@ describe('docker event publish', () => {
 
     afterEach((done) => {
       DockerClient.prototype.inspectContainerAsync.restore()
+      RootDockerClient.prototype.getImage.restore()
       dockerUtils.handleInspectError.restore()
       DockerEventPublish._handlePublish.restore()
       sinceMap.set.restore()
@@ -93,6 +99,28 @@ describe('docker event publish', () => {
         sinon.assert.calledWith(DockerClient.prototype.inspectContainerAsync, testJob.id)
         sinon.assert.calledOnce(DockerEventPublish._handlePublish)
         sinon.assert.calledWith(DockerEventPublish._handlePublish, sinon.match.has('inspectData'))
+        done()
+      })
+    })
+
+    it('should call image inspect when needsInspect true', (done) => {
+      const testJob = eventMock({
+        needsInspect: true,
+        status: 'die'
+      })
+      const testInspect = { Id: 'gear' }
+
+      keypather.set(testJob, 'Actor.Attributes.type', 'image-builder-container')
+      DockerClient.prototype.inspectContainerAsync.returns(Promise.resolve())
+      inspectMock.yieldsAsync(testInspect)
+
+      DockerEventPublish(testJob).asCallback((err) => {
+        if (err) { return done(err) }
+        sinon.assert.calledOnce(inspectMock)
+        sinon.assert.calledOnce(RootDockerClient.prototype.getImage)
+        sinon.assert.calledWith(RootDockerClient.prototype.getImage, testJob.Actor.Attributes.dockerTag)
+        sinon.assert.calledOnce(DockerEventPublish._handlePublish)
+        sinon.assert.calledWith(DockerEventPublish._handlePublish, sinon.match.has('inspectImageData'))
         done()
       })
     })
@@ -145,7 +173,7 @@ describe('docker event publish', () => {
         needsInspect: true
       })
       const testInspect = require('../../fixtures/inspect-data.js')
-      testInspect.Config.Env.push('runnable.test=hello')
+      testInspect.Config.Env.push('runnable_test=hello')
       DockerClient.prototype.inspectContainerAsync.returns(Promise.resolve(testInspect))
       DockerEventPublish(testJob).asCallback((err) => {
         if (err) { return done(err) }
@@ -187,7 +215,7 @@ describe('docker event publish', () => {
               Env: [
                 'RUNNABLE_CONTAINER_ID=18wjg4',
                 'REDIS_VERSION=3.2.1',
-                'runnable.test=hello'
+                'runnable_test=hello'
               ],
               Image: 'localhost/2335750/57bcc389f970c7140062ab24:57bcc389a124de130050a02c',
               Labels: {
