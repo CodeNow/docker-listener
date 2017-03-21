@@ -57,7 +57,7 @@
     "lab": "^11.0.0",
     "rerun-script": "^0.6.0",
     "sinon": "^1.17.5",
-    "sinon-as-promised": "^4.0.2",
+    "sinon-as-promised": "^4.0.3",
     "standard": "^8.0.0"
   }
 }
