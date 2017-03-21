@@ -113,6 +113,7 @@ describe('docker event publish', () => {
       const testInspect = { Id: 'gear' }
 
       keypather.set(testJob, 'Actor.Attributes.type', 'image-builder-container')
+      keypather.set(testJob, 'State.ExitCode', 0)
       DockerClient.prototype.inspectContainerAsync.resolves()
       inspectMock.yieldsAsync(testInspect)
 
@@ -123,6 +124,46 @@ describe('docker event publish', () => {
         sinon.assert.calledWith(RootDockerClient.prototype.getImage, testJob.Actor.Attributes.dockerTag)
         sinon.assert.calledOnce(DockerEventPublish._handlePublish)
         sinon.assert.calledWith(DockerEventPublish._handlePublish, sinon.match.has('inspectImageData'))
+        done()
+      })
+    })
+
+    it('should not call image inspect when non-zero exit', (done) => {
+      const testJob = eventMock({
+        needsInspect: true,
+        status: 'die'
+      })
+      const testInspect = { Id: 'gear' }
+
+      keypather.set(testJob, 'Actor.Attributes.type', 'image-builder-container')
+      keypather.set(testJob, 'State.ExitCode', 207)
+      DockerClient.prototype.inspectContainerAsync.resolves()
+      inspectMock.yieldsAsync(testInspect)
+
+      DockerEventPublish(testJob).asCallback((err) => {
+        if (err) { return done(err) }
+        sinon.assert.calledOnce(inspectMock)
+        sinon.assert.notCalled(RootDockerClient.prototype.getImage)
+        done()
+      })
+    })
+
+    it('should not call image inspect when not a die', (done) => {
+      const testJob = eventMock({
+        needsInspect: true,
+        status: 'start'
+      })
+      const testInspect = { Id: 'gear' }
+
+      keypather.set(testJob, 'Actor.Attributes.type', 'image-builder-container')
+      keypather.set(testJob, 'State.ExitCode', 207)
+      DockerClient.prototype.inspectContainerAsync.resolves()
+      inspectMock.yieldsAsync(testInspect)
+
+      DockerEventPublish(testJob).asCallback((err) => {
+        if (err) { return done(err) }
+        sinon.assert.calledOnce(inspectMock)
+        sinon.assert.notCalled(RootDockerClient.prototype.getImage)
         done()
       })
     })
