@@ -113,7 +113,7 @@ describe('docker event publish', () => {
       const testInspect = { Id: 'gear' }
 
       keypather.set(testJob, 'Actor.Attributes.type', 'image-builder-container')
-      keypather.set(testJob, 'State.ExitCode', 0)
+      keypather.set(testJob, 'Actor.Attributes.exitCode', '0')
       DockerClient.prototype.inspectContainerAsync.resolves()
       inspectMock.yieldsAsync(testInspect)
 
@@ -136,7 +136,7 @@ describe('docker event publish', () => {
       const testInspect = { Id: 'gear' }
 
       keypather.set(testJob, 'Actor.Attributes.type', 'image-builder-container')
-      keypather.set(testJob, 'State.ExitCode', 207)
+      keypather.set(testJob, 'Actor.Attributes.exitCode', '128')
       DockerClient.prototype.inspectContainerAsync.resolves()
       inspectMock.yieldsAsync(testInspect)
 
