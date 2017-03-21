@@ -7,6 +7,8 @@ const Lab = require('lab')
 const Promise = require('bluebird')
 const sinon = require('sinon')
 
+require('sinon-as-promised')(Promise)
+
 const DockerClient = require('@runnable/loki')._BaseClient
 const RootDockerClient = require('@runnable/loki').Docker
 const DockerEventPublish = require('../../../lib/workers/docker.event.publish.js').task
@@ -65,7 +67,7 @@ describe('docker event publish', () => {
 
     it('should set sinceMap', (done) => {
       const testJob = eventMock()
-      DockerClient.prototype.inspectContainerAsync.returns(Promise.resolve())
+      DockerClient.prototype.inspectContainerAsync.resolves()
       DockerEventPublish(testJob).asCallback((err) => {
         if (err) { return done(err) }
 
@@ -92,7 +94,7 @@ describe('docker event publish', () => {
         needsInspect: true
       })
       const testInspect = { Id: 'gear' }
-      DockerClient.prototype.inspectContainerAsync.returns(Promise.resolve(testInspect))
+      DockerClient.prototype.inspectContainerAsync.resolves(testInspect)
       DockerEventPublish(testJob).asCallback((err) => {
         if (err) { return done(err) }
         sinon.assert.calledOnce(DockerClient.prototype.inspectContainerAsync)
@@ -111,7 +113,7 @@ describe('docker event publish', () => {
       const testInspect = { Id: 'gear' }
 
       keypather.set(testJob, 'Actor.Attributes.type', 'image-builder-container')
-      DockerClient.prototype.inspectContainerAsync.returns(Promise.resolve())
+      DockerClient.prototype.inspectContainerAsync.resolves()
       inspectMock.yieldsAsync(testInspect)
 
       DockerEventPublish(testJob).asCallback((err) => {
@@ -138,7 +140,7 @@ describe('docker event publish', () => {
           }
         }
       }
-      DockerClient.prototype.inspectContainerAsync.returns(Promise.resolve(testInspect))
+      DockerClient.prototype.inspectContainerAsync.resolves(testInspect)
       DockerEventPublish(testJob).asCallback((err) => {
         if (err) { return done(err) }
         sinon.assert.calledOnce(DockerEventPublish._handlePublish)
@@ -157,7 +159,7 @@ describe('docker event publish', () => {
           Labels: {}
         }
       }
-      DockerClient.prototype.inspectContainerAsync.returns(Promise.resolve(testInspect))
+      DockerClient.prototype.inspectContainerAsync.resolves(testInspect)
       DockerEventPublish(testJob).asCallback((err) => {
         if (err) { return done(err) }
         sinon.assert.calledOnce(DockerEventPublish._handlePublish)
@@ -174,7 +176,7 @@ describe('docker event publish', () => {
       })
       const testInspect = require('../../fixtures/inspect-data.js')
       testInspect.Config.Env.push('runnable_test=hello')
-      DockerClient.prototype.inspectContainerAsync.returns(Promise.resolve(testInspect))
+      DockerClient.prototype.inspectContainerAsync.resolves(testInspect)
       DockerEventPublish(testJob).asCallback((err) => {
         if (err) { return done(err) }
         sinon.assert.calledOnce(DockerEventPublish._handlePublish)
@@ -244,7 +246,7 @@ describe('docker event publish', () => {
         needsInspect: true
       })
       const testInspect = { State: 123 }
-      DockerClient.prototype.inspectContainerAsync.returns(Promise.resolve(testInspect))
+      DockerClient.prototype.inspectContainerAsync.resolves(testInspect)
       DockerEventPublish(testJob).asCallback((err) => {
         expect(err.message).to.contain('child "State" fails because ["State" must be an object]')
         sinon.assert.calledOnce(DockerClient.prototype.inspectContainerAsync)
@@ -258,7 +260,7 @@ describe('docker event publish', () => {
         needsInspect: true
       })
       const testError = new Error('baaam')
-      DockerClient.prototype.inspectContainerAsync.returns(Promise.reject(testError))
+      DockerClient.prototype.inspectContainerAsync.rejects(testError)
       DockerEventPublish(testJob).asCallback((err) => {
         if (err) { return done(err) }
 
@@ -270,7 +272,7 @@ describe('docker event publish', () => {
 
     it('should call publish for event', function (done) {
       const testJob = eventMock()
-      DockerClient.prototype.inspectContainerAsync.returns(Promise.resolve())
+      DockerClient.prototype.inspectContainerAsync.resolves()
       DockerEventPublish(testJob).asCallback((err) => {
         if (err) { return done(err) }
 
