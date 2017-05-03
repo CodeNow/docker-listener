@@ -38,7 +38,7 @@ describe('docker container poll', () => {
 
   describe('worker', () => {
     beforeEach((done) => {
-      sinon.stub(Swarm.prototype, 'swarmHostExistsAsync').resolves()
+      sinon.stub(Swarm.prototype, 'swarmHostExistsAsync').resolves(true)
       sinon.stub(DockerClient.prototype, 'inspectContainerAsync')
       sinon.stub(dockerUtils, 'handleInspectError')
       sinon.stub(rabbitmq, 'publishEvent')
@@ -51,6 +51,16 @@ describe('docker container poll', () => {
       dockerUtils.handleInspectError.restore()
       rabbitmq.publishEvent.restore()
       done()
+    })
+
+    it('should call inspect', (done) => {
+      Swarm.prototype.swarmHostExistsAsync.resolves(false)
+      DockerClient.prototype.inspectContainerAsync.resolves(testInspectData)
+      ContainerStatePoll(testJob).asCallback((err) => {
+        if (err) { return done(err) }
+        sinon.assert.notCalled(DockerClient.prototype.inspectContainerAsync)
+        done()
+      })
     })
 
     it('should call inspect', (done) => {
