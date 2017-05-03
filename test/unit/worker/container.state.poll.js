@@ -53,7 +53,7 @@ describe('docker container poll', () => {
       done()
     })
 
-    it('should call inspect', (done) => {
+    it('should not call inspect', (done) => {
       Swarm.prototype.swarmHostExistsAsync.resolves(false)
       DockerClient.prototype.inspectContainerAsync.resolves(testInspectData)
       ContainerStatePoll(testJob).asCallback((err) => {
