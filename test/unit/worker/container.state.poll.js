@@ -53,12 +53,13 @@ describe('docker container poll', () => {
       done()
     })
 
-    it('should not call inspect', (done) => {
+    it('should not call inspect or publish', (done) => {
       Swarm.prototype.swarmHostExistsAsync.resolves(false)
       DockerClient.prototype.inspectContainerAsync.resolves(testInspectData)
       ContainerStatePoll(testJob).asCallback((err) => {
         if (err) { return done(err) }
         sinon.assert.notCalled(DockerClient.prototype.inspectContainerAsync)
+        sinon.assert.notCalled(rabbitmq.publishEvent)
         done()
       })
     })
