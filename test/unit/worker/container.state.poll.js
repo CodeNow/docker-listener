@@ -1,19 +1,20 @@
 'use strict'
 require('loadenv')()
 
+const clone = require('101/clone')
 const Code = require('code')
+const DockerClient = require('@runnable/loki')._BaseClient
 const Lab = require('lab')
 const Promise = require('bluebird')
 const sinon = require('sinon')
-require('sinon-as-promised')(Promise)
+const Swarm = require('@runnable/loki').Swarm
 
-const clone = require('101/clone')
-const DockerClient = require('@runnable/loki')._BaseClient
 const ContainerStatePoll = require('../../../lib/workers/container.state.poll.js').task
-const rabbitmq = require('../../../lib/rabbitmq')
 const dockerUtils = require('../../../lib/docker-utils')
+const rabbitmq = require('../../../lib/rabbitmq')
 
 const lab = exports.lab = Lab.script()
+require('sinon-as-promised')(Promise)
 
 const afterEach = lab.afterEach
 const beforeEach = lab.beforeEach
@@ -34,8 +35,10 @@ describe('docker container poll', () => {
     host: 'http://10.0.0.1:4242',
     githubOrgId: 1111
   }
+
   describe('worker', () => {
     beforeEach((done) => {
+      sinon.stub(Swarm.prototype, 'swarmHostExistsAsync').resolves()
       sinon.stub(DockerClient.prototype, 'inspectContainerAsync')
       sinon.stub(dockerUtils, 'handleInspectError')
       sinon.stub(rabbitmq, 'publishEvent')
@@ -43,6 +46,7 @@ describe('docker container poll', () => {
     })
 
     afterEach((done) => {
+      Swarm.prototype.swarmHostExistsAsync.restore()
       DockerClient.prototype.inspectContainerAsync.restore()
       dockerUtils.handleInspectError.restore()
       rabbitmq.publishEvent.restore()
