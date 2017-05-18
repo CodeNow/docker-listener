@@ -45,7 +45,7 @@
     "callsite": "^1.0.0",
     "continuation-local-storage": "^3.1.7",
     "error-cat": "^3.0.0",
-    "joi": "^9.0.4",
+    "joi": "^10.5.0",
     "keypather": "^2.0.1",
     "loadenv": "^2.2.0",
     "monitor-dog": "^1.5.0",
