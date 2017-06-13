@@ -105,6 +105,26 @@ describe('rabbitmq.js unit test', () => {
     })
   }) // end createPingJob
 
+  describe('createReconcileListenersJob', () => {
+    beforeEach((done) => {
+      sinon.stub(rabbitmq, 'publishTask')
+      done()
+    })
+
+    afterEach((done) => {
+      rabbitmq.publishTask.restore()
+      done()
+    })
+
+    it('should publish job', (done) => {
+      const testData = {}
+      rabbitmq.createReconcileListenersJob(testData)
+      sinon.assert.calledOnce(rabbitmq.publishTask)
+      sinon.assert.calledWith(rabbitmq.publishTask, 'reconcile.listeners', testData)
+      done()
+    })
+  }) // end createReconcileListenersJob
+
   describe('createStreamConnectJob', () => {
     beforeEach((done) => {
       sinon.stub(rabbitmq, 'publishTask')
