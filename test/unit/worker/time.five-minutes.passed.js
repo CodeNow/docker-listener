@@ -22,13 +22,24 @@ describe('time.five-minutes.passed worker unit test', () => {
     beforeEach((done) => {
       sinon.stub(eventManager, 'getListeners')
       sinon.stub(rabbitmq, 'createPingJob')
+      sinon.stub(rabbitmq, 'createStreamReconcileJob')
       done()
     })
 
     afterEach((done) => {
       eventManager.getListeners.restore()
       rabbitmq.createPingJob.restore()
+      rabbitmq.createStreamReconcileJob.restore()
       done()
+    })
+
+    it('should publish docker.events-stream.reconcile task', (done) => {
+      eventManager.getListeners.returns([])
+      timeFiveMinutesPassed()
+      .then(() => {
+        sinon.assert.calledOnce(rabbitmq.createStreamReconcileJob)
+      })
+      .asCallback(done)
     })
 
     it('should call create ping for each listener', (done) => {

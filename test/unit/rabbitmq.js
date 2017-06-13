@@ -105,6 +105,26 @@ describe('rabbitmq.js unit test', () => {
     })
   }) // end createPingJob
 
+  describe('createStreamReconcileJob', () => {
+    beforeEach((done) => {
+      sinon.stub(rabbitmq, 'publishTask')
+      done()
+    })
+
+    afterEach((done) => {
+      rabbitmq.publishTask.restore()
+      done()
+    })
+
+    it('should publish job', (done) => {
+      const testData = {}
+      rabbitmq.createStreamReconcileJob(testData)
+      sinon.assert.calledOnce(rabbitmq.publishTask)
+      sinon.assert.calledWith(rabbitmq.publishTask, 'docker.events-stream.reconcile', testData)
+      done()
+    })
+  }) // end createStreamReconcileJob
+
   describe('createStreamConnectJob', () => {
     beforeEach((done) => {
       sinon.stub(rabbitmq, 'publishTask')
