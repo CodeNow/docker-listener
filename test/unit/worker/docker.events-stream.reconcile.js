@@ -6,7 +6,7 @@ const Promise = require('bluebird')
 const sinon = require('sinon')
 
 const Swarm = require('../../../lib/swarm')
-const ReconcileListeners = require('../../../lib/workers/reconcile.listeners.js').task
+const SwarmEventsReconcile = require('../../../lib/workers/docker.events-stream.reconcile.js').task
 const eventManager = require('../../../lib/event-manager')
 const rabbitmq = require('../../../lib/rabbitmq')
 
@@ -17,7 +17,7 @@ const beforeEach = lab.beforeEach
 const describe = lab.experiment
 const it = lab.test
 
-describe('reconcile.listeners unit test', () => {
+describe('docker.events-stream.reconcile unit test', () => {
   beforeEach((done) => {
     sinon.stub(Swarm.prototype, 'getNodes')
     sinon.stub(eventManager, 'hasListener')
@@ -41,7 +41,7 @@ describe('reconcile.listeners unit test', () => {
     eventManager.hasListener.returns(false)
     eventManager.hasListener.withArgs(node3.Host).returns(true)
 
-    ReconcileListeners().asCallback((err) => {
+    SwarmEventsReconcile().asCallback((err) => {
       if (err) { return done(err) }
       sinon.assert.calledOnce(Swarm.prototype.getNodes)
 
@@ -57,4 +57,4 @@ describe('reconcile.listeners unit test', () => {
       done()
     })
   })
-}) // end reconcile.listeners unit test
+}) // end docker.events-stream.reconcile unit test
