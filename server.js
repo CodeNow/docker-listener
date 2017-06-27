@@ -14,11 +14,10 @@ const workerServer = require('./lib/worker-server')
 module.exports = class Server {
   /**
    * Listen for events from Docker and publish to rabbitmq
-   * @param {String} port
-   * @return {Promise}
+=   * @return {Promise}
    */
-  static start (port) {
-    log.info({ port: port }, 'Server.prototype.start')
+  static start () {
+    log.info('Server.prototype.start')
     monitor.startSocketsMonitor()
     return rabbitmq.connect()
       .then(() => {
