@@ -2,7 +2,6 @@
 
 const Code = require('code')
 const Lab = require('lab')
-const monitor = require('monitor-dog')
 const sinon = require('sinon')
 const Promise = require('bluebird')
 require('sinon-as-promised')(Promise)
@@ -21,7 +20,6 @@ const it = lab.it
 describe('server.js unit test', () => {
   describe('start', () => {
     beforeEach((done) => {
-      sinon.stub(monitor, 'startSocketsMonitor').returns()
       sinon.stub(rabbitmq, 'connect').resolves()
       sinon.stub(rabbitmq, 'createStreamConnectJob').returns()
       sinon.stub(workerServer, 'start').resolves()
@@ -29,7 +27,6 @@ describe('server.js unit test', () => {
     })
 
     afterEach((done) => {
-      monitor.startSocketsMonitor.restore()
       rabbitmq.connect.restore()
       rabbitmq.createStreamConnectJob.restore()
       workerServer.start.restore()
@@ -40,7 +37,6 @@ describe('server.js unit test', () => {
       Server.start(3000).asCallback((err) => {
         if (err) { return done(err) }
 
-        sinon.assert.calledOnce(monitor.startSocketsMonitor)
         sinon.assert.calledOnce(rabbitmq.connect)
         sinon.assert.calledOnce(workerServer.start)
         sinon.assert.calledOnce(rabbitmq.createStreamConnectJob)
@@ -55,7 +51,6 @@ describe('server.js unit test', () => {
       Server.start(3000).asCallback((err) => {
         expect(err).to.equal(testErr)
 
-        sinon.assert.calledOnce(monitor.startSocketsMonitor)
         sinon.assert.calledOnce(rabbitmq.connect)
         sinon.assert.notCalled(workerServer.start)
         sinon.assert.notCalled(rabbitmq.createStreamConnectJob)
@@ -70,7 +65,6 @@ describe('server.js unit test', () => {
       Server.start(3000).asCallback((err) => {
         expect(err).to.equal(testErr)
 
-        sinon.assert.calledOnce(monitor.startSocketsMonitor)
         sinon.assert.calledOnce(rabbitmq.connect)
         sinon.assert.calledOnce(workerServer.start)
         sinon.assert.notCalled(rabbitmq.createStreamConnectJob)

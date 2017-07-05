@@ -5,8 +5,6 @@
 'use strict'
 require('loadenv')()
 
-const monitor = require('monitor-dog')
-
 const log = require('./lib/logger')()
 const rabbitmq = require('./lib/rabbitmq')
 const workerServer = require('./lib/worker-server')
@@ -19,7 +17,7 @@ module.exports = class Server {
    */
   static start (port) {
     log.info({ port: port }, 'Server.prototype.start')
-    monitor.startSocketsMonitor()
+
     return rabbitmq.connect()
       .then(() => {
         log.info('rabbimq publisher started')
